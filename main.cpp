@@ -15,7 +15,7 @@ const int SCREEN_HEIGHT = 720;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
-//create window
+//creates window
 void initSDL()
 {
     int rendererFlags, windowFlags;
@@ -40,6 +40,7 @@ void initSDL()
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
+    //-1 so SDL use the first graphics acceleration device it finds
     renderer = SDL_CreateRenderer(window, -1, rendererFlags);
 
     //Check if renderer is working
@@ -47,12 +48,45 @@ void initSDL()
     {
         cout << "Renderer failed: " << SDL_GetError();
     }
+
+    //Allows window to load .png and .jpg images
+    ImageInit(IMG_INIT_PNG | IMG_INIT_JPG);
+}
+
+//For loading image to the window
+SDL_Texture *loadImages(char* imageFile)
+{
+    //A variable to pass the image to SDL
+    SDL_Texture *Image;
+
+    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", imageFile);
+
+    Image = IMG_LoadTexture(renderer, imageFile);
+
+    return Image;
+}
+
+//sets image location 
+void imagePos(SDL_Texture* image, int x, int y)
+{
+    SDL_Rect dest;
+
+    //Where the image goes
+    dest.x = x;
+    dest.y = y;
+
+    //Query the attributes of a texture
+    //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
+    SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h);
+
+    //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image 
+    SDL_RenderCopy(renderer, image, NULL, &dest);
 }
 
 void makeVisuals()
 {
-    //Color for background
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    //Color for background         0, 0, 0, 0, is for black
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 }
 
@@ -65,10 +99,16 @@ int main(int argc, char* args[])
 {
     initSDL();
 
+    user player;
+    player.x = 100;
+    player.y = 100;
+    player.texture = loadImages("images/Untitled.png");
+
     while (1)
     {
         makeVisuals();
 	input();
+	imagePos(player.texture, player.x, player.y);
 	showVisuals();
 	SDL_Delay(10);
     }

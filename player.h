@@ -5,4 +5,13 @@
 
 void input();
 
+class user
+{
+    public:
+	    int x;
+	    int y;
+	    SDL_Texture* texture;
+};
+
+
 #endif

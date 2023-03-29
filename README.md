@@ -1,7 +1,7 @@
 First Game
 ---------
 
-My first project in c++
+My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/
 
 Installing on linux
 --------
