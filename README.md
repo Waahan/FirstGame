@@ -10,6 +10,10 @@ Installing on linux
 	cd FirstGame
 	mkdir build
 	cd build
+	mkdir images
+	cd ..
+	cd images
+	cp * /home/"$(whoami)"/FirstGame/build/images
 	cmake ..
 	make
 	./main
