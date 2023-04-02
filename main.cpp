@@ -60,6 +60,7 @@ void initSDL()
     // load support for the JPG and PNG image formats
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;
     int initted = IMG_Init(flags);
+
     if ((initted & flags) != flags) {
         printf("IMG_Init: Failed to init required jpg and png support!\n");
         printf("IMG_Init: %s\n", IMG_GetError());
@@ -113,16 +114,38 @@ int main(int argc, char* args[])
     initSDL();
 
     user player;
+    playerD playerd;
     player.x = 100;
     player.y = 100;
-    player.texture = loadImages("images/Untitled.png");
+    player.texture = loadImages("images/Player.png");
 
     while (1)
     {
         makeVisuals();
-	input();
+	input(playerd);
+
+        
+	if (playerd.playerUp)
+	{
+	    player.y -= 4;
+	}
+	if (playerd.playerDown)
+	{
+	    player.y += 4;
+	}
+	if (playerd.playerLeft)
+	{
+	    player.x -= 4;
+	}
+	if (playerd.playerRight)
+	{			
+	    player.x += 4;
+	}
+
 	imagePos(player.texture, player.x, player.y);
 	showVisuals();
+
+        //Delay is in milliseconds 
 	SDL_Delay(10);
     }
     return 0;

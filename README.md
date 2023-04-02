@@ -1,7 +1,9 @@
 First Game
 ---------
 
-My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/
+My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. 
+
+To use this you must edit the cmakelists file to include your SDL2 iamge libary 
 
 Installing on linux
 --------
