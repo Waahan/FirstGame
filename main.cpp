@@ -22,6 +22,17 @@ const int SCREEN_HEIGHT = 720;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
+//For the player movement
+int playerUp = 0;
+int playerDown = 0;
+int playerLeft = 0;
+int playerRight = 0;
+
+int* pPlayerUp = &playerUp;
+int* pPlayerDown = &playerDown;
+int* pPlayerLeft = &playerLeft;
+int* pPlayerRight = &playerRight;
+
 //creates window
 void initSDL()
 {
@@ -114,7 +125,6 @@ int main(int argc, char* args[])
     initSDL();
 
     user player;
-    playerD playerd;
     player.x = 100;
     player.y = 100;
     player.texture = loadImages("images/Player.png");
@@ -122,22 +132,21 @@ int main(int argc, char* args[])
     while (1)
     {
         makeVisuals();
-	input(playerd);
-
+	input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight);
         
-	if (playerd.playerUp)
+	if (playerUp)
 	{
 	    player.y -= 4;
 	}
-	if (playerd.playerDown)
+	if (playerDown)
 	{
 	    player.y += 4;
 	}
-	if (playerd.playerLeft)
+	if (playerLeft)
 	{
 	    player.x -= 4;
 	}
-	if (playerd.playerRight)
+	if (playerRight)
 	{			
 	    player.x += 4;
 	}
@@ -145,7 +154,7 @@ int main(int argc, char* args[])
 	imagePos(player.texture, player.x, player.y);
 	showVisuals();
 
-        //Delay is in milliseconds 
+        //Delay is in milliseconds so its .10 of a second 
 	SDL_Delay(10);
     }
     return 0;

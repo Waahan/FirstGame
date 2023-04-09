@@ -7,7 +7,7 @@
 using namespace std;
 
 //For keyboard event detection. More scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void doKeyDown(SDL_KeyboardEvent *event, playerD playerd)
+void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -17,53 +17,51 @@ void doKeyDown(SDL_KeyboardEvent *event, playerD playerd)
 	//"Up" (the Up arrow key (navigation keypad))
         if(event->keysym.scancode == SDL_SCANCODE_UP)
 	{
-	    playerd.playerUp = 1;
+	    playerUp = 1;
 	}
 	//"Down" (the Down arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_DOWN)
 	{
-	    playerd.playerDown = 1;
+	    playerDown = 1;
 	}
 	//"Left" (the Left arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_LEFT)
 	{
-	    playerd.playerLeft = 1;
+	    playerLeft = 1;
 	}
 	//"Right" (the Right arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_RIGHT)
 	{
-	    playerd.playerRight = 1;
+	    playerRight = 1;
 	}
-
-
 
 	//For using WASD
 	
 	//"Up" (the Up arrow key (navigation keypad))
         if(event->keysym.scancode == SDL_SCANCODE_W)
 	{
-	    playerd.playerUp = 1;
+	    playerUp = 1;
 	}
 	//"Down" (the Down arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_S)
 	{
-	    playerd.playerDown = 1;
+	    playerDown = 1;
 	}
 	//"Left" (the Left arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_A)
 	{
-	    playerd.playerLeft = 1;
+	    playerLeft = 1;
 	}
 	//"Right" (the Right arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_D)
 	{
-	    playerd.playerRight = 1;
+	    playerRight = 1;
 	}
 
     }
 }
 
-void doKeyUp(SDL_KeyboardEvent *event, playerD playerd)
+void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -73,54 +71,52 @@ void doKeyUp(SDL_KeyboardEvent *event, playerD playerd)
 	//"Up" (the Up arrow key (navigation keypad))
         if(event->keysym.scancode == SDL_SCANCODE_UP)
 	{
-	    playerd.playerUp = 0;
+	    playerUp = 0;
 	}
 	//"Down" (the Down arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_DOWN)
 	{
-	    playerd.playerDown = 0;
+	    playerDown = 0;
 	}
 	//"Left" (the Left arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_LEFT)
 	{
-	    playerd.playerLeft = 0;
+	    playerLeft = 0;
 	}
 	//"Right" (the Right arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_RIGHT)
 	{
-	    playerd.playerRight = 0;
+	    playerRight = 0;
 	}
-
-
 
 	//For using WASD
 	
 	//"Up" (the Up arrow key (navigation keypad))
         if(event->keysym.scancode == SDL_SCANCODE_W)
 	{
-	    playerd.playerUp = 0;
+	    playerUp = 0;
 	}
 	//"Down" (the Down arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_S)
 	{
-	    playerd.playerDown = 0;
+	    playerDown = 0;
 	}
 	//"Left" (the Left arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_A)
 	{
-	    playerd.playerLeft = 0;
+	    playerLeft = 0;
 	}
 	//"Right" (the Right arrow key (navigation keypad))
 	if(event->keysym.scancode == SDL_SCANCODE_D)
 	{
-	    playerd.playerRight = 0;
+	    playerRight = 0;
 	}
 
     }
 }
 
 
-void input(playerD playerd)
+void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
 {
     SDL_Event event;
 
@@ -133,11 +129,11 @@ void input(playerD playerd)
 		break;
 
 	    case SDL_KEYDOWN:
-		doKeyDown(&event.key, playerd);
+		doKeyDown(&event.key, playerUp, playerDown, playerLeft, playerRight);
 		break;
 
 	    case SDL_KEYUP:
-		doKeyUp(&event.key, playerd);
+		doKeyUp(&event.key, playerUp, playerDown, playerLeft, playerRight);
 		break;
 
 	    default:

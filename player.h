@@ -3,18 +3,10 @@
 #ifndef player_H
 #define player_H
 
-typedef struct playerDirections
-{
-    int playerUp;
-    int playerDown;
-    int playerLeft;
-    int playerRight;
-} playerD;
+void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
+void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
 
-void doKeyDown(SDL_KeyboardEvent *event, playerD playerd);
-void doKeyUp(SDL_KeyboardEvent *event, playerD playerd);
-
-void input(playerD playerd);
+void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
 
 class user
 {
