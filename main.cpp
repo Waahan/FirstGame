@@ -120,35 +120,91 @@ void showVisuals()
     SDL_RenderPresent(renderer);
 }
 
+int noEscape(user player)
+{
+    // This keeps the player on the screen, remember [x, y] where y is upside down
+    if (player.x < 0)
+    {
+        cout << "out of bounds X+=\n";
+	return 1;
+    }
+    else if (player.x > SCREEN_WIDTH)
+    {
+        cout << "out of bounds\n";
+	return 2;
+    }
+    if (player.y < 0)
+    {
+        cout << "out of bounds Y-=\n";
+	return 3;
+    }
+    else if (player.y > SCREEN_HEIGHT)
+    {
+        cout << "out of bounds Y+=\n";
+	return 4;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 int main(int argc, char* args[])
 {
     initSDL();
 
     user player;
-    player.x = 100;
-    player.y = 100;
+    player.x = 0;
+    player.y = 0;
+    player.speed = 4;
+    player.back = 100;
     player.texture = loadImages("images/Player.png");
 
     while (1)
     {
         makeVisuals();
-	input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight);
-        
-	if (playerUp)
+
+	int escape = noEscape(player);
+
+	if (escape == 0)
 	{
-	    player.y -= 4;
+	    input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight);
+	    if (playerUp)
+	    {
+	        player.y -= player.speed;
+	        cout << "Player Y: " << player.y << "\n";
+	    }
+	    if (playerDown)
+	    {
+	        player.y += player.speed;
+	        cout << "Player Y: " << player.y << "\n";
+	    }
+	    if (playerLeft)
+	    {
+	        player.x -= player.speed;
+	        cout << "Player X: " << player.x << "\n";
+	    }
+	    if (playerRight)
+	    {			
+	        player.x += player.speed;
+	        cout << "Player X: " << player.x << "\n";
+	    }
 	}
-	if (playerDown)
+	else if (escape == 1)
 	{
-	    player.y += 4;
+	    player.x += player.back;
 	}
-	if (playerLeft)
+	else if (escape == 2)
 	{
-	    player.x -= 4;
+            player.x -= player.back;
 	}
-	if (playerRight)
-	{			
-	    player.x += 4;
+	else if (escape == 3)
+	{
+            player.y += player.back;
+	}
+	else if (escape == 4)
+	{
+            player.y -= player.back;
 	}
 
 	imagePos(player.texture, player.x, player.y);

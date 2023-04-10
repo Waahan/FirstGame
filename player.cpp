@@ -12,6 +12,27 @@ void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& pl
     //Ignores keyboard repeat events
     if(event->repeat == 0)
     {
+	// This keeps the player on the screen, remember [x, y] where y is upside down
+    	if (playerLeft < 0)
+	{
+            playerRight = 1;
+	    cout << "out of bounds";
+	}
+	else if (playerRight > 1184)
+	{
+            playerLeft = 1;
+	    cout << "out of bounds";
+	}
+    	if (playerUp < 0)
+	{
+            playerDown = 1;
+	    cout << "out of bounds";
+	}
+	else if (playerDown > 628)
+	{
+             playerUp = 1;
+	     cout << "out of bounds";
+	}
 	//For using the arrow keys
 	
 	//"Up" (the Up arrow key (navigation keypad))

@@ -13,6 +13,8 @@ class user
     public:
 	    int x;
 	    int y;
+	    int speed;
+	    int back;
 	    SDL_Texture* texture;
 };
 
