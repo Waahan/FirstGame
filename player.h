@@ -22,6 +22,7 @@ class user : public thing
 {
     public:
 	    int back;
+	    int direction;
 };
 
 

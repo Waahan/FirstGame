@@ -178,21 +178,25 @@ int main(int argc, char* args[])
 	    if (playerUp)
 	    {
 	        player.y -= player.speed;
+		player.direction = 1;
 	        cout << "Player Y: " << player.y << "\n";
 	    }
 	    if (playerDown)
 	    {
 	        player.y += player.speed;
+		player.direction = 2;
 	        cout << "Player Y: " << player.y << "\n";
 	    }
 	    if (playerLeft)
 	    {
 	        player.x -= player.speed;
+		player.direction = 3;
 	        cout << "Player X: " << player.x << "\n";
 	    }
 	    if (playerRight)
 	    {			
 	        player.x += player.speed;
+		player.direction = 4;
 	        cout << "Player X: " << player.x << "\n";
 	    }
 	    if (playerFired && bullet.health == 0)
@@ -201,15 +205,43 @@ int main(int argc, char* args[])
 	        bullet.x = player.x;
 	        bullet.y = player.y;
 		bullet.health = 1;
-		bullet.speed = player.speed;
+		bullet.speed = player.speed*2;
 	    }
-
-	    bullet.x += bullet.speed;
+            
+	    if(player.direction == 1)
+            {
+	        bullet.y -= bullet.speed;
+	    }
+	    else if(player.direction == 2)
+	    {
+	        bullet.y += bullet.speed;
+	    }
+	    else if(player.direction == 3)
+	    {
+	        bullet.x -= bullet.speed;
+	    }
+	    else if(player.direction == 4)
+	    {
+	        bullet.x += bullet.speed;
+	    }
 
             if (bullet.x > SCREEN_WIDTH)
 	    {
 	        bullet.health = 0;
 	    }
+	    else if (bullet.x < 0)
+	    {
+	        bullet.health = 0;
+	    }
+	    else if (bullet.y > SCREEN_HEIGHT)
+	    {
+	        bullet.health = 0;
+	    }
+	    else if (bullet.y < 0)
+	    {
+	        bullet.health = 0;
+	    }
+
 	    if (bullet.health > 0)
             {
 	        imagePos(bullet.texture, bullet.x, bullet.y);
