@@ -128,7 +128,7 @@ int noEscape(user player)
         cout << "out of bounds X+=\n";
 	return 1;
     }
-    else if (player.x > SCREEN_WIDTH)
+    else if (player.x > 1200)
     {
         cout << "out of bounds\n";
 	return 2;
@@ -138,7 +138,7 @@ int noEscape(user player)
         cout << "out of bounds Y-=\n";
 	return 3;
     }
-    else if (player.y > SCREEN_HEIGHT)
+    else if (player.y > 640)
     {
         cout << "out of bounds Y+=\n";
 	return 4;
