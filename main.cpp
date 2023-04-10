@@ -27,11 +27,13 @@ int playerUp = 0;
 int playerDown = 0;
 int playerLeft = 0;
 int playerRight = 0;
+int playerFired = 0;
 
 int* pPlayerUp = &playerUp;
 int* pPlayerDown = &playerDown;
 int* pPlayerLeft = &playerLeft;
 int* pPlayerRight = &playerRight;
+int* pPlayerFired = &playerFired;
 
 //creates window
 void initSDL()
@@ -160,6 +162,10 @@ int main(int argc, char* args[])
     player.back = 100;
     player.texture = loadImages("images/Player.png");
 
+    thing bullet;
+    bullet.health;
+    bullet.texture = loadImages("images/bullet.png");
+
     while (1)
     {
         makeVisuals();
@@ -168,7 +174,7 @@ int main(int argc, char* args[])
 
 	if (escape == 0)
 	{
-	    input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight);
+	    input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight, *pPlayerFired);
 	    if (playerUp)
 	    {
 	        player.y -= player.speed;
@@ -188,6 +194,25 @@ int main(int argc, char* args[])
 	    {			
 	        player.x += player.speed;
 	        cout << "Player X: " << player.x << "\n";
+	    }
+	    if (playerFired && bullet.health == 0)
+	    {
+		cout << "Bullet fired\n";
+	        bullet.x = player.x;
+	        bullet.y = player.y;
+		bullet.health = 1;
+		bullet.speed = player.speed;
+	    }
+
+	    bullet.x += bullet.speed;
+
+            if (bullet.x > SCREEN_WIDTH)
+	    {
+	        bullet.health = 0;
+	    }
+	    if (bullet.health > 0)
+            {
+	        imagePos(bullet.texture, bullet.x, bullet.y);
 	    }
 	}
 	else if (escape == 1)

@@ -7,32 +7,11 @@
 using namespace std;
 
 //For keyboard event detection. More scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
+void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
     {
-	// This keeps the player on the screen, remember [x, y] where y is upside down
-    	if (playerLeft < 0)
-	{
-            playerRight = 1;
-	    cout << "out of bounds";
-	}
-	else if (playerRight > 1184)
-	{
-            playerLeft = 1;
-	    cout << "out of bounds";
-	}
-    	if (playerUp < 0)
-	{
-            playerDown = 1;
-	    cout << "out of bounds";
-	}
-	else if (playerDown > 628)
-	{
-             playerUp = 1;
-	     cout << "out of bounds";
-	}
 	//For using the arrow keys
 	
 	//"Up" (the Up arrow key (navigation keypad))
@@ -79,10 +58,16 @@ void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& pl
 	    playerRight = 1;
 	}
 
+	//For player firing
+	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
+        {
+	    playerFired = 1;
+	}
+
     }
 }
 
-void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
+void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -133,11 +118,17 @@ void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& play
 	    playerRight = 0;
 	}
 
+	//For firing
+	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
+	{
+	     playerFired = 0;
+	}
+
     }
 }
 
 
-void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
+void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
 {
     SDL_Event event;
 
@@ -150,11 +141,11 @@ void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight)
 		break;
 
 	    case SDL_KEYDOWN:
-		doKeyDown(&event.key, playerUp, playerDown, playerLeft, playerRight);
+		doKeyDown(&event.key, playerUp, playerDown, playerLeft, playerRight, playerFired);
 		break;
 
 	    case SDL_KEYUP:
-		doKeyUp(&event.key, playerUp, playerDown, playerLeft, playerRight);
+		doKeyUp(&event.key, playerUp, playerDown, playerLeft, playerRight, playerFired);
 		break;
 
 	    default:

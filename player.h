@@ -3,19 +3,25 @@
 #ifndef player_H
 #define player_H
 
-void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
-void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
+void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
+void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
 
-void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight);
+void input(int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
 
-class user
+class thing
 {
     public:
 	    int x;
 	    int y;
+	    int health;
 	    int speed;
-	    int back;
 	    SDL_Texture* texture;
+};
+
+class user : public thing
+{
+    public:
+	    int back;
 };
 
 
