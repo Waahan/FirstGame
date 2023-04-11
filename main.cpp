@@ -151,6 +151,43 @@ int noEscape(user player)
     }
 }
 
+void bulletLogic(thing& bullet, user player)
+{
+    if(player.direction == 1)
+    {
+        bullet.y -= bullet.speed;
+    }
+    else if(player.direction == 2)
+    {
+        bullet.y += bullet.speed;
+    }
+    else if(player.direction == 3)
+    {
+        bullet.x -= bullet.speed;
+    }
+    else if(player.direction == 4)
+    {
+        bullet.x += bullet.speed;
+    }
+            
+    if (bullet.x > SCREEN_WIDTH)
+    {
+        bullet.health = 0;
+    }
+    else if (bullet.x < 0)
+    {
+        bullet.health = 0;
+    }
+    else if (bullet.y > SCREEN_HEIGHT)
+    {
+        bullet.health = 0;
+    }
+    else if (bullet.y < 0)
+    {
+        bullet.health = 0;
+    }
+}
+
 int main(int argc, char* args[])
 {
     initSDL();
@@ -163,8 +200,12 @@ int main(int argc, char* args[])
     player.texture = loadImages("images/Player.png");
 
     thing bullet;
-    bullet.health;
+    bullet.health = 0;
     bullet.texture = loadImages("images/bullet.png");
+
+    thing bullet2;
+    bullet2.health = 0;
+    bullet2.texture = loadImages("images/bullet.png");
 
     while (1)
     {
@@ -207,44 +248,24 @@ int main(int argc, char* args[])
 		bullet.health = 1;
 		bullet.speed = player.speed*2;
 	    }
-            
-	    if(player.direction == 1)
-            {
-	        bullet.y -= bullet.speed;
-	    }
-	    else if(player.direction == 2)
+	    else if (playerFired && bullet2.health == 0 && bullet.health == 1)
 	    {
-	        bullet.y += bullet.speed;
-	    }
-	    else if(player.direction == 3)
-	    {
-	        bullet.x -= bullet.speed;
-	    }
-	    else if(player.direction == 4)
-	    {
-	        bullet.x += bullet.speed;
+	        bullet2.x = player.x;
+	        bullet2.y = player.y;
+		bullet2.health = 1;
+		bullet2.speed = player.speed*3;
 	    }
 
-            if (bullet.x > SCREEN_WIDTH)
-	    {
-	        bullet.health = 0;
-	    }
-	    else if (bullet.x < 0)
-	    {
-	        bullet.health = 0;
-	    }
-	    else if (bullet.y > SCREEN_HEIGHT)
-	    {
-	        bullet.health = 0;
-	    }
-	    else if (bullet.y < 0)
-	    {
-	        bullet.health = 0;
-	    }
+	    bulletLogic(bullet, player);
+	    bulletLogic(bullet2, player);
 
 	    if (bullet.health > 0)
             {
 	        imagePos(bullet.texture, bullet.x, bullet.y);
+	    }
+	    if (bullet2.health > 0)
+	    {
+	        imagePos(bullet2.texture, bullet2.x, bullet2.y);
 	    }
 	}
 	else if (escape == 1)
