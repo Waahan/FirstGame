@@ -219,12 +219,13 @@ void enemys(thing& enemy, int& enemySpawnTimer)
     if(enemySpawnTimer <= 0 && enemy.health == 0)
     {
 	cout << "Spawning enemy\n";
+
         enemy.x = 1280;
-	cout << "x:" << enemy.x;
 	enemy.y = rand() % 620;
-	cout << "y:" << enemy.y;
-	enemy.speed = 10;
-	cout << "\n";
+
+	enemy.speed = rand() % 10;
+	cout << "speed" << enemy.speed;
+
 	enemy.health = 1;
 
 	enemy.x -= enemy.speed;
@@ -233,9 +234,9 @@ void enemys(thing& enemy, int& enemySpawnTimer)
     }
     else
     {
-	enemy.x -= enemy.speed;
-	cout << "x:" << enemy.x << "\n";
-	imagePos(enemy.texture, enemy.x, enemy.y);
+        enemy.x -= enemy.speed;
+        imagePos(enemy.texture, enemy.x, enemy.y);
+
         enemySpawnTimer--;
     }
 }
@@ -262,7 +263,7 @@ int main(int argc, char* args[])
 
     thing enemy;
     enemy.health = 0;
-    enemy.texture = loadImages("images/enemey.png");
+    enemy.texture = loadImages("images/enemy.png");
 
     while (1)
     {
@@ -350,7 +351,7 @@ int main(int argc, char* args[])
         enemys(enemy, enemySpawnTimer);
 	thingLogic(enemy);
 
-	if (enemy.health > 0)
+	if(enemy.health > 0)
 	{
 	    imagePos(enemy.texture, enemy.x, enemy.y);
 	}
