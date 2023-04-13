@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "player.h"
@@ -223,12 +224,12 @@ void enemys(thing& enemy, int& enemySpawnTimer)
         enemy.x = 1280;
 	enemy.y = rand() % 620;
 
-	enemy.speed = rand() % 10;
+	enemy.speed = rand() % 15;
 	cout << "speed" << enemy.speed;
 
 	enemy.health = 1;
 
-	enemy.x -= enemy.speed;
+	enemy.x -= rand() % 10;
 
 	enemySpawnTimer = rand() % 100;
     }
@@ -241,6 +242,20 @@ void enemys(thing& enemy, int& enemySpawnTimer)
     }
 }
 
+//Takes two objects dimetions
+int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+{
+	return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
+}
+
+void didBulletHit(thing& bullet, thing& enemy)
+{
+    if(collision(bullet.x, bullet.y, bullet.w, bullet.h, enemy.x, enemy.y, enemy.w, enemy.h))
+    {
+        enemy.health -= 1;
+	bullet.health -= 1;
+    }
+}
 
 int main(int argc, char* args[])
 {
@@ -249,20 +264,40 @@ int main(int argc, char* args[])
     user player;
     player.x = 0;
     player.y = 0;
-    player.speed = 4;
+
+    player.w = 90;
+    player.h = 90;
+
+    player.speed = 10;
     player.back = 100;
+
     player.texture = loadImages("images/Player.png");
 
     thing bullet;
+
+    bullet.w = 22;
+    bullet.h = 22;
+
     bullet.health = 0;
+
     bullet.texture = loadImages("images/bullet.png");
 
     thing bullet2;
+
+    bullet2.w = 22;
+    bullet2.h = 22;
+
     bullet2.health = 0;
+
     bullet2.texture = loadImages("images/bullet.png");
 
     thing enemy;
+
+    enemy.w = 90;
+    enemy.h = 90;
+
     enemy.health = 0;
+
     enemy.texture = loadImages("images/enemy.png");
 
     while (1)
@@ -350,6 +385,9 @@ int main(int argc, char* args[])
 
         enemys(enemy, enemySpawnTimer);
 	thingLogic(enemy);
+
+	didBulletHit(bullet, enemy);
+	didBulletHit(bullet2, enemy);
 
 	if(enemy.health > 0)
 	{
