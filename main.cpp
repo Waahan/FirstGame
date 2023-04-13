@@ -35,6 +35,9 @@ int* pPlayerLeft = &playerLeft;
 int* pPlayerRight = &playerRight;
 int* pPlayerFired = &playerFired;
 
+//For Enemy
+int enemySpawnTimer = 0;
+
 //creates window
 void initSDL()
 {
@@ -187,6 +190,56 @@ void bulletLogic(thing& bullet, user player)
         bullet.health = 0;
     }
 }
+void thingLogic(thing& bullet)
+{
+    if (bullet.x > SCREEN_WIDTH)
+    {
+        bullet.health = 0;
+	cout << "thing" << " is gone\n";
+    }
+    else if (bullet.x < 0)
+    {
+        bullet.health = 0;
+	cout << "thing" << " is gone\n";
+    }
+    else if (bullet.y > SCREEN_HEIGHT)
+    {
+        bullet.health = 0;
+	cout << "thing" << " is gone\n";
+    }
+    else if (bullet.y < 0)
+    {
+        bullet.health = 0;
+	cout << "thing" << " is gone\n";
+    }
+}
+
+void enemys(thing& enemy, int& enemySpawnTimer)
+{
+    if(enemySpawnTimer <= 0 && enemy.health == 0)
+    {
+	cout << "Spawning enemy\n";
+        enemy.x = 1280;
+	cout << "x:" << enemy.x;
+	enemy.y = rand() % 620;
+	cout << "y:" << enemy.y;
+	enemy.speed = 10;
+	cout << "\n";
+	enemy.health = 1;
+
+	enemy.x -= enemy.speed;
+
+	enemySpawnTimer = rand() % 100;
+    }
+    else
+    {
+	enemy.x -= enemy.speed;
+	cout << "x:" << enemy.x << "\n";
+	imagePos(enemy.texture, enemy.x, enemy.y);
+        enemySpawnTimer--;
+    }
+}
+
 
 int main(int argc, char* args[])
 {
@@ -206,6 +259,10 @@ int main(int argc, char* args[])
     thing bullet2;
     bullet2.health = 0;
     bullet2.texture = loadImages("images/bullet.png");
+
+    thing enemy;
+    enemy.health = 0;
+    enemy.texture = loadImages("images/enemey.png");
 
     while (1)
     {
@@ -255,6 +312,11 @@ int main(int argc, char* args[])
 		bullet2.health = 1;
 		bullet2.speed = player.speed*3;
 	    }
+	    else if(playerFired && bullet2.health > 0 && bullet.health > 0)
+	    {
+	        bullet.speed += bullet.speed;
+	        bullet2.speed += bullet2.speed;
+	    }
 
 	    bulletLogic(bullet, player);
 	    bulletLogic(bullet2, player);
@@ -283,6 +345,14 @@ int main(int argc, char* args[])
 	else if (escape == 4)
 	{
             player.y -= player.back;
+	}
+
+        enemys(enemy, enemySpawnTimer);
+	thingLogic(enemy);
+
+	if (enemy.health > 0)
+	{
+	    imagePos(enemy.texture, enemy.x, enemy.y);
 	}
 
 	imagePos(player.texture, player.x, player.y);

@@ -7,7 +7,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 
 message(${SDL2_DIR})
 
-add_executable(main main.cpp player.cpp)
+add_executable(main main.cpp player.cpp )
 target_link_libraries(main ${SDL2_LIBRARIES})
 target_link_libraries(main /usr/lib/arm-linux-gnueabihf/libSDL2_image-2.0.so)
 
