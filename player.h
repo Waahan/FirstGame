@@ -13,6 +13,8 @@ class thing
     public:
 	    int x;
 	    int y;
+	    int w;
+	    int h;
 	    int health;
 	    int speed;
 	    SDL_Texture* texture;
