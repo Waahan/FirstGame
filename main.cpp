@@ -261,44 +261,12 @@ int main(int argc, char* args[])
 {
     initSDL();
 
-    user player;
-    player.x = 0;
-    player.y = 0;
+    user player(100, 100, 90, 90, 10, 10, loadImages("images/Player.png"), 100, 1);
 
-    player.w = 90;
-    player.h = 90;
+    thing bullet(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png"));
+    thing bullet2(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png"));
 
-    player.speed = 10;
-    player.back = 100;
-
-    player.texture = loadImages("images/Player.png");
-
-    thing bullet;
-
-    bullet.w = 22;
-    bullet.h = 22;
-
-    bullet.health = 0;
-
-    bullet.texture = loadImages("images/bullet.png");
-
-    thing bullet2;
-
-    bullet2.w = 22;
-    bullet2.h = 22;
-
-    bullet2.health = 0;
-
-    bullet2.texture = loadImages("images/bullet.png");
-
-    thing enemy;
-
-    enemy.w = 90;
-    enemy.h = 90;
-
-    enemy.health = 0;
-
-    enemy.texture = loadImages("images/enemy.png");
+    thing enemy(2000, 2000, 90, 90, 0, 0, loadImages("images/enemy.png"));
 
     while (1)
     {
@@ -313,29 +281,24 @@ int main(int argc, char* args[])
 	    {
 	        player.y -= player.speed;
 		player.direction = 1;
-	        cout << "Player Y: " << player.y << "\n";
 	    }
 	    if (playerDown)
 	    {
 	        player.y += player.speed;
 		player.direction = 2;
-	        cout << "Player Y: " << player.y << "\n";
 	    }
 	    if (playerLeft)
 	    {
 	        player.x -= player.speed;
 		player.direction = 3;
-	        cout << "Player X: " << player.x << "\n";
 	    }
 	    if (playerRight)
 	    {			
 	        player.x += player.speed;
 		player.direction = 4;
-	        cout << "Player X: " << player.x << "\n";
 	    }
 	    if (playerFired && bullet.health == 0)
 	    {
-		cout << "Bullet fired\n";
 	        bullet.x = player.x;
 	        bullet.y = player.y;
 		bullet.health = 1;

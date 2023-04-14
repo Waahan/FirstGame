@@ -18,6 +18,17 @@ class thing
 	    int health;
 	    int speed;
 	    SDL_Texture* texture;
+
+	    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture)
+	    {
+	        x = ix;
+	        y = iy;
+	        w = iw;
+	        h = ih;
+	        health = ihealth;
+	        speed = ispeed;
+	        texture = itexture;
+	    }
 };
 
 class user : public thing
@@ -25,6 +36,13 @@ class user : public thing
     public:
 	    int back;
 	    int direction;
+
+    	    user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture)
+	    {
+		back = iback;
+		direction = idirection;
+	    }
+
 };
 
 
