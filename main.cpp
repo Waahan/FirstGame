@@ -40,7 +40,7 @@ int* pPlayerFired = &playerFired;
 int enemySpawnTimer = 0;
 
 //creates window
-void initSDL()
+void initSDL(SDL_Window* window, SDL_Renderer* renderer, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     int rendererFlags, windowFlags;
 
@@ -85,7 +85,7 @@ void initSDL()
 }
 
 //For loading image to the window
-SDL_Texture *loadImages(char* imageFile)
+SDL_Texture *loadImages(char* imageFile, SDL_Renderer* renderer)
 {
     //A variable to pass the image to SDL
     SDL_Texture *Image;
@@ -98,13 +98,15 @@ SDL_Texture *loadImages(char* imageFile)
 }
 
 //sets image location 
-void imagePos(SDL_Texture* image, int x, int y)
+void imagePos(SDL_Texture* image, int x, int y, int w, int h, SDL_Renderer* renderer)
 {
     SDL_Rect dest;
 
     //Where the image goes
     dest.x = x;
     dest.y = y;
+    dest.w = w;
+    dest.h = h;
 
     //Query the attributes of a texture
     //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
@@ -114,26 +116,69 @@ void imagePos(SDL_Texture* image, int x, int y)
     SDL_RenderCopy(renderer, image, NULL, &dest);
 }
 
-void makeVisuals()
+void makeVisuals(SDL_Renderer* renderer)
 {
     //Color for background         0, 0, 0, 0, is for black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 }
 
-void showVisuals()
+void showVisuals(SDL_Renderer* renderer)
 {
     SDL_RenderPresent(renderer);
 }
 
-int noEscape(user player)
+void readInput(user& player, thing& bullet, thing& bullet2, int playerUp, int playerDown, int playerLeft, int playerRight, int playerFired)
+{
+    if (playerUp)
+    {
+	    player.y -= player.speed;
+	    player.direction = 1;
+    }
+    if (playerDown)
+    {
+	    player.y += player.speed;
+	    player.direction = 2;
+    }
+    if (playerLeft)
+    {
+	    player.x -= player.speed;
+	    player.direction = 3;
+    }
+    if (playerRight)
+    {			
+	    player.x += player.speed;
+	    player.direction = 4;
+    }
+    if (playerFired && bullet.health == 0)
+    {
+	    bullet.x = player.x;
+	    bullet.y = player.y;
+	    bullet.health = 1;
+	    bullet.speed = 1;
+    }
+    else if (playerFired && bullet2.health == 0 && bullet.health == 1)
+    {
+	    bullet2.x = player.x;
+	    bullet2.y = player.y;
+	    bullet2.health = 1;
+	    bullet2.speed += bullet2.speed;
+    }
+    else if(playerFired && bullet2.health > 0 && bullet.health > 0)
+    {
+	    bullet.speed += bullet.speed;
+	    bullet2.speed += bullet2.speed;
+    }
+}
+
+int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     // This keeps the player on the screen, remember [x, y] where y is upside down
     if (player.x < 0)
     {
 	return 1;
     }
-    else if (player.x > 1200)
+    else if (player.x > SCREEN_WIDTH-100)
     {
 	return 2;
     }
@@ -141,7 +186,7 @@ int noEscape(user player)
     {
 	return 3;
     }
-    else if (player.y > 640)
+    else if (player.y > SCREEN_HEIGHT-100)
     {
 	return 4;
     }
@@ -150,8 +195,27 @@ int noEscape(user player)
         return 0;
     }
 }
+void noEscapeExec(user& player, int escape)
+{
+    if (escape == 1)
+    {
+        player.x += player.back;
+    }
+    else if (escape == 2)
+    {
+        player.x -= player.back;
+    }
+    else if (escape == 3)
+    {
+        player.y += player.back;
+    }
+    else if (escape == 4)
+    {
+        player.y -= player.back;
+    }
+}
 
-void bulletLogic(thing& bullet, user player)
+void bulletLogic(thing& bullet, user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if(player.direction == 1)
     {
@@ -187,7 +251,7 @@ void bulletLogic(thing& bullet, user player)
         bullet.health = 0;
     }
 }
-void thingLogic(thing& bullet)
+void thingLogic(thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if (bullet.x > SCREEN_WIDTH)
     {
@@ -236,7 +300,7 @@ void enemys(thing& enemy, int& enemySpawnTimer)
     else
     {
         enemy.x -= enemy.speed;
-        imagePos(enemy.texture, enemy.x, enemy.y);
+        imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h, renderer);
 
         enemySpawnTimer--;
     }
@@ -269,95 +333,43 @@ void didEnemyKill(user& player, thing& enemy)
 
 int main(int argc, char* args[])
 {
-    initSDL();
+    initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    user player(100, 100, 90, 90, 10, 10, loadImages("images/Player.png"), 100, 1);
-
-    thing bullet(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png"));
-    thing bullet2(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png"));
-
-    thing enemy(2000, 2000, 90, 90, 0, 0, loadImages("images/enemy.png"));
+    user player(100, 100, 90, 90, 10, 10, loadImages("images/Player.png", renderer), 100, 1);
+    thing bullet(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png", renderer));
+    thing bullet2(1000, 1000, 22, 22, 0, 1, loadImages("images/bullet.png", renderer));
+    thing enemy(2000, 2000, 90, 90, 0, 0, loadImages("images/enemy.png", renderer));
 
     while (1)
     {
-        makeVisuals();
+        makeVisuals(renderer);
 
-	int escape = noEscape(player);
+	int escape = noEscape(player, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	if (escape == 0)
 	{
 	    input(*pPlayerUp, *pPlayerDown, *pPlayerLeft, *pPlayerRight, *pPlayerFired);
-	    if (playerUp)
-	    {
-	        player.y -= player.speed;
-		player.direction = 1;
-	    }
-	    if (playerDown)
-	    {
-	        player.y += player.speed;
-		player.direction = 2;
-	    }
-	    if (playerLeft)
-	    {
-	        player.x -= player.speed;
-		player.direction = 3;
-	    }
-	    if (playerRight)
-	    {			
-	        player.x += player.speed;
-		player.direction = 4;
-	    }
-	    if (playerFired && bullet.health == 0)
-	    {
-	        bullet.x = player.x;
-	        bullet.y = player.y;
-		bullet.health = 1;
-		bullet.speed = 1;
-	    }
-	    else if (playerFired && bullet2.health == 0 && bullet.health == 1)
-	    {
-	        bullet2.x = player.x;
-	        bullet2.y = player.y;
-		bullet2.health = 1;
-		bullet2.speed = player.speed*3;
-	    }
-	    else if(playerFired && bullet2.health > 0 && bullet.health > 0)
-	    {
-	        bullet.speed += bullet.speed;
-	        bullet2.speed += bullet2.speed;
-	    }
+	    readInput(player, bullet, bullet2, playerUp, playerDown, playerLeft, playerRight, playerFired);
 
-	    bulletLogic(bullet, player);
-	    bulletLogic(bullet2, player);
+	    bulletLogic(bullet, player, SCREEN_WIDTH, SCREEN_HEIGHT);
+	    bulletLogic(bullet2, player, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	    if (bullet.health > 0)
             {
-	        imagePos(bullet.texture, bullet.x, bullet.y);
+	        imagePos(bullet.texture, bullet.x, bullet.y, bullet.w, bullet.h, renderer);
 	    }
 	    if (bullet2.health > 0)
 	    {
-	        imagePos(bullet2.texture, bullet2.x, bullet2.y);
+	        imagePos(bullet2.texture, bullet2.x, bullet2.y, bullet2.w, bullet2.h, renderer);
 	    }
 	}
-	else if (escape == 1)
+	else
 	{
-	    player.x += player.back;
-	}
-	else if (escape == 2)
-	{
-            player.x -= player.back;
-	}
-	else if (escape == 3)
-	{
-            player.y += player.back;
-	}
-	else if (escape == 4)
-	{
-            player.y -= player.back;
+	    noEscapeExec(player, escape);
 	}
 
         enemys(enemy, enemySpawnTimer);
-	thingLogic(enemy);
+	thingLogic(enemy, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	didBulletHit(bullet, enemy);
 	didBulletHit(bullet2, enemy);
@@ -366,12 +378,12 @@ int main(int argc, char* args[])
 
 	if(enemy.health > 0)
 	{
-	    imagePos(enemy.texture, enemy.x, enemy.y);
+	    imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h, renderer);
 	}
 	
 	if(player.health > 0)
 	{
-	    imagePos(player.texture, player.x, player.y);
+	    imagePos(player.texture, player.x, player.y, player.w, player.h, renderer);
 	}
 	else
 	{
@@ -379,7 +391,7 @@ int main(int argc, char* args[])
 	    cout << "You Died";
 	}
 
-	showVisuals();
+	showVisuals(renderer);
 
         //Delay is in milliseconds so its .10 of a second 
 	SDL_Delay(10);
