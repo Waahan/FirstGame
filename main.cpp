@@ -131,22 +131,18 @@ int noEscape(user player)
     // This keeps the player on the screen, remember [x, y] where y is upside down
     if (player.x < 0)
     {
-        cout << "out of bounds X+=\n";
 	return 1;
     }
     else if (player.x > 1200)
     {
-        cout << "out of bounds\n";
 	return 2;
     }
     if (player.y < 0)
     {
-        cout << "out of bounds Y-=\n";
 	return 3;
     }
     else if (player.y > 640)
     {
-        cout << "out of bounds Y+=\n";
 	return 4;
     }
     else
@@ -225,7 +221,11 @@ void enemys(thing& enemy, int& enemySpawnTimer)
 	enemy.y = rand() % 620;
 
 	enemy.speed = rand() % 15;
-	cout << "speed" << enemy.speed;
+
+	if(enemy.speed == 0)
+	{
+	    enemy.speed += 1;
+	}
 
 	enemy.health = 1;
 
@@ -254,6 +254,16 @@ void didBulletHit(thing& bullet, thing& enemy)
     {
         enemy.health -= 1;
 	bullet.health -= 1;
+    }
+}
+
+void didEnemyKill(user& player, thing& enemy)
+{
+    if(collision(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h))
+    {
+        enemy.health -= 1;
+	player.health -= 1;
+	cout << "Health is:" << player.health << "\n";
     }
 }
 
@@ -302,7 +312,7 @@ int main(int argc, char* args[])
 	        bullet.x = player.x;
 	        bullet.y = player.y;
 		bullet.health = 1;
-		bullet.speed = player.speed*2;
+		bullet.speed = 1;
 	    }
 	    else if (playerFired && bullet2.health == 0 && bullet.health == 1)
 	    {
@@ -352,12 +362,23 @@ int main(int argc, char* args[])
 	didBulletHit(bullet, enemy);
 	didBulletHit(bullet2, enemy);
 
+	didEnemyKill(player, enemy);
+
 	if(enemy.health > 0)
 	{
 	    imagePos(enemy.texture, enemy.x, enemy.y);
 	}
+	
+	if(player.health > 0)
+	{
+	    imagePos(player.texture, player.x, player.y);
+	}
+	else
+	{
+	    exit(0);
+	    cout << "You Died";
+	}
 
-	imagePos(player.texture, player.x, player.y);
 	showVisuals();
 
         //Delay is in milliseconds so its .10 of a second 
