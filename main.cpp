@@ -220,7 +220,12 @@ void enemys(thing& enemy, int& enemySpawnTimer)
         enemy.x = 1280;
 	enemy.y = rand() % 620;
 
-	enemy.speed = 1 + (rand() % 15);
+	enemy.speed = rand() % 15;
+
+	if(enemy.speed == 0)
+	{
+	    enemy.speed += 1;
+	}
 
 	enemy.health = 1;
 
@@ -252,6 +257,16 @@ void didBulletHit(thing& bullet, thing& enemy)
     }
 }
 
+void didEnemyKill(user& player, thing& enemy)
+{
+    if(collision(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h))
+    {
+        enemy.health -= 1;
+	player.health -= 1;
+	cout << "Health is:" << player.health << "\n";
+    }
+}
+
 int main(int argc, char* args[])
 {
     initSDL();
@@ -265,6 +280,8 @@ int main(int argc, char* args[])
 
     player.speed = 10;
     player.back = 100;
+
+    player.health = 10;
 
     player.texture = loadImages("images/Player.png");
 
@@ -380,12 +397,23 @@ int main(int argc, char* args[])
 	didBulletHit(bullet, enemy);
 	didBulletHit(bullet2, enemy);
 
+	didEnemyKill(player, enemy);
+
 	if(enemy.health > 0)
 	{
 	    imagePos(enemy.texture, enemy.x, enemy.y);
 	}
+	
+	if(player.health > 0)
+	{
+	    imagePos(player.texture, player.x, player.y);
+	}
+	else
+	{
+	    exit(0);
+	    cout << "You Died";
+	}
 
-	imagePos(player.texture, player.x, player.y);
 	showVisuals();
 
         //Delay is in milliseconds so its .10 of a second 
