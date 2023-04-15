@@ -16,13 +16,6 @@
 
 using namespace std;
 
-//For the player movement
-int playerUp = 0;
-int playerDown = 0;
-int playerLeft = 0;
-int playerRight = 0;
-int playerFired = 0;
-
 int main(int argc, char* args[])
 {
     const int SCREEN_WIDTH = 1280;
@@ -30,22 +23,31 @@ int main(int argc, char* args[])
 
     int enemySpawnTimer = 0;
 
+    int playerUp = 0;
+    int playerDown = 0;
+    int playerLeft = 0;
+    int playerRight = 0;
+    int playerFired = 0;
+
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), 100, 1);
     thing bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
     thing bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
     thing enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"));
+    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"));
 
     while (1)
     {
         app.makeVisuals();
 
+	app.imagePos(background.texture, background.x, background.y, background.w, background.h);
+
 	int escape = noEscape(player, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	if (escape == 0)
 	{
-	    input(player, bullet, bullet2, playerUp, playerDown, playerLeft, playerRight, playerFired);
+	    input(player, bullet, bullet2, app, playerUp, playerDown, playerLeft, playerRight, playerFired);
 
 	    bulletLogic(bullet, player, SCREEN_WIDTH, SCREEN_HEIGHT);
 	    bulletLogic(bullet2, player, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -84,8 +86,15 @@ int main(int argc, char* args[])
 	}
 	else
 	{
+	    thing deathImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Death.jpg"));
+
+	    app.imagePos(deathImage.texture, deathImage.x, deathImage.y, deathImage.w, deathImage.h);
+
+	    app.showVisuals();
+
+	    SDL_Delay(6000);
+
 	    exit(0);
-	    cout << "You Died";
 	}
 
 	app.showVisuals();

@@ -146,7 +146,7 @@ void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& play
 }
 
 
-void input(user& player, thing& bullet, thing& bullet2, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
+void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
 {
     SDL_Event event;
 
@@ -174,21 +174,25 @@ void input(user& player, thing& bullet, thing& bullet2, int& playerUp, int& play
     {
             player.y -= player.speed;
             player.direction = 1;
+	    player.texture = app.loadImages("images/PlayerUp.png");
     }
     if (playerDown)
     {
             player.y += player.speed;
             player.direction = 2;
+	    player.texture = app.loadImages("images/PlayerDown.png");
     }
     if (playerLeft)
     {
             player.x -= player.speed;
             player.direction = 3;
+	    player.texture = app.loadImages("images/PlayerLeft.png");
     }
     if (playerRight)
     {
             player.x += player.speed;
             player.direction = 4;
+	    player.texture = app.loadImages("images/PlayerRight.png");
     }
     if (playerFired && bullet.health == 0)
     {
@@ -196,6 +200,7 @@ void input(user& player, thing& bullet, thing& bullet2, int& playerUp, int& play
             bullet.y = player.y;
             bullet.health = 1;
             bullet.speed = player.speed/2;
+	    player.texture = app.loadImages("images/Player.png");
     }
     else if (playerFired && bullet2.health == 0 && bullet.health == 1)
     {
@@ -203,6 +208,7 @@ void input(user& player, thing& bullet, thing& bullet2, int& playerUp, int& play
             bullet2.y = player.y;
             bullet2.health = 1;
             bullet2.speed = player.speed/2;
+	    player.texture = app.loadImages("images/Player.png");
     }
     else if(playerFired && bullet2.health > 0 && bullet.health > 0)
     {
