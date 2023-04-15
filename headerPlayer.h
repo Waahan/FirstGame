@@ -28,7 +28,7 @@ class user : public thing
 	    user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection);
 };
 
-void input(user& player, thing& bullet, thing& bullet2, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
+void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
 
 int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
 void noEscapeExec(user& player, int escape);

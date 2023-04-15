@@ -59,8 +59,6 @@ SDL_Texture* App::loadImages(char* imageFile)
     //A variable to pass the image to SDL
     SDL_Texture *Image;
 
-    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", imageFile);
-
     Image = IMG_LoadTexture(renderer, imageFile);
 
     return Image;
