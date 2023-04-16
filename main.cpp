@@ -22,12 +22,14 @@ int main(int argc, char* args[])
     const int SCREEN_HEIGHT = 720;
 
     int enemySpawnTimer = 0;
+    long long int counter = 0;
 
     int playerUp = 0;
     int playerDown = 0;
     int playerLeft = 0;
     int playerRight = 0;
     int playerFired = 0;
+    int levelOne = 0;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -47,6 +49,7 @@ int main(int argc, char* args[])
 
 	if (escape == 0)
 	{
+
 	    input(player, bullet, bullet2, app, playerUp, playerDown, playerLeft, playerRight, playerFired);
 
 	    bulletLogic(bullet, player, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -68,8 +71,31 @@ int main(int argc, char* args[])
 
         enemys(enemy, enemySpawnTimer, app);
 
-        didBulletHit(bullet, enemy);
-        didBulletHit(bullet2, enemy);
+        didBulletHit(bullet, enemy, counter);
+        didBulletHit(bullet2, enemy, counter);
+
+	if(counter > 100 && levelOne == 0)
+	{
+	    enemy.texture = app.loadImages("images/secretEnd.gif");
+	    enemy.speed = 1;
+	    levelOne = 1;
+
+	    if(enemy.x > SCREEN_WIDTH/2)
+	    {
+	        enemy.speed = 0;
+	    }
+
+	    app.imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h);
+
+	    app.showVisuals();
+
+	    SDL_Delay(60000);
+	}
+	else if(levelOne == 1)
+	{
+	    enemy.texture = app.loadImages("images/enemy.png");
+	    levelOne += 1;
+	}
 
 	thingLogic(enemy, SCREEN_WIDTH, SCREEN_HEIGHT);
 
