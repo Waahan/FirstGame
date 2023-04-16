@@ -38,7 +38,7 @@ void thingLogic(thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT);
 
 void enemys(thing& enemys, int& enemySpawnTimer, App app);
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
-void didBulletHit(thing& bullet, thing& enemy);
+void didBulletHit(thing& bullet, thing& enemy, long long int& counter);
 void didEnemyKill(user& player, thing& enemy);
 
 #endif
