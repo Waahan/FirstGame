@@ -22,14 +22,8 @@ int main(int argc, char* args[])
     const int SCREEN_HEIGHT = 720;
 
     int enemySpawnTimer = 0;
-    long long int counter = 0;
-
-    int playerUp = 0;
-    int playerDown = 0;
-    int playerLeft = 0;
-    int playerRight = 0;
-    int playerFired = 0;
     int levelOne = 0;
+    long long int counter = 0;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -37,6 +31,7 @@ int main(int argc, char* args[])
     thing bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
     thing bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
     thing enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"));
+    points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"));
     thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"));
 
     while (1)
@@ -50,10 +45,12 @@ int main(int argc, char* args[])
 	if (escape == 0)
 	{
 
-	    input(player, bullet, bullet2, app, playerUp, playerDown, playerLeft, playerRight, playerFired);
+	    player.input(bullet, bullet2, app);
 
 	    bulletLogic(bullet, player, SCREEN_WIDTH, SCREEN_HEIGHT);
 	    bulletLogic(bullet2, player, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	    point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	    if (bullet.health > 0)
             {
@@ -62,6 +59,10 @@ int main(int argc, char* args[])
 	    if (bullet2.health > 0)
 	    {
 	        app.imagePos(bullet2.texture, bullet2.x, bullet2.y, bullet2.w, bullet2.h);
+	    }
+	    if (point.health > 0)
+	    {
+	        app.imagePos(point.texture, point.x, point.y, point.w, point.h);
 	    }
 	}
 	else
@@ -73,6 +74,7 @@ int main(int argc, char* args[])
 
         didBulletHit(bullet, enemy, counter);
         didBulletHit(bullet2, enemy, counter);
+	didYouGetPoints(player, bullet, point, counter);
 
 	if(counter > 100 && levelOne == 0)
 	{

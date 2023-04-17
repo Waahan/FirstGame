@@ -23,9 +23,44 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 	back = iback;
 	direction = idirection;
 }
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
+
+void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
+{
+    if (health > 0)
+    {
+	x -= speed;
+
+        if (x > SCREEN_WIDTH)
+        {
+            health = 0;
+        }
+        else if (x < 0)
+        {
+            health = 0;
+        }
+        else if (y > SCREEN_HEIGHT)
+        {
+            health = 0;
+        }
+        else if (y < 0)
+        {
+            health = 0;
+        }
+    }
+    else
+    {
+	x = SCREEN_WIDTH;
+	y = rand() % SCREEN_HEIGHT;
+
+	int randomNum = 1 + (rand() % 9);
+	health = randomNum;
+	speed = randomNum;
+    }
+}
 
 //For keyboard event detection. More scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
+void user::doKeyDown(SDL_KeyboardEvent *event)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -85,7 +120,7 @@ void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& pl
     }
 }
 
-void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
+void user::doKeyUp(SDL_KeyboardEvent *event)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -146,7 +181,7 @@ void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& play
 }
 
 
-void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired)
+void user::input(thing& bullet, thing& bullet2, App app)
 {
     SDL_Event event;
 
@@ -159,11 +194,11 @@ void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, 
 		break;
 
 	    case SDL_KEYDOWN:
-		doKeyDown(&event.key, playerUp, playerDown, playerLeft, playerRight, playerFired);
+		doKeyDown(&event.key);
 		break;
 
 	    case SDL_KEYUP:
-		doKeyUp(&event.key, playerUp, playerDown, playerLeft, playerRight, playerFired);
+		doKeyUp(&event.key);
 		break;
 
 	    default:
@@ -172,43 +207,43 @@ void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, 
     }
     if (playerUp)
     {
-            player.y -= player.speed;
-            player.direction = 1;
-	    player.texture = app.loadImages("images/PlayerUp.png");
+            y -= speed;
+            direction = 1;
+	    texture = app.loadImages("images/PlayerUp.png");
     }
     if (playerDown)
     {
-            player.y += player.speed;
-            player.direction = 2;
-	    player.texture = app.loadImages("images/PlayerDown.png");
+            y += speed;
+            direction = 2;
+	    texture = app.loadImages("images/PlayerDown.png");
     }
     if (playerLeft)
     {
-            player.x -= player.speed;
-            player.direction = 3;
-	    player.texture = app.loadImages("images/PlayerLeft.png");
+            x -= speed;
+            direction = 3;
+	    texture = app.loadImages("images/PlayerLeft.png");
     }
     if (playerRight)
     {
-            player.x += player.speed;
-            player.direction = 4;
-	    player.texture = app.loadImages("images/PlayerRight.png");
+            x += speed;
+            direction = 4;
+	    texture = app.loadImages("images/PlayerRight.png");
     }
     if (playerFired && bullet.health == 0)
     {
-            bullet.x = player.x;
-            bullet.y = player.y;
+            bullet.x = x;
+            bullet.y = y;
             bullet.health = 1;
-            bullet.speed = player.speed/2;
-	    player.texture = app.loadImages("images/Player.png");
+            bullet.speed = speed/2;
+	    texture = app.loadImages("images/Player.png");
     }
     else if (playerFired && bullet2.health == 0 && bullet.health == 1)
     {
-            bullet2.x = player.x;
-            bullet2.y = player.y;
+            bullet2.x = x;
+            bullet2.y = y;
             bullet2.health = 1;
-            bullet2.speed = player.speed/2;
-	    player.texture = app.loadImages("images/Player.png");
+            bullet2.speed = speed/2;
+	    texture = app.loadImages("images/Player.png");
     }
     else if(playerFired && bullet2.health > 0 && bullet.health > 0)
     {
@@ -255,6 +290,7 @@ int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
         return 0;
     }
 }
+
 void noEscapeExec(user& player, int escape)
 {
     if (escape == 1)
@@ -311,6 +347,7 @@ void bulletLogic(thing& bullet, user player, int SCREEN_WIDTH, int SCREEN_HEIGHT
         bullet.health = 0;
     }
 }
+
 void thingLogic(thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if (bullet.x > SCREEN_WIDTH)
@@ -366,8 +403,6 @@ void enemys(thing& enemy, int& enemySpawnTimer, App app)
     }
 }
 
-
-
 //Takes two objects dimetions
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
@@ -395,3 +430,26 @@ void didEnemyKill(user& player, thing& enemy)
     }
 }
 
+void didYouGetPoints(user& player, thing& bullet, points& point, long long int& counter)
+{
+    if(collision(player.x, player.y, player.w, player.h, point.x, point.y, point.w, point.h))
+    {
+	if(point.health > player.health)
+	{
+	    player.health += point.health;
+	}
+	else
+	{
+	    player.health += 1;
+	}
+
+        point.health = 0;
+	counter++;
+    }
+    else if(collision(point.x, point.y, point.w, point.h, bullet.x, bullet.y, bullet.w, bullet.h))
+    {
+	bullet.health += point.health;
+        point.health = 0;
+	counter++;
+    }
+}
