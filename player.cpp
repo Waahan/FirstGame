@@ -440,7 +440,7 @@ void didYouGetPoints(user& player, thing& bullet, points& point, long long int& 
 	}
 	else
 	{
-	    player.health += 1;
+	    counter++;
 	}
 
         point.health = 0;

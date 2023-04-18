@@ -4,9 +4,6 @@
 #define headerPlayer_H
 #include "headerVisuals.h"
 
-void doKeyDown(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
-void doKeyUp(SDL_KeyboardEvent *event, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
-
 class thing
 {
     public:
@@ -46,8 +43,6 @@ class points : public thing
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
-
-void input(user& player, thing& bullet, thing& bullet2, App app, int& playerUp, int& playerDown, int& playerLeft, int& playerRight, int& playerFired);
 
 int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
 void noEscapeExec(user& player, int escape);
