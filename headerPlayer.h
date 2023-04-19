@@ -15,11 +15,15 @@ class thing
     int speed;
     SDL_Texture* texture;
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
-    void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
+
+class bulletClass;
 
 class user : public thing
 {
+    friend bulletClass;
+
     public:
     int back;
     int direction;
@@ -30,6 +34,9 @@ class user : public thing
     void doKeyUp(SDL_KeyboardEvent *event);
 
     void input(thing& bullet, thing& bullet2, App app);
+
+    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+
     protected:
     int playerUp = 0;
     int playerDown = 0;
@@ -45,9 +52,12 @@ class points : public thing
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
 
-int noEscape(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-
-void bulletLogic(user player, thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+class bulletClass : public thing
+{
+    public:
+    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+    void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+};
 
 void enemys(thing& enemys, int& enemySpawnTimer, App app);
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
