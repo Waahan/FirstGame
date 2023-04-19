@@ -344,31 +344,26 @@ void thing::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
-void enemys(thing& enemy, int& enemySpawnTimer, App app)
+void enemys::spawnEnemys(int& enemySpawnTimer)
 {
-    if(enemySpawnTimer <= 0 && enemy.health == 0)
+    if(enemySpawnTimer <= 0 && health == 0)
     {
        cout << "Spawning enemy\n";
 
-       enemy.x = 1280;
-       enemy.y = rand() % 620;
+       x = 1280;
+       y = rand() % 620;
 
-       enemy.speed = 1 + (rand() % 15);
+       speed = 1 + (rand() % 15);
 
-       if(enemy.speed == 0)
-       {
-           enemy.speed += 1;
-       }
+       health = 1;
 
-       enemy.health = 1;
-
-       enemy.x -= rand() % 10;
+       x -= rand() % 10;
 
        enemySpawnTimer = rand() % 100;
     }
     else
     {
-        enemy.x -= enemy.speed;
+        x -= speed;
         enemySpawnTimer--;
     }
 }
@@ -379,47 +374,47 @@ int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
         return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
 }
 
-void didBulletHit(thing& bullet, thing& enemy, long long int& counter)
+void bulletClass::didBulletHit(thing& enemy, long long int& counter)
 {
-    if(collision(bullet.x, bullet.y, bullet.w, bullet.h, enemy.x, enemy.y, enemy.w, enemy.h))
+    if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h))
     {
         enemy.health = 0;
-        bullet.health -= 1;
+        health -= 1;
 	counter++;
 	cout << "Count: " << counter << "\n";
     }
 }
 
-void didEnemyKill(user& player, thing& enemy)
+void enemys::didEnemyKill(user& player)
 {
-    if(collision(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h))
+    if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
-        enemy.health = 0;
+        health = 0;
         player.health -= 1;
         cout << "Health is:" << player.health << "\n";
     }
 }
 
-void didYouGetPoints(user& player, thing& bullet, points& point, long long int& counter)
+void points::didYouGetPoints(user& player, thing& bullet, long long int& counter)
 {
-    if(collision(player.x, player.y, player.w, player.h, point.x, point.y, point.w, point.h))
+    if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
-	if(point.health > player.health)
+	if(health > player.health)
 	{
-	    player.health += point.health;
+	    player.health += health;
 	}
 	else
 	{
 	    counter++;
 	}
 
-        point.health = 0;
+        health = 0;
 	counter++;
     }
-    else if(collision(point.x, point.y, point.w, point.h, bullet.x, bullet.y, bullet.w, bullet.h))
+    else if(collision(x, y, w, h, bullet.x, bullet.y, bullet.w, bullet.h))
     {
-	bullet.health += point.health;
-        point.health = 0;
+	bullet.health += health;
+        health = 0;
 	counter++;
     }
 }
