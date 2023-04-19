@@ -40,35 +40,14 @@ int main(int argc, char* args[])
 
 	app.imagePos(background.texture, background.x, background.y, background.w, background.h);
 
-	int escape = noEscape(player, SCREEN_WIDTH, SCREEN_HEIGHT);
+	noEscape(player, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	if (escape == 0)
-	{
+	player.input(bullet, bullet2, app);
 
-	    player.input(bullet, bullet2, app);
+        bulletLogic(player, bullet, SCREEN_WIDTH, SCREEN_HEIGHT);
+	bulletLogic(player, bullet2, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	    bulletLogic(bullet, player, SCREEN_WIDTH, SCREEN_HEIGHT);
-	    bulletLogic(bullet2, player, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	    point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	    if (bullet.health > 0)
-            {
-	        app.imagePos(bullet.texture, bullet.x, bullet.y, bullet.w, bullet.h);
-	    }
-	    if (bullet2.health > 0)
-	    {
-	        app.imagePos(bullet2.texture, bullet2.x, bullet2.y, bullet2.w, bullet2.h);
-	    }
-	    if (point.health > 0)
-	    {
-	        app.imagePos(point.texture, point.x, point.y, point.w, point.h);
-	    }
-	}
-	else
-	{
-	    noEscapeExec(player, escape);
-	}
+	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         enemys(enemy, enemySpawnTimer, app);
 
@@ -99,7 +78,7 @@ int main(int argc, char* args[])
 	    levelOne += 1;
 	}
 
-	thingLogic(enemy, SCREEN_WIDTH, SCREEN_HEIGHT);
+	enemy.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	didEnemyKill(player, enemy);
 
@@ -107,6 +86,21 @@ int main(int argc, char* args[])
 	{
 	    app.imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h);
 	}
+
+        if (bullet.health > 0)
+        {
+            app.imagePos(bullet.texture, bullet.x, bullet.y, bullet.w, bullet.h);
+        }
+
+        if (bullet2.health > 0)
+        {
+            app.imagePos(bullet2.texture, bullet2.x, bullet2.y, bullet2.w, bullet2.h);
+        }
+
+        if (point.health > 0)
+        {
+            app.imagePos(point.texture, point.x, point.y, point.w, point.h);
+        }
 	
 	if(player.health > 0)
 	{
