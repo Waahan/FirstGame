@@ -266,52 +266,28 @@ void user::input(thing& bullet, thing& bullet2, App app)
     }
 }
 
-int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+int noEscape(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     // This keeps the player on the screen, remember [x, y] where y is upside down
     if (player.x < 0)
     {
-	return 1;
+        player.x += player.back;
     }
     else if (player.x > SCREEN_WIDTH-100)
     {
-	return 2;
+        player.x -= player.back;
     }
     if (player.y < 0)
     {
-	return 3;
-    }
-    else if (player.y > SCREEN_HEIGHT-100)
-    {
-	return 4;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-void noEscapeExec(user& player, int escape)
-{
-    if (escape == 1)
-    {
-        player.x += player.back;
-    }
-    else if (escape == 2)
-    {
-        player.x -= player.back;
-    }
-    else if (escape == 3)
-    {
         player.y += player.back;
     }
-    else if (escape == 4)
+    else if (player.y > SCREEN_HEIGHT-100)
     {
         player.y -= player.back;
     }
 }
 
-void bulletLogic(thing& bullet, user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void bulletLogic(user player, thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if(player.direction == 1)
     {
@@ -348,27 +324,23 @@ void bulletLogic(thing& bullet, user player, int SCREEN_WIDTH, int SCREEN_HEIGHT
     }
 }
 
-void thingLogic(thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void thing::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
-    if (bullet.x > SCREEN_WIDTH)
+    if (x > SCREEN_WIDTH)
     {
-        bullet.health = 0;
-	cout << "thing" << " is gone\n";
+        health = 0;
     }
-    else if (bullet.x < 0)
+    else if (x < 0)
     {
-        bullet.health = 0;
-	cout << "thing" << " is gone\n";
+        health = 0;
     }
-    else if (bullet.y > SCREEN_HEIGHT)
+    else if (y > SCREEN_HEIGHT)
     {
-        bullet.health = 0;
-	cout << "thing" << " is gone\n";
+        health = 0;
     }
-    else if (bullet.y < 0)
+    else if (y < 0)
     {
-        bullet.health = 0;
-	cout << "thing" << " is gone\n";
+        health = 0;
     }
 }
 
@@ -397,8 +369,6 @@ void enemys(thing& enemy, int& enemySpawnTimer, App app)
     else
     {
         enemy.x -= enemy.speed;
-        app.imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h);
-
         enemySpawnTimer--;
     }
 }

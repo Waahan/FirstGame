@@ -15,6 +15,7 @@ class thing
     int speed;
     SDL_Texture* texture;
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
+    void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
 
 class user : public thing
@@ -44,11 +45,9 @@ class points : public thing
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
 
-int noEscape(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-void noEscapeExec(user& player, int escape);
+int noEscape(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
 
-void bulletLogic(thing& bullet, user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-void thingLogic(thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+void bulletLogic(user player, thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT);
 
 void enemys(thing& enemys, int& enemySpawnTimer, App app);
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
