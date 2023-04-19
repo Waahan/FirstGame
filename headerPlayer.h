@@ -45,11 +45,22 @@ class user : public thing
     int playerFired = 0;
 };
 
+int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
+
+class enemys : public thing
+{
+    public:
+    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+    void spawnEnemys(int& enemySpawnTimer);
+    void didEnemyKill(user& player);
+};
+
 class points : public thing
 {
     public:
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void didYouGetPoints(user& player, thing& bullet, long long int& counter);
 };
 
 class bulletClass : public thing
@@ -57,12 +68,7 @@ class bulletClass : public thing
     public:
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void didBulletHit(thing& enemy, long long int& counter);
 };
-
-void enemys(thing& enemys, int& enemySpawnTimer, App app);
-int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
-void didBulletHit(thing& bullet, thing& enemy, long long int& counter);
-void didEnemyKill(user& player, thing& enemy);
-void didYouGetPoints(user& player, thing& bullet, points& point, long long int& counter);
 
 #endif
