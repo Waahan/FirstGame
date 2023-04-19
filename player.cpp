@@ -266,61 +266,61 @@ void user::input(thing& bullet, thing& bullet2, App app)
     }
 }
 
-int noEscape(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void user::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     // This keeps the player on the screen, remember [x, y] where y is upside down
-    if (player.x < 0)
+    if (x < 0)
     {
-        player.x += player.back;
+        x += back;
     }
-    else if (player.x > SCREEN_WIDTH-100)
+    else if (x > SCREEN_WIDTH-100)
     {
-        player.x -= player.back;
+        x -= back;
     }
-    if (player.y < 0)
+    if (y < 0)
     {
-        player.y += player.back;
+        y += back;
     }
-    else if (player.y > SCREEN_HEIGHT-100)
+    else if (y > SCREEN_HEIGHT-100)
     {
-        player.y -= player.back;
+        y -= back;
     }
 }
 
-void bulletLogic(user player, thing& bullet, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void bulletClass::logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if(player.direction == 1)
     {
-        bullet.y -= bullet.speed;
+        y -= speed;
     }
     else if(player.direction == 2)
     {
-        bullet.y += bullet.speed;
+        y += speed;
     }
     else if(player.direction == 3)
     {
-        bullet.x -= bullet.speed;
+        x -= speed;
     }
     else if(player.direction == 4)
     {
-        bullet.x += bullet.speed;
+        x += speed;
     }
 
-    if (bullet.x > SCREEN_WIDTH)
+    if (x > SCREEN_WIDTH)
     {
-        bullet.health = 0;
+        health = 0;
     }
-    else if (bullet.x < 0)
+    else if (x < 0)
     {
-        bullet.health = 0;
+        health = 0;
     }
-    else if (bullet.y > SCREEN_HEIGHT)
+    else if (y > SCREEN_HEIGHT)
     {
-        bullet.health = 0;
+        health = 0;
     }
-    else if (bullet.y < 0)
+    else if (y < 0)
     {
-        bullet.health = 0;
+        health = 0;
     }
 }
 

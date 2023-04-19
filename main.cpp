@@ -28,8 +28,8 @@ int main(int argc, char* args[])
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), 100, 1);
-    thing bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
-    thing bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
+    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
+    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
     thing enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"));
     points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"));
     thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"));
@@ -40,12 +40,12 @@ int main(int argc, char* args[])
 
 	app.imagePos(background.texture, background.x, background.y, background.w, background.h);
 
-	noEscape(player, SCREEN_WIDTH, SCREEN_HEIGHT);
+	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	player.input(bullet, bullet2, app);
 
-        bulletLogic(player, bullet, SCREEN_WIDTH, SCREEN_HEIGHT);
-	bulletLogic(player, bullet2, SCREEN_WIDTH, SCREEN_HEIGHT);
+        bullet.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
+	bullet2.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
 
