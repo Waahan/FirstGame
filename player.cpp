@@ -374,7 +374,7 @@ int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
         return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
 }
 
-void bulletClass::didBulletHit(thing& enemy, long long int& counter)
+void bulletClass::didBulletHit(thing& enemy, int& counter)
 {
     if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h))
     {
@@ -395,7 +395,7 @@ void enemys::didEnemyKill(user& player)
     }
 }
 
-void points::didYouGetPoints(user& player, thing& bullet, long long int& counter)
+void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 {
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {

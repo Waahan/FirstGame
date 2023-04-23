@@ -1,7 +1,5 @@
 //Header for player.cpp
 #pragma once
-#ifndef headerPlayer_H
-#define headerPlayer_H
 #include "headerVisuals.h"
 
 class thing
@@ -60,7 +58,7 @@ class points : public thing
     public:
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
-    void didYouGetPoints(user& player, thing& bullet, long long int& counter);
+    void didYouGetPoints(user& player, thing& bullet, int& counter);
 };
 
 class bulletClass : public thing
@@ -68,7 +66,6 @@ class bulletClass : public thing
     public:
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-    void didBulletHit(thing& enemy, long long int& counter);
+    void didBulletHit(thing& enemy, int& counter);
 };
 
-#endif
