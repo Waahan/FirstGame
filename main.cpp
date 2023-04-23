@@ -4,6 +4,7 @@
 #include <string.h>
 #include <algorithm>
 #include <climits>
+#include <fstream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -27,7 +28,6 @@ int main(int argc, char* args[])
     int levelOne = 0;
     int counter = 0;
     int oldCounter = 0;
-    char* message = new char[500];
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -48,7 +48,8 @@ int main(int argc, char* args[])
 
 	if (oldCounter != counter)
 	{
-	    app.newMessage("Sussy");
+	    string counterString = to_string(counter);
+	    app.newMessage(counterString.c_str());
 	}
 
 	oldCounter = counter;
@@ -141,7 +142,6 @@ int main(int argc, char* args[])
     }
 
     app.quit();
-    delete[] message;
 
     return 0;
 }

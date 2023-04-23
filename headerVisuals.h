@@ -10,7 +10,7 @@ class App
     App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
     
     void initFont(char* message);
-    void newMessage(char* message);
+    void newMessage(const char* message);
     void drawText();
 
     SDL_Texture *loadImages(char* imageFile);
