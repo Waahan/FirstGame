@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <climits>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
@@ -23,7 +25,9 @@ int main(int argc, char* args[])
 
     int enemySpawnTimer = 0;
     int levelOne = 0;
-    long long int counter = 0;
+    int counter = 0;
+    int oldCounter = 0;
+    char* message = new char[500];
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -34,11 +38,22 @@ int main(int argc, char* args[])
     points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"));
     thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"));
 
+    app.initFont("sus");
+
     while (1)
     {
         app.makeVisuals();
 
 	app.imagePos(background.texture, background.x, background.y, background.w, background.h);
+
+	if (oldCounter != counter)
+	{
+	    app.newMessage("Sussy");
+	}
+
+	oldCounter = counter;
+
+	app.drawText();
 
 	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -124,5 +139,9 @@ int main(int argc, char* args[])
         //Delay is in milliseconds so its .10 of a second 
 	SDL_Delay(10);
     }
+
+    app.quit();
+    delete[] message;
+
     return 0;
 }
