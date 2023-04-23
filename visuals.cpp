@@ -77,7 +77,7 @@ void App::initFont(char* message)
     Message_rect.h = 50; // controls the height of the rect
 }
 
-void App::newMessage(char* message)
+void App::newMessage(const char* message)
 {
     surfaceMessage = TTF_RenderText_Solid(font, message, White);
     Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
