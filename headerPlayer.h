@@ -1,6 +1,8 @@
 //Header for player.cpp
 #pragma once
 #include "headerVisuals.h"
+#include <fstream>
+#include <string>
 
 class thing
 {
@@ -68,4 +70,3 @@ class bulletClass : public thing
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
 };
-
