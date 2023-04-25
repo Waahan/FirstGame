@@ -31,14 +31,16 @@ int main(int argc, char* args[])
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), 100, 1);
-    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
-    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"));
-    enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"));
-    points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"));
-    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"));
+    string playerPath = "images/Player.png", bulletPath = "images/bullet.png", enemyPath = "images/enemy.png", pointPath = "images/points.png", backgroundPath = "images/Background.png";
 
-    app.initFont("sus");
+    user player(100, 100, 90, 90, 10, 10, app.loadImages(playerPath.c_str()), 100, 1);
+    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages(bulletPath.c_str()));
+    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages(bulletPath.c_str()));
+    enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages(enemyPath.c_str()));
+    points point(2000, 2000, 40, 40, 0, 0, app.loadImages(pointPath.c_str()));
+    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages(backgroundPath.c_str()));
+    Messages Score("SUS", 0, 0, 100, 100, app);
+    Messages lastScore("Hight score", SCREEN_WIDTH, 0, 100, 100, app);
 
     while (1)
     {
@@ -49,12 +51,13 @@ int main(int argc, char* args[])
 	if (oldCounter != counter)
 	{
 	    string counterString = to_string(counter);
-	    app.newMessage(counterString.c_str());
+
+	    Score.newMessage(counterString.c_str(), 0, 0, 100, 100, app);
 	}
 
 	oldCounter = counter;
 
-	app.drawText();
+	Score.drawMessage(app);
 
 	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -133,6 +136,7 @@ int main(int argc, char* args[])
 	    SDL_Delay(6000);
 
 	    exit(0);
+	    return 0;
 	}
 
 	app.showVisuals();
@@ -140,8 +144,6 @@ int main(int argc, char* args[])
         //Delay is in milliseconds so its .10 of a second 
 	SDL_Delay(10);
     }
-
-    app.quit();
 
     return 0;
 }

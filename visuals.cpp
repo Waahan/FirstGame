@@ -58,7 +58,7 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
-void App::initFont(char* message)
+Messages::Messages(const char* message, int x, int y, int w, int h, App app)
 {
     // Font path /usr/share/fonts/chromeos/google-sans/static/GoogleSans-BoldItalic-v3.003.ttf
     //this opens a font style and sets a size
@@ -69,27 +69,32 @@ void App::initFont(char* message)
     surfaceMessage = TTF_RenderText_Solid(font, message, White); 
 
     // now you can convert it into a texture
-    Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
 
-    Message_rect.x = 0;  //controls the rect's x coordinate 
-    Message_rect.y = 0; // controls the rect's y coordinte
-    Message_rect.w = 50; // controls the width of the rect
-    Message_rect.h = 50; // controls the height of the rect
+    Message_rect.x = x;  //controls the rect's x coordinate 
+    Message_rect.y = y; // controls the rect's y coordinte
+    Message_rect.w = w; // controls the width of the rect
+    Message_rect.h = h; // controls the height of the rect
 }
 
-void App::newMessage(const char* message)
+void Messages::newMessage(const char* message, int x, int y, int w, int h, App app)
 {
     surfaceMessage = TTF_RenderText_Solid(font, message, White);
-    Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+
+    Message_rect.x = x;
+    Message_rect.y = y;
+    Message_rect.w = w;
+    Message_rect.h = h;
 }
 
-void App::drawText()
+void Messages::drawMessage(App app)
 {
-    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+    SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
 }
 
 //For loading image to the window
-SDL_Texture* App::loadImages(char* imageFile)
+SDL_Texture* App::loadImages(const char* imageFile)
 {
     //A variable to pass the image to SDL
     SDL_Texture *Image;
@@ -130,7 +135,7 @@ void App::showVisuals()
     SDL_RenderPresent(renderer);
 }
 
-void App::quit()
+Messages::~Messages()
 {
     SDL_FreeSurface(surfaceMessage);
     SDL_DestroyTexture(Message);

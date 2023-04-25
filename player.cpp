@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <string.h>
+#include <fstream>
 #include "headerPlayer.h"
 #include "headerVisuals.h"
 using namespace std;
