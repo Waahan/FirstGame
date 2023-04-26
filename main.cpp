@@ -28,6 +28,7 @@ int main(int argc, char* args[])
     int levelOne = 0;
     int counter = 0;
     int oldCounter = 0;
+    int firstLoop = 1;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -76,20 +77,7 @@ int main(int argc, char* args[])
 
 	if(counter > 100 && levelOne == 0)
 	{
-	    enemy.texture = app.loadImages("images/secretEnd.gif");
-	    enemy.speed = 1;
-	    levelOne = 1;
-
-	    if(enemy.x > SCREEN_WIDTH/2)
-	    {
-	        enemy.speed = 0;
-	    }
-
-	    app.imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h);
-
-	    app.showVisuals();
-
-	    SDL_Delay(60000);
+	    enemy.makeEnd(levelOne, app);
 	}
 	else if(levelOne == 1)
 	{
