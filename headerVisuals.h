@@ -20,21 +20,23 @@ class App
     void makeVisuals();
     void showVisuals();
 
-    void quit();
-
     protected:
     SDL_Renderer* renderer = NULL;
 
     private:
     SDL_Window* window = NULL;
+    SDL_Texture* textureList[100];
+    int textureNumber = 0;
 };
 
 class Messages
 {
     public:
     Messages(const char* message, int x, int y, int w, int h, App app);
+
     void newMessage(const char* message, int x, int y, int w, int h, App app);
     void drawMessage(App app);
+
     ~Messages();
 
     private:

@@ -13,6 +13,7 @@ class thing
     int h;
     int health;
     int speed;
+
     SDL_Texture* texture;
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
     virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
@@ -50,15 +51,18 @@ int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
 class enemys : public thing
 {
     public:
-    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
+
     void spawnEnemys(int& enemySpawnTimer);
     void didEnemyKill(user& player);
+    void makeEnd(int& levelOne, App app);
 };
 
 class points : public thing
 {
     public:
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
+
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didYouGetPoints(user& player, thing& bullet, int& counter);
 };
@@ -67,6 +71,7 @@ class bulletClass : public thing
 {
     public:
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
 };

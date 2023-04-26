@@ -419,3 +419,16 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 	counter++;
     }
 }
+
+void enemys::makeEnd(int& levelOne, App app)
+{
+    texture = app.loadImages("images/secretEnd.gif");
+    speed = 1;
+    levelOne = 1;
+
+    app.imagePos(texture, x, y, w, h);
+
+    app.showVisuals();
+
+    SDL_Delay(60000);
+}

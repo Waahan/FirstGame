@@ -101,6 +101,9 @@ SDL_Texture* App::loadImages(const char* imageFile)
 
     Image = IMG_LoadTexture(renderer, imageFile);
 
+    textureList[textureNumber] = Image;
+    textureNumber++;
+
     return Image;
 }
 
