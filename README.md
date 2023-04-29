@@ -8,8 +8,12 @@ To use build the project you must edit the CMakeLists.txt file to include your S
 Dependencies
 ------------
 
+libsdl2-2.0-0
+libsdl2-dev
 libsdl2-image-2.0-0
+libsdl2-image-dev
 libsdl2-ttf-2.0-0
+libsdl2-ttf-dev
 
 Installing on linux
 -------------------

@@ -432,3 +432,32 @@ void enemys::makeEnd(int& levelOne, App app)
 
     SDL_Delay(60000);
 }
+
+healthDisplay::healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical)
+{
+    fullHealth = ifullHealth;
+    halfHealth = ihalfHealth;
+    critical = icritical;
+}
+
+SDL_Texture* healthDisplay::healthDisplayUpdate(user& player)
+{
+    switch(player.health)
+    {
+        case 10:
+	    return fullHealth;
+	case 5:
+	    return halfHealth;
+	case 1:
+	    return critical;
+	default:
+	    if(player.health > 5)
+	    {
+	        return fullHealth;
+	    }
+	    else if(player.health > 1)
+	    {
+	        return halfHealth;
+	    }
+    }
+}
