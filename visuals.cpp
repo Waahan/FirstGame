@@ -60,9 +60,8 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 
 Messages::Messages(const char* message, int x, int y, int w, int h, App app)
 {
-    // Font path /usr/share/fonts/chromeos/google-sans/static/GoogleSans-BoldItalic-v3.003.ttf
     //this opens a font style and sets a size
-    font = TTF_OpenFont("/usr/share/fonts/chromeos/google-sans/static/GoogleSans-Bold-v3.003.ttf", 24);
+    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
 
     // as TTF_RenderText_Solid could only be used on
     // SDL_Surface then you have to create the surface first

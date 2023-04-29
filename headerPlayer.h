@@ -75,3 +75,14 @@ class bulletClass : public thing
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
 };
+
+class healthDisplay
+{
+     public:
+     healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
+     SDL_Texture* healthDisplayUpdate(user& player);
+     
+     SDL_Texture* fullHealth;
+     SDL_Texture* halfHealth;
+     SDL_Texture* critical;
+};
