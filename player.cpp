@@ -21,9 +21,10 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
 
 user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture)
 {
-	back = iback;
-	direction = idirection;
+    back = iback;
+    direction = idirection;
 }
+
 points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
 
 void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
@@ -54,7 +55,7 @@ void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 	x = SCREEN_WIDTH;
 	y = rand() % SCREEN_HEIGHT;
 
-	int randomNum = 1 + (rand() % 9);
+	randomNum = 1 + (rand() % 9);
 	health = randomNum;
 	speed = randomNum;
     }
@@ -180,7 +181,6 @@ void user::doKeyUp(SDL_KeyboardEvent *event)
 
     }
 }
-
 
 void user::input(thing& bullet, thing& bullet2, App app)
 {
@@ -349,8 +349,6 @@ void enemys::spawnEnemys(int& enemySpawnTimer)
 {
     if(enemySpawnTimer <= 0 && health == 0)
     {
-       cout << "Spawning enemy\n";
-
        x = 1280;
        y = rand() % 620;
 
@@ -372,7 +370,7 @@ void enemys::spawnEnemys(int& enemySpawnTimer)
 //Takes two objects dimetions
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
-        return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
+    return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
 }
 
 void bulletClass::didBulletHit(thing& enemy, int& counter)
@@ -382,31 +380,32 @@ void bulletClass::didBulletHit(thing& enemy, int& counter)
         enemy.health = 0;
         health -= 1;
 	counter++;
-	cout << "Count: " << counter << "\n";
     }
 }
 
-void enemys::didEnemyKill(user& player)
+void enemys::didEnemyKill(user& player, App& app)
 {
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
         health = 0;
         player.health -= 1;
-        cout << "Health is:" << player.health << "\n";
+	player.texture = app.loadImages("images/PlayerSad.png");
     }
 }
 
-void points::didYouGetPoints(user& player, thing& bullet, int& counter)
+void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app)
 {
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
 	if(health > player.health)
 	{
 	    player.health += health;
+	    player.texture = app.loadImages("images/PlayerHappy.png");
 	}
 	else
 	{
 	    counter++;
+	    player.texture = app.loadImages("images/PlayerHappy.png");
 	}
 
         health = 0;
@@ -420,7 +419,7 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
     }
 }
 
-void enemys::makeEnd(int& levelOne, App app)
+void enemys::makeEnd(int& levelOne, App& app)
 {
     texture = app.loadImages("images/secretEnd.gif");
     speed = 1;
@@ -460,4 +459,5 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(user& player)
 	        return halfHealth;
 	    }
     }
+    return fullHealth;
 }
