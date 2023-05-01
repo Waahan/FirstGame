@@ -26,7 +26,6 @@ class user : public thing
     friend bulletClass;
 
     public:
-    int back;
     int direction;
 
     user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection);
@@ -44,6 +43,7 @@ class user : public thing
     int playerLeft = 0;
     int playerRight = 0;
     int playerFired = 0;
+    int back;
 };
 
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
@@ -54,8 +54,8 @@ class enemys : public thing
     enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
 
     void spawnEnemys(int& enemySpawnTimer);
-    void didEnemyKill(user& player);
-    void makeEnd(int& levelOne, App app);
+    void didEnemyKill(user& player, App& app);
+    void makeEnd(int& levelOne, App& app);
 };
 
 class points : public thing
@@ -64,7 +64,10 @@ class points : public thing
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
 
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
-    void didYouGetPoints(user& player, thing& bullet, int& counter);
+    void didYouGetPoints(user& player, thing& bullet, int& counter, App& app);
+
+    private:
+    int randomNum;
 };
 
 class bulletClass : public thing

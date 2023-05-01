@@ -28,7 +28,6 @@ int main(int argc, char* args[])
     int levelOne = 0;
     int counter = 0;
     int oldCounter = 0;
-    int firstLoop = 1;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -73,9 +72,9 @@ int main(int argc, char* args[])
 
         bullet.didBulletHit(enemy, counter);
         bullet2.didBulletHit(enemy, counter);
-	point.didYouGetPoints(player, bullet, counter);
+	point.didYouGetPoints(player, bullet, counter, app);
 
-	if(counter > 100 && levelOne == 0)
+	if(counter > 1000 && levelOne == 0)
 	{
 	    enemy.makeEnd(levelOne, app);
 	}
@@ -87,7 +86,7 @@ int main(int argc, char* args[])
 
 	enemy.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	enemy.didEnemyKill(player);
+	enemy.didEnemyKill(player, app);
 
 	if(enemy.health > 0)
 	{
