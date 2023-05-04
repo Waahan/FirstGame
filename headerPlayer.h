@@ -4,6 +4,13 @@
 #include <fstream>
 #include <string>
 
+class thing;
+class user;
+class enemys;
+class points;
+class bulletClass;
+class healthDisplay;
+
 class thing
 {
     public:
@@ -19,8 +26,6 @@ class thing
     virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 };
 
-class bulletClass;
-
 class user : public thing
 {
     friend bulletClass;
@@ -35,6 +40,9 @@ class user : public thing
 
     void input(thing& bullet, thing& bullet2, App app);
 
+    void keyMenu(bool& start, SDL_KeyboardEvent *event);
+    void menuInput(bool& start);
+
     virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 
     protected:
@@ -45,8 +53,6 @@ class user : public thing
     int playerFired = 0;
     int back;
 };
-
-int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
 
 class enemys : public thing
 {
@@ -89,3 +95,5 @@ class healthDisplay
      SDL_Texture* halfHealth;
      SDL_Texture* critical;
 };
+
+int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
