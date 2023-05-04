@@ -120,7 +120,6 @@ Messages::Messages(const char* message, int x, int y, int w, int h, App app)
     Message_rect.h = h; // controls the height of the rect
 }
 
-
 Messages::Messages(const char* message, int x, int y, int w, int h, SDL_Color color, App app)
 {
     //this opens a font style and sets a size
@@ -137,6 +136,12 @@ Messages::Messages(const char* message, int x, int y, int w, int h, SDL_Color co
     Message_rect.y = y; // controls the rect's y coordinte
     Message_rect.w = w; // controls the width of the rect
     Message_rect.h = h; // controls the height of the rect
+}
+
+Messages::~Messages()
+{
+    SDL_FreeSurface(surfaceMessage);
+    SDL_DestroyTexture(Message);
 }
 
 void Messages::newMessage(const char* message, int x, int y, int w, int h, App app)
@@ -164,10 +169,4 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, SDL_C
 void Messages::drawMessage(App app)
 {
     SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
-}
-
-Messages::~Messages()
-{
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(Message);
 }
