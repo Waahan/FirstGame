@@ -4,7 +4,6 @@
 #include <string.h>
 #include <algorithm>
 #include <climits>
-#include <fstream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -123,6 +122,7 @@ int main(int argc, char* args[])
 
 	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
         enemy.spawnEnemys(enemySpawnTimer);
+	enemy.scaleDifficulty(counter);
 	Score.drawMessage(app);
 
         bullet.didBulletHit(enemy, counter);

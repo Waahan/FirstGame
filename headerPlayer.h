@@ -1,7 +1,6 @@
 //Header for player.cpp
 #pragma once
 #include "headerVisuals.h"
-#include <fstream>
 #include <string>
 
 class thing;
@@ -57,11 +56,17 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
+    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
 
     void spawnEnemys(int& enemySpawnTimer);
     void didEnemyKill(user& player, App& app);
     void makeEnd(int& levelOne, App& app);
+    void scaleDifficulty(int& counter);
+
+    private:
+    int minimum = 1;
+    int maximum = 15;
+
 };
 
 class points : public thing
@@ -79,7 +84,7 @@ class points : public thing
 class bulletClass : public thing
 {
     public:
-    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
 
     void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
