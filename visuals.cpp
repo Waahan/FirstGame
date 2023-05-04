@@ -58,40 +58,6 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
-Messages::Messages(const char* message, int x, int y, int w, int h, App app)
-{
-    //this opens a font style and sets a size
-    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
-
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
-    surfaceMessage = TTF_RenderText_Solid(font, message, White); 
-
-    // now you can convert it into a texture
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-    Message_rect.x = x;  //controls the rect's x coordinate 
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = w; // controls the width of the rect
-    Message_rect.h = h; // controls the height of the rect
-}
-
-void Messages::newMessage(const char* message, int x, int y, int w, int h, App app)
-{
-    surfaceMessage = TTF_RenderText_Solid(font, message, White);
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-    Message_rect.x = x;
-    Message_rect.y = y;
-    Message_rect.w = w;
-    Message_rect.h = h;
-}
-
-void Messages::drawMessage(App app)
-{
-    SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
-}
-
 //For loading image to the window
 SDL_Texture* App::loadImages(const char* imageFile)
 {
@@ -99,9 +65,6 @@ SDL_Texture* App::loadImages(const char* imageFile)
     SDL_Texture *Image;
 
     Image = IMG_LoadTexture(renderer, imageFile);
-
-    textureList[textureNumber] = Image;
-    textureNumber++;
 
     return Image;
 }
@@ -135,6 +98,72 @@ void App::makeVisuals()
 void App::showVisuals()
 {
     SDL_RenderPresent(renderer);
+}
+
+
+
+Messages::Messages(const char* message, int x, int y, int w, int h, App app)
+{
+    //this opens a font style and sets a size
+    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
+
+    // as TTF_RenderText_Solid could only be used on
+    // SDL_Surface then you have to create the surface first
+    surfaceMessage = TTF_RenderText_Solid(font, message, White);
+
+    // now you can convert it into a texture
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+
+    Message_rect.x = x;  //controls the rect's x coordinate
+    Message_rect.y = y; // controls the rect's y coordinte
+    Message_rect.w = w; // controls the width of the rect
+    Message_rect.h = h; // controls the height of the rect
+}
+
+
+Messages::Messages(const char* message, int x, int y, int w, int h, SDL_Color color, App app)
+{
+    //this opens a font style and sets a size
+    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
+
+    // as TTF_RenderText_Solid could only be used on
+    // SDL_Surface then you have to create the surface first
+    surfaceMessage = TTF_RenderText_Solid(font, message, color);
+
+    // now you can convert it into a texture
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+
+    Message_rect.x = x;  //controls the rect's x coordinate
+    Message_rect.y = y; // controls the rect's y coordinte
+    Message_rect.w = w; // controls the width of the rect
+    Message_rect.h = h; // controls the height of the rect
+}
+
+void Messages::newMessage(const char* message, int x, int y, int w, int h, App app)
+{
+    surfaceMessage = TTF_RenderText_Solid(font, message, White);
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+
+    Message_rect.x = x;
+    Message_rect.y = y;
+    Message_rect.w = w;
+    Message_rect.h = h;
+}
+
+void Messages::newMessage(const char* message, int x, int y, int w, int h, SDL_Color color, App app)
+{
+    surfaceMessage = TTF_RenderText_Solid(font, message, color);
+    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+
+    Message_rect.x = x;
+    Message_rect.y = y;
+    Message_rect.w = w;
+    Message_rect.h = h;
+}
+
+void Messages::drawMessage(App app)
+{
+    SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
 }
 
 Messages::~Messages()

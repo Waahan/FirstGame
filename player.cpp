@@ -210,24 +210,28 @@ void user::input(thing& bullet, thing& bullet2, App app)
     {
             y -= speed;
             direction = 1;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/PlayerUp.png");
     }
     if (playerDown)
     {
             y += speed;
             direction = 2;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/PlayerDown.png");
     }
     if (playerLeft)
     {
             x -= speed;
             direction = 3;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/PlayerLeft.png");
     }
     if (playerRight)
     {
             x += speed;
             direction = 4;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/PlayerRight.png");
     }
     if (playerFired && bullet.health == 0)
@@ -236,6 +240,7 @@ void user::input(thing& bullet, thing& bullet2, App app)
             bullet.y = y;
             bullet.health = 1;
             bullet.speed = speed/2;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/Player.png");
     }
     else if (playerFired && bullet2.health == 0 && bullet.health == 1)
@@ -244,26 +249,62 @@ void user::input(thing& bullet, thing& bullet2, App app)
             bullet2.y = y;
             bullet2.health = 1;
             bullet2.speed = speed/2;
+	    SDL_DestroyTexture(texture);
 	    texture = app.loadImages("images/Player.png");
     }
     else if(playerFired && bullet2.health > 0 && bullet.health > 0)
     {
             if(bullet.speed < 65535)
             {
-                bullet.speed += bullet.speed;
+                bullet.speed += 2;
             }
             else
             {
                 bullet.speed = 20;
             }
+
             if(bullet2.speed < 65535)
             {
-                bullet2.speed += bullet2.speed;
+                bullet2.speed += 2;
             }
             else
             {
                 bullet2.speed = 20;
             }
+    }
+}
+
+void user::keyMenu(bool& start, SDL_KeyboardEvent *event)
+{
+    //Ignores keyboard repeat events
+    if(event->repeat == 0)
+    {
+        if(event->keysym.scancode == SDL_SCANCODE_RETURN)
+        {
+            start = true;
+        }
+    }
+}
+
+void user::menuInput(bool& start)
+{
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            case SDL_QUIT:
+                exit(0);
+                break;
+
+            case SDL_KEYDOWN:
+                keyMenu(start, &event.key);
+                break;
+
+            default:
+                break;
+        }
     }
 }
 
@@ -378,6 +419,8 @@ void bulletClass::didBulletHit(thing& enemy, int& counter)
     if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h))
     {
         enemy.health = 0;
+	enemy.x = 1000;
+	enemy.y = 1000;
         health -= 1;
 	counter++;
     }
@@ -388,7 +431,10 @@ void enemys::didEnemyKill(user& player, App& app)
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
         health = 0;
+	x = 1000;
+	y = 1000;
         player.health -= 1;
+	SDL_DestroyTexture(player.texture);
 	player.texture = app.loadImages("images/PlayerSad.png");
     }
 }
@@ -400,11 +446,13 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
 	if(health > player.health)
 	{
 	    player.health += health;
+	    SDL_DestroyTexture(player.texture);
 	    player.texture = app.loadImages("images/PlayerHappy.png");
 	}
 	else
 	{
 	    counter++;
+	    SDL_DestroyTexture(player.texture);
 	    player.texture = app.loadImages("images/PlayerHappy.png");
 	}
 
@@ -421,6 +469,7 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
 
 void enemys::makeEnd(int& levelOne, App& app)
 {
+    SDL_DestroyTexture(texture);
     texture = app.loadImages("images/secretEnd.gif");
     speed = 1;
     levelOne = 1;
