@@ -29,6 +29,7 @@ int main(int argc, char* args[])
     int oldCounter = 0;
     bool start = false;
     int color = 0;
+    int startTimer = 0;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -52,43 +53,50 @@ int main(int argc, char* args[])
 	Start.drawMessage(app);
 	Title.drawMessage(app);
 	
-	if(color == 0)
+	if(startTimer > 100)
 	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Red, app);
-	}
-	else if(color == 1)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Orange, app);
-	}
-	else if(color == 2)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Yellow, app);
-	}
-	else if(color == 3)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Green, app);
-	}
-	else if(color == 4)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Blue, app);
-	}
-	else if(color == 5)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Indigo, app);
-	}
-	else if(color == 6)
-	{
-	    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Violet, app);
-	}
-	else if(color > 6)
-	{
-	    color = 0;
+	    startTimer = 0;
+
+	    if(color == 0)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Red, app);
+	    }
+	    else if(color == 1)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Orange, app);
+	    }
+	    else if(color == 2)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Yellow, app);
+	    }
+	    else if(color == 3)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Green, app);
+	    } 
+	    else if(color == 4)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Blue, app);
+	    }
+	    else if(color == 5)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Indigo, app);
+	    }
+	    else if(color == 6)
+	    {
+	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Violet, app);
+	    }
+	    else if(color > 6)
+	    {
+	        color = 0;
+	    }
+
+	    if(color < 7)
+	    {
+	        color++;
+	    }
 	}
 
-	if(color < 7)
-	{
-	    color++;
-	}
+	startTimer++;
 
 	player.menuInput(start);
 
