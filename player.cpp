@@ -425,7 +425,13 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
     {
         if(health > player.health)
         {
-            player.health += health;
+	    int randomNum = rand() % 2;
+
+	    if(randomNum)
+	    {
+                player.health += health;
+	    }
+
             SDL_DestroyTexture(player.texture);
             player.texture = app.loadImages("images/PlayerHappy.png");
         }
@@ -441,7 +447,7 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
     }
     else if(collision(x, y, w, h, bullet.x, bullet.y, bullet.w, bullet.h))
     {
-        bullet.health += health;
+        bullet.health += 1;
         health = 0;
         counter++;
     }
