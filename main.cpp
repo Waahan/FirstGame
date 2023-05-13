@@ -43,7 +43,8 @@ int main(int argc, char* args[])
     thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages(backgroundPath.c_str()));
     Messages Score("Score", 0, 0, 100, 100, app);
     Messages Title("Sus invaders", 0, 0, 500, 500, Score.Blue, app);
-    Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 100, 100, app);
+    Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app);
+    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, Score.Red, app);
     healthDisplay playerHealthDisplay(app.loadImages(healthPath1.c_str()), app.loadImages(healthPath2.c_str()), app.loadImages(healthPath3.c_str()));
 
     while(!start)
@@ -51,6 +52,7 @@ int main(int argc, char* args[])
         app.makeVisuals();
 
 	Start.drawMessage(app);
+	Controls.drawMessage(app);
 	Title.drawMessage(app);
 	
 	if(startTimer > 100)
