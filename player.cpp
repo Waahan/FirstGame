@@ -318,7 +318,7 @@ void user::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 
 enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
 
-void enemys::spawnEnemys(int& enemySpawnTimer)
+void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
 {
     if(enemySpawnTimer <= 0 && health == 0)
     {
@@ -329,6 +329,8 @@ void enemys::spawnEnemys(int& enemySpawnTimer)
 
        health = 1;
 
+       smart = rand() % 2;
+
        x -= rand() % 10;
 
        enemySpawnTimer = rand() % 100;
@@ -336,7 +338,17 @@ void enemys::spawnEnemys(int& enemySpawnTimer)
     else
     {
         x -= speed;
-        enemySpawnTimer--;
+
+        if(y > player.y && smart)
+	{
+	    y -= speed;
+	}
+	else if(y < player.y && smart) 
+	{
+	    y += speed;
+	}
+        
+	enemySpawnTimer--;
     }
 }
 
