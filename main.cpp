@@ -131,7 +131,7 @@ int main(int argc, char* args[])
 	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
-        enemy.spawnEnemys(enemySpawnTimer);
+        enemy.spawnEnemys(enemySpawnTimer, player);
 	enemy.scaleDifficulty(counter);
 	Score.drawMessage(app);
 

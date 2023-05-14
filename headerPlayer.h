@@ -58,7 +58,7 @@ class enemys : public thing
     public:
     enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
 
-    void spawnEnemys(int& enemySpawnTimer);
+    void spawnEnemys(int& enemySpawnTimer, user& player);
     void didEnemyKill(user& player, App& app);
     void makeEnd(int& levelOne, App& app);
     void scaleDifficulty(int& counter);
@@ -66,6 +66,7 @@ class enemys : public thing
     private:
     int minimum = 1;
     int maximum = 15;
+    int smart;
 
 };
 
