@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <string.h>
+#include <future>
+
 #include "headerPlayer.h"
 #include "headerVisuals.h"
 using namespace std;
 
-thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture)
+thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
 {
     x = ix;
     y = iy;
@@ -16,6 +18,7 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
     health = ihealth;
     speed = ispeed;
     texture = itexture;
+    appPointer = iappPointer;
 }
 
 void thing::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
@@ -38,9 +41,42 @@ void thing::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
+void thing::newTexture(SDL_Texture* newTexture)
+{
+    if(newTexture == nullptr || newTexture == NULL)
+    {
+        cerr << "newTexture can not be nullptr or 0 or NULL";
+	return;
+    }
+
+    SDL_DestroyTexture(texture);
+    texture = nullptr; 
+
+    texture = newTexture;
+}
+
+void thing::newTexture(const char* newTexturePath)
+{
+    SDL_DestroyTexture(texture);
+    texture = appPointer->loadImages(newTexturePath);
+}
+
+int thing::show()
+{
+    if(health != 0)
+    {
+        appPointer->imagePos(texture, x, y, w, h);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 
-user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture)
+
+user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
     back = iback;
     direction = idirection;
@@ -167,7 +203,7 @@ void user::doKeyUp(SDL_KeyboardEvent *event)
     }
 }
 
-void user::input(thing& bullet, thing& bullet2, App app)
+void user::input(thing& bullet, thing& bullet2)
 {
     SDL_Event event;
 
@@ -195,29 +231,25 @@ void user::input(thing& bullet, thing& bullet2, App app)
     {
             y -= speed;
             direction = 1;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/PlayerUp.png");
+	    newTexture("images/PlayerUp.png");
     }
     if (playerDown)
     {
             y += speed;
             direction = 2;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/PlayerDown.png");
+	    newTexture("images/PlayerDown.png");
     }
     if (playerLeft)
     {
             x -= speed;
             direction = 3;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/PlayerLeft.png");
+	    newTexture("images/PlayerLeft.png");
     }
     if (playerRight)
     {
             x += speed;
             direction = 4;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/PlayerRight.png");
+	    newTexture("images/PlayerRight.png");
     }
     if (playerFired && bullet.health == 0)
     {
@@ -225,8 +257,7 @@ void user::input(thing& bullet, thing& bullet2, App app)
             bullet.y = y;
             bullet.health = 1;
             bullet.speed = speed/2;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/Player.png");
+	    newTexture("images/Player.png");
     }
     else if (playerFired && bullet2.health == 0 && bullet.health == 1)
     {
@@ -234,8 +265,7 @@ void user::input(thing& bullet, thing& bullet2, App app)
             bullet2.y = y;
             bullet2.health = 1;
             bullet2.speed = speed/2;
-	    SDL_DestroyTexture(texture);
-	    texture = app.loadImages("images/Player.png");
+	    newTexture("images/Player.png");
     }
     else if(playerFired && bullet2.health > 0 && bullet.health > 0)
     {
@@ -314,9 +344,22 @@ void user::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
+void user::playerDeath(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+{
+    thing deathImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
+
+    deathImage.show();
+
+    appPointer->showVisuals();
+
+    SDL_Delay(3000);
+
+    exit(0);
+}
 
 
-enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
+
+enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){}
 
 void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
 {
@@ -352,7 +395,7 @@ void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
     }
 }
 
-void enemys::didEnemyKill(user& player, App& app)
+void enemys::didEnemyKill(user& player)
 {
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
@@ -360,21 +403,19 @@ void enemys::didEnemyKill(user& player, App& app)
         x = 1000;
         y = 1000;
         player.health -= 1;
-        SDL_DestroyTexture(player.texture);
-        player.texture = app.loadImages("images/PlayerSad.png");
+        player.newTexture("images/PlayerSad.png");
     }
 }
 
-void enemys::makeEnd(int& levelOne, App& app)
+void enemys::makeEnd(int& levelOne)
 {
-    SDL_DestroyTexture(texture);
-    texture = app.loadImages("images/secretEnd.gif");
+    newTexture("images/secretEnd.gif");
     speed = 1;
     levelOne = 1;
 
-    app.imagePos(texture, x, y, w, h);
+    appPointer->imagePos(texture, 100, 100, w, h);
 
-    app.showVisuals();
+    appPointer->showVisuals();
 
     SDL_Delay(60000);
 }
@@ -395,7 +436,7 @@ void enemys::scaleDifficulty(int& counter)
 
 
 
-points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){}
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){}
 
 void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
@@ -431,7 +472,7 @@ void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     }
 }
 
-void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app)
+void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 {
     if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
     {
@@ -444,14 +485,12 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
                 player.health += health;
 	    }
 
-            SDL_DestroyTexture(player.texture);
-            player.texture = app.loadImages("images/PlayerHappy.png");
+            player.newTexture("images/PlayerHappy.png");
         }
         else
         {
             counter++;
-            SDL_DestroyTexture(player.texture);
-            player.texture = app.loadImages("images/PlayerHappy.png");
+            player.newTexture("images/PlayerHappy.png");
         }
 
         health = 0;
@@ -467,9 +506,9 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter, App& app
 
 
 
-bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture){};
+bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){};
 
-void bulletClass::logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void bulletClass::logic(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     if(player.direction == 1)
     {

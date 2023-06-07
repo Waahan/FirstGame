@@ -1,7 +1,7 @@
 //Header for player.cpp
 #pragma once
-#include "headerVisuals.h"
 #include <string>
+#include "headerVisuals.h"
 
 class thing;
 class user;
@@ -13,16 +13,22 @@ class healthDisplay;
 class thing
 {
     public:
+    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    virtual ~thing(){ SDL_DestroyTexture(texture); }
+
+    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    virtual void newTexture(SDL_Texture* newTexture);
+    virtual void newTexture(const char* newTexturePath);
+    virtual int show();
+    
     int x;
     int y;
     int w;
     int h;
     int health;
     int speed;
-
     SDL_Texture* texture;
-    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
-    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    App* appPointer;
 };
 
 class user : public thing
@@ -30,21 +36,24 @@ class user : public thing
     friend bulletClass;
 
     public:
-    int direction;
-
-    user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, int iback, int idirection);
+    user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
+    user(user& userCopy) = delete;
+    ~user(){ SDL_DestroyTexture(texture); }
 
     void doKeyDown(SDL_KeyboardEvent *event);
     void doKeyUp(SDL_KeyboardEvent *event);
 
-    void input(thing& bullet, thing& bullet2, App app);
+    void input(thing& bullet, thing& bullet2);
 
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
 
-    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+
+    void playerDeath(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
 
     protected:
+    int direction;
     int playerUp = 0;
     int playerDown = 0;
     int playerLeft = 0;
@@ -56,27 +65,28 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
+    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    ~enemys(){ SDL_DestroyTexture(texture); }
 
     void spawnEnemys(int& enemySpawnTimer, user& player);
-    void didEnemyKill(user& player, App& app);
-    void makeEnd(int& levelOne, App& app);
+    void didEnemyKill(user& player);
+    void makeEnd(int& levelOne);
     void scaleDifficulty(int& counter);
 
     private:
     int minimum = 1;
     int maximum = 15;
     int smart;
-
 };
 
 class points : public thing
 {
     public:
-    points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
+    points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    ~points(){ SDL_DestroyTexture(texture); }
 
     void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
-    void didYouGetPoints(user& player, thing& bullet, int& counter, App& app);
+    void didYouGetPoints(user& player, thing& bullet, int& counter);
 
     private:
     int randomNum;
@@ -85,9 +95,10 @@ class points : public thing
 class bulletClass : public thing
 {
     public:
-    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture);
+    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    ~bulletClass(){ SDL_DestroyTexture(texture); }
 
-    void logic(user player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void logic(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
 };
 
@@ -95,6 +106,8 @@ class healthDisplay
 {
      public:
      healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
+     ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
+     
      SDL_Texture* healthDisplayUpdate(user& player);
      
      SDL_Texture* fullHealth;

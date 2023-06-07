@@ -15,7 +15,7 @@ class App
     App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
 
     SDL_Texture *loadImages(const char* imageFile);
-    void imagePos(SDL_Texture* image, int x, int y, int w, int  h);
+    void imagePos(SDL_Texture* image, int x, int y, int w, int h);
     void makeVisuals();
     void showVisuals();
 

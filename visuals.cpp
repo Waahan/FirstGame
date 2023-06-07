@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "headerPlayer.h"
 using namespace std;
 
@@ -28,7 +29,7 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT)
         cout << "Could not start SDL ttf:" << SDL_GetError();
     }
 
-    window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+    window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
 
     //Check if window was created
     if (!window)
@@ -170,3 +171,4 @@ void Messages::drawMessage(App app)
 {
     SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
 }
+
