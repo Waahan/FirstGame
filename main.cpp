@@ -4,9 +4,11 @@
 #include <string.h>
 #include <algorithm>
 #include <climits>
+#include <future>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
@@ -33,19 +35,23 @@ int main(int argc, char* args[])
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    string playerPath = "images/Player.png", bulletPath = "images/bullet.png", enemyPath = "images/enemy.png", pointPath = "images/points.png", backgroundPath = "images/Background.png", healthPath1 = "images/Health1.jpg", healthPath2 = "images/Health2.jpg", healthPath3 = "images/Health3.jpg";
+    user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), &app, 30, 1);
 
-    user player(100, 100, 90, 90, 10, 10, app.loadImages(playerPath.c_str()), 30, 1);
-    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages(bulletPath.c_str()));
-    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages(bulletPath.c_str()));
-    enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages(enemyPath.c_str()));
-    points point(2000, 2000, 40, 40, 0, 0, app.loadImages(pointPath.c_str()));
-    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages(backgroundPath.c_str()));
+    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"), &app);
+    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"), &app);
+
+    enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"), &app);
+
+    points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"), &app);
+
+    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
+
     Messages Score("Score", 0, 0, 100, 100, app);
     Messages Title("Sus invaders", 0, 0, 500, 500, Score.Blue, app);
     Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app);
     Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, Score.Red, app);
-    healthDisplay playerHealthDisplay(app.loadImages(healthPath1.c_str()), app.loadImages(healthPath2.c_str()), app.loadImages(healthPath3.c_str()));
+
+    healthDisplay playerHealthDisplay(app.loadImages("images/Health1.jpg"), app.loadImages("images/Health2.jpg"), app.loadImages("images/Health3.jpg"));
 
     while(!start)
     {
@@ -123,7 +129,7 @@ int main(int argc, char* args[])
 	    oldCounter = counter;
 	}
 
-	player.input(bullet, bullet2, app);
+	player.input(bullet, bullet2);
 
         bullet.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
 	bullet2.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -137,55 +143,30 @@ int main(int argc, char* args[])
 
         bullet.didBulletHit(enemy, counter);
         bullet2.didBulletHit(enemy, counter);
-	enemy.didEnemyKill(player, app);
-	point.didYouGetPoints(player, bullet, counter, app);
+	enemy.didEnemyKill(player);
+	point.didYouGetPoints(player, bullet, counter);
 
-	if(counter > 500 && levelOne == 0)
+	if(counter > 400 && levelOne == 0)
 	{
-	    enemy.makeEnd(levelOne, app);
+	    enemy.makeEnd(levelOne);
 	}
 	else if(levelOne == 1)
 	{ 
-	    SDL_DestroyTexture(enemy.texture);
-	    enemy.texture = app.loadImages("images/enemy.png");
+	    enemy.newTexture("images/enemy.png");
 	    levelOne += 1;
 	}
 
-	if(enemy.health > 0)
-	{
-	    app.imagePos(enemy.texture, enemy.x, enemy.y, enemy.w, enemy.h);
-	}
+	enemy.show();
 
-        if (bullet.health > 0)
-        {
-            app.imagePos(bullet.texture, bullet.x, bullet.y, bullet.w, bullet.h);
-        }
+        bullet.show();
 
-        if (bullet2.health > 0)
-        {
-            app.imagePos(bullet2.texture, bullet2.x, bullet2.y, bullet2.w, bullet2.h);
-        }
+        bullet2.show();
 
-        if (point.health > 0)
-        {
-            app.imagePos(point.texture, point.x, point.y, point.w, point.h);
-        }
+        point.show();
 	
-	if(player.health > 0)
+	if(!player.show())
 	{
-	    app.imagePos(player.texture, player.x, player.y, player.w, player.h);
-	}
-	else
-	{
-	    thing deathImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Death.jpg"));
-
-	    app.imagePos(deathImage.texture, deathImage.x, deathImage.y, deathImage.w, deathImage.h);
-
-	    app.showVisuals();
-
-	    SDL_Delay(6000);
-
-	    exit(0);
+	    player.playerDeath(SCREEN_WIDTH, SCREEN_HEIGHT);
 	    return 0;
 	}
 
