@@ -1,6 +1,4 @@
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <algorithm>
 #include <climits>
@@ -12,14 +10,6 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
-
-using namespace std;
-
 int main(int argc, char* args[])
 {
     const int SCREEN_WIDTH = 1280;
@@ -30,7 +20,10 @@ int main(int argc, char* args[])
     int counter = 0;
     int oldCounter = 0;
     bool start = false;
-    int color = 0;
+
+    enum class color: unsigned char { red = 0, orange = 1, yellow = 2, green = 3, blue = 4, indigo = 5, violet = 6 };
+    color myColor;
+
     int startTimer = 0;
 
     App app(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -65,43 +58,38 @@ int main(int argc, char* args[])
 	{
 	    startTimer = 0;
 
-	    if(color == 0)
+	    switch(myColor)
 	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Red, app);
+		case color::red:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Red, app);
+		    myColor = color::orange;
+		    break;
+		case color::orange:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Orange, app);
+		    myColor = color::yellow;
+		    break;
+		case color::yellow:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Yellow, app);
+		    myColor = color::green;
+		    break;
+		case color::green:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Green, app);
+		    myColor = color::blue;
+		    break;
+		case color::blue:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Blue, app);
+		    myColor = color::indigo;
+		    break;
+		case color::indigo:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Indigo, app);
+		    myColor = color::violet;
+		    break;
+		case color::violet:
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Violet, app);
+		    myColor = color::red;
+                    break;
 	    }
-	    else if(color == 1)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Orange, app);
-	    }
-	    else if(color == 2)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Yellow, app);
-	    }
-	    else if(color == 3)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Green, app);
-	    } 
-	    else if(color == 4)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Blue, app);
-	    }
-	    else if(color == 5)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Indigo, app);
-	    }
-	    else if(color == 6)
-	    {
-	        Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Violet, app);
-	    }
-	    else if(color > 6)
-	    {
-	        color = 0;
-	    }
-
-	    if(color < 7)
-	    {
-	        color++;
-	    }
+            
 	}
 
 	startTimer++;
@@ -111,7 +99,7 @@ int main(int argc, char* args[])
 	app.showVisuals();
     }
 
-    while (1)
+    while (true)
     {
         app.makeVisuals();
 
@@ -119,7 +107,7 @@ int main(int argc, char* args[])
 
 	if (oldCounter != counter)
 	{
-	    string counterString = "Score:"+to_string(counter);
+	    std::string counterString = "Score:"+std::__cxx11::to_string(counter);
 	    Score.newMessage(counterString.c_str(), 0, 0, 100, 100, app);
 
 	    oldCounter = counter;
@@ -137,7 +125,9 @@ int main(int argc, char* args[])
 	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
-        enemy.spawnEnemys(enemySpawnTimer, player);
+
+        auto spawnEnemys = std::async(std::launch::async, [&enemy, &enemySpawnTimer, &player](){ enemy.spawnEnemys(enemySpawnTimer, player); } );
+
 	enemy.scaleDifficulty(counter);
 	Score.drawMessage(app);
 
@@ -155,6 +145,8 @@ int main(int argc, char* args[])
 	    enemy.newTexture("images/enemy.png");
 	    levelOne += 1;
 	}
+
+	spawnEnemys.get();
 
 	enemy.show();
 

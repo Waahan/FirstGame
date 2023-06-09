@@ -2,7 +2,6 @@
 #pragma once
 #include <string.h>
 #include <SDL2/SDL_ttf.h>
-using namespace std;
 
 class App;
 class Messages;
@@ -12,10 +11,13 @@ class App
     friend Messages;
 
     public:
-    App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    App(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    App(App& copyApp) = delete;
+    ~App();
 
     SDL_Texture *loadImages(const char* imageFile);
     void imagePos(SDL_Texture* image, int x, int y, int w, int h);
+    void imagePos(SDL_Texture* image, int x, int y);
     void makeVisuals();
     void showVisuals();
 
@@ -29,13 +31,13 @@ class App
 class Messages
 {
     public:
-    Messages(const char* message, int x, int y, int w, int h, App app);
-    Messages(const char* message, int x, int y, int w, int h, SDL_Color color, App app);
+    Messages(const char* message, int x, int y, int w, int h, App& app);
+    Messages(const char* message, int x, int y, int w, int h, SDL_Color color, App& app);
     ~Messages();
 
-    void newMessage(const char* message, int x, int y, int w, int h, App app);
-    void newMessage(const char* message, int x, int y, int w, int h, SDL_Color color, App app);
-    void drawMessage(App app);
+    void newMessage(const char* message, int x, int y, int w, int h, App& app);
+    void newMessage(const char* message, int x, int y, int w, int h, SDL_Color color, App& app);
+    void drawMessage(App& app);
 
     private:
     TTF_Font* font = NULL;

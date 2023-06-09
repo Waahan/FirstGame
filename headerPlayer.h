@@ -16,7 +16,7 @@ class thing
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
     virtual ~thing(){ SDL_DestroyTexture(texture); }
 
-    virtual void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    virtual void logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
     virtual void newTexture(SDL_Texture* newTexture);
     virtual void newTexture(const char* newTexturePath);
     virtual int show();
@@ -40,26 +40,25 @@ class user : public thing
     user(user& userCopy) = delete;
     ~user(){ SDL_DestroyTexture(texture); }
 
-    void doKeyDown(SDL_KeyboardEvent *event);
-    void doKeyUp(SDL_KeyboardEvent *event);
+    void doKeyDown(SDL_KeyboardEvent *event, const bool& DownUp);
 
     void input(thing& bullet, thing& bullet2);
 
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
 
-    void logic(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
 
     void playerDeath(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
 
     protected:
-    int direction;
-    int playerUp = 0;
-    int playerDown = 0;
-    int playerLeft = 0;
-    int playerRight = 0;
-    int playerFired = 0;
-    int back;
+    char direction;
+    bool playerUp = 0;
+    bool playerDown = 0;
+    bool playerLeft = 0;
+    bool playerRight = 0;
+    bool playerFired = 0;
+    char back;
 };
 
 class enemys : public thing
@@ -71,7 +70,7 @@ class enemys : public thing
     void spawnEnemys(int& enemySpawnTimer, user& player);
     void didEnemyKill(user& player);
     void makeEnd(int& levelOne);
-    void scaleDifficulty(int& counter);
+    void scaleDifficulty(const int& counter);
 
     private:
     int minimum = 1;
@@ -85,7 +84,7 @@ class points : public thing
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
     ~points(){ SDL_DestroyTexture(texture); }
 
-    void initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
     void didYouGetPoints(user& player, thing& bullet, int& counter);
 
     private:
@@ -98,7 +97,7 @@ class bulletClass : public thing
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
-    void logic(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    void logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
     void didBulletHit(thing& enemy, int& counter);
 };
 

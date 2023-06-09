@@ -7,7 +7,6 @@
 
 #include "headerPlayer.h"
 #include "headerVisuals.h"
-using namespace std;
 
 thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
 {
@@ -21,7 +20,7 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
     appPointer = iappPointer;
 }
 
-void thing::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void thing::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 {
     if (x > SCREEN_WIDTH)
     {
@@ -45,7 +44,7 @@ void thing::newTexture(SDL_Texture* newTexture)
 {
     if(newTexture == nullptr || newTexture == NULL)
     {
-        cerr << "newTexture can not be nullptr or 0 or NULL";
+	std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
 	return;
     }
 
@@ -82,122 +81,35 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
     direction = idirection;
 }
 
-//For keyboard event detection. More scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void user::doKeyDown(SDL_KeyboardEvent *event)
+//Scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
+void user::doKeyDown(SDL_KeyboardEvent *event, const bool& DownUp)
 {
     //Ignores keyboard repeat events
     if(event->repeat == 0)
     {
-	//For using the arrow keys
-	
-	//"Up" (the Up arrow key (navigation keypad))
-        if(event->keysym.scancode == SDL_SCANCODE_UP)
+        if(event->keysym.scancode == SDL_SCANCODE_UP || event->keysym.scancode == SDL_SCANCODE_W)
 	{
-	    playerUp = 1;
-	}
-	//"Down" (the Down arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_DOWN)
-	{
-	    playerDown = 1;
-	}
-	//"Left" (the Left arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_LEFT)
-	{
-	    playerLeft = 1;
-	}
-	//"Right" (the Right arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_RIGHT)
-	{
-	    playerRight = 1;
+	    playerUp = DownUp;
 	}
 
-	//For using WASD
-	
-	//"Up" (the Up arrow key (navigation keypad))
-        if(event->keysym.scancode == SDL_SCANCODE_W)
+	if(event->keysym.scancode == SDL_SCANCODE_DOWN || event->keysym.scancode == SDL_SCANCODE_S)
 	{
-	    playerUp = 1;
-	}
-	//"Down" (the Down arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_S)
-	{
-	    playerDown = 1;
-	}
-	//"Left" (the Left arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_A)
-	{
-	    playerLeft = 1;
-	}
-	//"Right" (the Right arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_D)
-	{
-	    playerRight = 1;
+	    playerDown = DownUp;
 	}
 
-	//For player firing
+	if(event->keysym.scancode == SDL_SCANCODE_LEFT || event->keysym.scancode == SDL_SCANCODE_A)
+	{
+	    playerLeft = DownUp;
+	}
+
+	if(event->keysym.scancode == SDL_SCANCODE_RIGHT || event->keysym.scancode == SDL_SCANCODE_D)
+	{
+	    playerRight = DownUp;
+	}
+
 	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
         {
-	    playerFired = 1;
-	}
-
-    }
-}
-
-void user::doKeyUp(SDL_KeyboardEvent *event)
-{
-    //Ignores keyboard repeat events
-    if(event->repeat == 0)
-    {
-	//For using the arrow keys
-	
-	//"Up" (the Up arrow key (navigation keypad))
-        if(event->keysym.scancode == SDL_SCANCODE_UP)
-	{
-	    playerUp = 0;
-	}
-	//"Down" (the Down arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_DOWN)
-	{
-	    playerDown = 0;
-	}
-	//"Left" (the Left arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_LEFT)
-	{
-	    playerLeft = 0;
-	}
-	//"Right" (the Right arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_RIGHT)
-	{
-	    playerRight = 0;
-	}
-
-	//For using WASD
-	
-	//"Up" (the Up arrow key (navigation keypad))
-        if(event->keysym.scancode == SDL_SCANCODE_W)
-	{
-	    playerUp = 0;
-	}
-	//"Down" (the Down arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_S)
-	{
-	    playerDown = 0;
-	}
-	//"Left" (the Left arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_A)
-	{
-	    playerLeft = 0;
-	}
-	//"Right" (the Right arrow key (navigation keypad))
-	if(event->keysym.scancode == SDL_SCANCODE_D)
-	{
-	    playerRight = 0;
-	}
-
-	//For firing
-	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
-	{
-	     playerFired = 0;
+	    playerFired = DownUp;
 	}
 
     }
@@ -206,6 +118,8 @@ void user::doKeyUp(SDL_KeyboardEvent *event)
 void user::input(thing& bullet, thing& bullet2)
 {
     SDL_Event event;
+    const bool down = 1;
+    const bool up = 0;
 
     while (SDL_PollEvent(&event))
     {
@@ -216,11 +130,11 @@ void user::input(thing& bullet, thing& bullet2)
 		break;
 
 	    case SDL_KEYDOWN:
-		doKeyDown(&event.key);
+		doKeyDown(&event.key, down);
 		break;
 
 	    case SDL_KEYUP:
-		doKeyUp(&event.key);
+		doKeyDown(&event.key, up);
 		break;
 
 	    default:
@@ -323,9 +237,9 @@ void user::menuInput(bool& start)
     }
 }
 
-void user::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void user::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 {
-    // This keeps the player on the screen, remember [x, y] where y is upside down
+    // Remember [x, y] where y is upside down
     if (x < 0)
     {
         x += back;
@@ -334,7 +248,7 @@ void user::logic(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     {
         x -= back;
     }
-    if (y < 0)
+    else if (y < 0)
     {
         y += back;
     }
@@ -382,15 +296,6 @@ void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
     {
         x -= speed;
 
-        if(y > player.y && smart)
-	{
-	    y -= speed;
-	}
-	else if(y < player.y && smart) 
-	{
-	    y += speed;
-	}
-        
 	enemySpawnTimer--;
     }
 }
@@ -420,7 +325,7 @@ void enemys::makeEnd(int& levelOne)
     SDL_Delay(60000);
 }
 
-void enemys::scaleDifficulty(int& counter)
+void enemys::scaleDifficulty(const int& counter)
 {
     if(counter > 200)
     {
@@ -438,7 +343,7 @@ void enemys::scaleDifficulty(int& counter)
 
 points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){}
 
-void points::initPoints(int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void points::initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 {
     if (health > 0)
     {
@@ -508,7 +413,7 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 
 bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){};
 
-void bulletClass::logic(user& player, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void bulletClass::logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 {
     if(player.direction == 1)
     {
@@ -594,5 +499,5 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(user& player)
 //Takes two objects dimetions
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
-    return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
+    return ( std::max(x1, x2) < std::min(x1 + w1, x2 + w2) ) && ( std::max(y1, y2) < std::min(y1 + h1, y2 + h2) );
 }
