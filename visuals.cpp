@@ -25,54 +25,102 @@ App::App(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
         throw std::invalid_argument("SCREEN_WIDTH and SCREEN_HEIGHT can not be less than or equal to zero");
     }
 
-    int rendererFlags, windowFlags;
+    int rendererFlags = SDL_RENDERER_ACCELERATED, windowFlags = 0;
 
     rendererFlags = SDL_RENDERER_ACCELERATED;
 
     windowFlags = 0;
-    
+     
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
 	throw std::runtime_error("SDL_Init failed");
     }
-
-    if(TTF_Init() < 0)
+    
+    try
     {
-        std::cerr << "Could not start SDL ttf:" << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_Init failed");
+        if(TTF_Init() < 0)
+        {
+            std::cerr << "Could not start SDL ttf:" << SDL_GetError() << std::endl;
+	    throw std::runtime_error("TTF_Init failed");
+        }
+    }
+    catch(...)
+    {
+        SDL_Quit();
+	throw;
+    }
+    
+    try
+    {
+        window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+
+        //Check if window was created
+        if (!window)
+        {
+            std::cerr << "Failed to open window: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("SDL_CreateWindow failed");
+        }
+    }
+    catch(...)
+    {
+        SDL_Quit();
+	TTF_Quit();
+
+	throw;
     }
 
-    window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
-
-    //Check if window was created
-    if (!window)
+    try
     {
-        std::cerr << "Failed to open window: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_CreateWindow failed");
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+        //-1 so SDL use the first graphics acceleration device it finds
+        renderer = SDL_CreateRenderer(window, -1, rendererFlags);
+
+        //Check if renderer is working
+        if(!renderer)
+        {
+            std::cerr << "Renderer failed: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("SDL_CreateRenderer failed");
+        }
+
     }
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
-    //-1 so SDL use the first graphics acceleration device it finds
-    renderer = SDL_CreateRenderer(window, -1, rendererFlags);
-
-    //Check if renderer is working
-    if(!renderer)
+    catch(...)
     {
-        std::cerr << "Renderer failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_CreateRenderer failed");
+	SDL_DestroyWindow(window);
+        window = nullptr;
+
+        SDL_Quit();
+	TTF_Quit();
+
+	throw;
     }
 
     //Allows window to load .png and .jpg images
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;
     int initted = IMG_Init(flags);
 
-    if ((initted & flags) != flags) 
+    try
     {
-	std::cerr << "IMG_Init: Failed to init required jpg and png support!" << std::endl;
-	std::cerr << "IMG_Init: " << IMG_GetError() << std::endl;
-	throw std::runtime_error("IMG_Init failed");
+        if ((initted & flags) != flags) 
+        {
+	    std::cerr << "IMG_Init: Failed to init required jpg and png support!" << std::endl;
+	    std::cerr << "IMG_Init: " << IMG_GetError() << std::endl;
+	    throw std::runtime_error("IMG_Init failed");
+        }
+    }
+    catch(...)
+    {
+        SDL_DestroyRenderer(renderer);
+	renderer = nullptr;
+
+	SDL_DestroyWindow(window);
+	window = nullptr;
+
+	SDL_Quit();
+	TTF_Quit();
+
+	throw;
     }
 }
 
@@ -92,6 +140,7 @@ App::~App()
     window = nullptr;
 
     IMG_Quit();
+    TTF_Quit();
     SDL_Quit();
 }
 
@@ -231,30 +280,53 @@ Messages::Messages(const char* message, int x, int y, int w, int h, App& app)
         std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
 	throw std::runtime_error("TTF_OpenFont failed");
     }
-
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
-    surfaceMessage = TTF_RenderText_Solid(font, message, White);
-
-    if(surfaceMessage == NULL || surfaceMessage == nullptr)
+    
+    try 
     {
-        std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_RenderText_Solid failed");
+        // as TTF_RenderText_Solid could only be used on
+        // SDL_Surface then you have to create the surface first
+        surfaceMessage = TTF_RenderText_Solid(font, message, White);
+
+        if(surfaceMessage == NULL || surfaceMessage == nullptr)
+        {
+            std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("TTF_RenderText_Solid failed");
+        }
+    }
+    catch(...)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+        
+        throw;
     }
 
-    // now you can convert it into a texture
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-    if(Message == NULL || Message == nullptr)
+    try
     {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_CreateTextureFromSurface failed");
-    }
+        // now you can convert it into a texture
+        Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
 
-    Message_rect.x = x;  //controls the rect's x coordinate
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = w; // controls the width of the rect
-    Message_rect.h = h; // controls the height of the rect
+        if(Message == NULL || Message == nullptr)
+        {
+            std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("SDL_CreateTextureFromSurface failed");
+        }
+
+        Message_rect.x = x;  //controls the rect's x coordinate
+        Message_rect.y = y; // controls the rect's y coordinte
+        Message_rect.w = w; // controls the width of the rect
+        Message_rect.h = h; // controls the height of the rect
+    }
+    catch(...)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+        
+        SDL_FreeSurface(surfaceMessage);
+        surfaceMessage = nullptr;
+
+        throw;
+    }
 }
 
 Messages::Messages(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app)
@@ -284,30 +356,53 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const SDL_Co
         std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
 	throw std::runtime_error("TTF_OpenFont failed");
     }
-
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
-    surfaceMessage = TTF_RenderText_Solid(font, message, color);
-
-    if(surfaceMessage == NULL || surfaceMessage == nullptr)
+    
+    try
     {
-        std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_RenderText_Solid failed");
+        // as TTF_RenderText_Solid could only be used on
+        // SDL_Surface then you have to create the surface first
+        surfaceMessage = TTF_RenderText_Solid(font, message, color);
+
+        if(surfaceMessage == NULL || surfaceMessage == nullptr)
+        {
+            std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("TTF_RenderText_Solid failed");
+        }
+    }
+    catch(...)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+        
+        throw;
     }
 
-    // now you can convert it into a texture
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-    if(Message == NULL)
+    try
     {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_CreateTextureFromSurface failed");
-    }
+        // now you can convert it into a texture
+        Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
 
-    Message_rect.x = x;  //controls the rect's x coordinate
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = w; // controls the width of the rect
-    Message_rect.h = h; // controls the height of the rect
+        if(Message == NULL)
+        {
+            std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
+	    throw std::runtime_error("SDL_CreateTextureFromSurface failed");
+        }
+
+        Message_rect.x = x;  //controls the rect's x coordinate
+        Message_rect.y = y; // controls the rect's y coordinte
+        Message_rect.w = w; // controls the width of the rect
+        Message_rect.h = h; // controls the height of the rect
+    }
+    catch(...)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+        
+        SDL_FreeSurface(surfaceMessage);
+        surfaceMessage = nullptr;
+
+        throw;
+    }
 }
 
 Messages::~Messages()
@@ -318,12 +413,16 @@ Messages::~Messages()
  * pre and postconditions:
  * 
  * Postcondition surfaceMessage and Message should be NULL to avoid errors
+ * Postcondition font should be closed and set to NULL
 */
     SDL_FreeSurface(surfaceMessage);
     surfaceMessage = nullptr;
 
     SDL_DestroyTexture(Message);
     Message = nullptr;
+
+    TTF_CloseFont(font);
+    font = nullptr;
 }
 
 void Messages::newMessage(const char* message, int x, int y, int w, int h, App& app)
@@ -354,7 +453,7 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, App& 
         std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
 	throw std::runtime_error("TTF_RenderText_Solid failed");
     }
-
+    
     SDL_DestroyTexture(Message);
 
     Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);

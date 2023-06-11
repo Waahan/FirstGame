@@ -1,7 +1,7 @@
 First Game
 ----------
 
-My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. 
+My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. I try to use camel case, RAII and 4 space indentation in the project as much as possible. 
 
 To use build the project you must edit the CMakeLists.txt file to include your SDL2 image libary and SDL2 TTF libary. If you are on debain you can run sudo apt-file list "PACKAGE NAME" and include the file with the .so.0 at the end.
 

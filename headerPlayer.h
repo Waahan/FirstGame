@@ -75,6 +75,7 @@ class enemys : public thing
 {
     public:
     enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    enemys(enemys& copyEnemy) = delete;
     ~enemys(){ SDL_DestroyTexture(texture); }
 
     void spawnEnemys(int& enemySpawnTimer, user& player);
@@ -92,6 +93,7 @@ class points : public thing
 {
     public:
     points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    points(points& copyPoints) = delete;
     ~points(){ SDL_DestroyTexture(texture); }
 
     void initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
@@ -105,6 +107,7 @@ class bulletClass : public thing
 {
     public:
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    bulletClass(bulletClass& copyBullet) = delete;
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
     void logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
@@ -115,6 +118,7 @@ class healthDisplay
 {
      public:
      healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
+     healthDisplay(healthDisplay& copyHealthDisplay) = delete;
      ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
      
      SDL_Texture* healthDisplayUpdate(user& player);
