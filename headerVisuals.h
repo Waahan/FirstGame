@@ -1,6 +1,14 @@
 //Header for visuals.cpp
 #pragma once
-#include <string.h>
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <climits>
+#include <future>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
 class App;
@@ -32,11 +40,11 @@ class Messages
 {
     public:
     Messages(const char* message, int x, int y, int w, int h, App& app);
-    Messages(const char* message, int x, int y, int w, int h, SDL_Color color, App& app);
+    Messages(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app);
     ~Messages();
 
     void newMessage(const char* message, int x, int y, int w, int h, App& app);
-    void newMessage(const char* message, int x, int y, int w, int h, SDL_Color color, App& app);
+    void newMessage(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app);
     void drawMessage(App& app);
 
     private:

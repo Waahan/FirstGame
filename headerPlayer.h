@@ -1,6 +1,16 @@
 //Header for player.cpp
 #pragma once
+
+#include <iostream>
 #include <string>
+#include <algorithm>
+#include <climits>
+#include <future>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
 #include "headerVisuals.h"
 
 class thing;
