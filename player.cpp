@@ -13,19 +13,60 @@
 
 thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
 {
-    x = ix;
-    y = iy;
-    w = iw;
-    h = ih;
-    health = ihealth;
-    speed = ispeed;
-    texture = itexture;
-    appPointer = iappPointer;
+/*
+* thing::thing create a thing with the x y w h texture and app pointer 
+* 
+* pre and postconditions:
+* 
+* Precondition iappPointer and itexture can not be NULL
+* Precondition iw and ih can not be less or equal to zero 
+* Precondition ihealth can not be less than zero
+*
+* Postcondition constructs a valid thing
+* Postcondition itexture is destroyed even if exceptions are thrown 
+*/
+    
+    try
+    {
+        if(iappPointer == NULL || iappPointer == nullptr)
+        {
+            throw std::invalid_argument("iappPointer can not be NULL");
+        }
+        else if(itexture == NULL || itexture == nullptr)
+        {
+            throw std::invalid_argument("itexture can not be NULL");
+        }
+        else if(iw <= 0 || ih <= 0)
+        {
+            throw std::invalid_argument("thing w or height can not be less than or equal to zero");
+        }
+        else if(ihealth < 0)
+        {
+            throw std::invalid_argument("health can not be less than zero");
+        }
+
+        x = ix;
+        y = iy;
+        w = iw;
+        h = ih;
+        health = ihealth;
+        speed = ispeed;
+        texture = itexture;
+        appPointer = iappPointer;
+    }
+    catch(...)
+    {
+        SDL_DestroyTexture(itexture);
+        throw;
+    }
 }
 
-void thing::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+void thing::logic()
 {
-    if (x > SCREEN_WIDTH)
+/*
+* thing::logic sets health equal to zero if thing is outside SCREEN_WIDTH and SCREEN_HEIGHT
+*/
+    if (x > appPointer->appSCREEN_WIDTH)
     {
         health = 0;
     }
@@ -33,7 +74,7 @@ void thing::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
     {
         health = 0;
     }
-    else if (y > SCREEN_HEIGHT)
+    else if (y > appPointer->appSCREEN_HEIGHT)
     {
         health = 0;
     }
@@ -45,6 +86,13 @@ void thing::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 
 void thing::newTexture(SDL_Texture* newTexture)
 {
+/*
+* thing::newTexture set newTexture to texture 
+*
+* pre and postconditions:
+* 
+* Precondition newTexture is not NULL
+*/
     if(newTexture == nullptr || newTexture == NULL)
     {
 	std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
@@ -52,19 +100,32 @@ void thing::newTexture(SDL_Texture* newTexture)
     }
 
     SDL_DestroyTexture(texture);
-    texture = nullptr; 
-
     texture = newTexture;
 }
 
 void thing::newTexture(const char* newTexturePath)
 {
+/*
+* thing::newTexture load newTexture from the file path 
+*
+* pre and postconditions
+*
+* Precondition newTexturePath is not NULL 
+*/
+    if(newTexturePath == NULL || newTexturePath == nullptr)
+    {
+        throw std::invalid_argument("newTexturePath can not be NULL");
+    }
+
     SDL_DestroyTexture(texture);
     texture = appPointer->loadImages(newTexturePath);
 }
 
 int thing::show()
 {
+/*
+* thing::show use imagePos to display thing on screen
+*/
     if(health != 0)
     {
         appPointer->imagePos(texture, x, y, w, h);
@@ -80,13 +141,49 @@ int thing::show()
 
 user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
-    back = iback;
-    direction = idirection;
+/*
+* user::user construct a valid user 
+*
+* pre and postconditions:
+*
+* Precondition iw and ih can not be less than or equal to zero handled by thing 
+* Precondition ihealth can not be less than zero handled by thing
+* Precondition itexture can not be NULL handled by thing
+* Precondition iappPointer can not be NULL handled by thing
+* Precondition idirection can not be anything other than 1 2 3 or 4 
+*/
+    try
+    {
+        if(idirection != 1 && idirection != 2 && idirection != 3 && idirection != 4)
+        {
+            throw std::invalid_argument("idirection can not be anything other than 1 2 3 or 4");
+        }
+
+        back = iback;
+        direction = idirection;
+    }
+    catch(...)
+    {
+        SDL_DestroyTexture(itexture);
+        throw;
+    }
 }
 
 //Scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void user::doKeyDown(SDL_KeyboardEvent *event, const bool& DownUp)
+void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
 {
+/*
+* user::doKeyDown handle event keys by setting playerUp playerDown playerLeft playerRight and playerFired to true or false
+* 
+* pre and postconditions:
+*
+* Precondition event can not be NULL
+*/
+    if(event == NULL || event == nullptr)
+    {
+        throw std::invalid_argument("Event can not be NULL");
+    }
+
     //Ignores keyboard repeat events
     if(event->repeat == 0)
     {
@@ -120,10 +217,11 @@ void user::doKeyDown(SDL_KeyboardEvent *event, const bool& DownUp)
 
 void user::input(thing& bullet, thing& bullet2)
 {
+/*
+* user::input do actions based on event.type and doKeyDown
+*/
     SDL_Event event;
-    const bool down = 1;
-    const bool up = 0;
-
+    
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -133,11 +231,11 @@ void user::input(thing& bullet, thing& bullet2)
 		break;
 
 	    case SDL_KEYDOWN:
-		doKeyDown(&event.key, down);
+		doKeyDown(&event.key, true);
 		break;
 
 	    case SDL_KEYUP:
-		doKeyDown(&event.key, up);
+		doKeyDown(&event.key, false);
 		break;
 
 	    default:
@@ -208,6 +306,18 @@ void user::input(thing& bullet, thing& bullet2)
 
 void user::keyMenu(bool& start, SDL_KeyboardEvent *event)
 {
+/*
+* user::keyMenu handle key board events on the start menu 
+*
+* pre and postconditions:
+*
+* Precondition event is not NULL
+*/
+    if(event == NULL || event == nullptr)
+    {
+        throw std::invalid_argument("event can not be NULL");
+    }    
+
     //Ignores keyboard repeat events
     if(event->repeat == 0)
     {
@@ -220,6 +330,9 @@ void user::keyMenu(bool& start, SDL_KeyboardEvent *event)
 
 void user::menuInput(bool& start)
 {
+/*
+* user::menuInput Handle menu input 
+*/
     SDL_Event event;
 
     while (SDL_PollEvent(&event))
@@ -240,14 +353,17 @@ void user::menuInput(bool& start)
     }
 }
 
-void user::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+void user::logic()
 {
+/*
+* user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT 
+*/
     // Remember [x, y] where y is upside down
     if (x < 0)
     {
         x += back;
     }
-    else if (x > SCREEN_WIDTH-100)
+    else if (x > appPointer->appSCREEN_WIDTH-100)
     {
         x -= back;
     }
@@ -255,35 +371,70 @@ void user::logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
     {
         y += back;
     }
-    else if (y > SCREEN_HEIGHT-100)
+    else if (y > appPointer->appSCREEN_HEIGHT-100)
     {
         y -= back;
     }
 }
 
-void user::playerDeath(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+int user::show()
 {
-    thing deathImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
+/*
+* user::show show user or call playerDeath 
+*/
+    if(health != 0)
+    {
+        appPointer->imagePos(texture, x, y, w, h);
+        return 1;
+    }
+    else
+    {
+        playerDeath();
+        return 0;
+    }
+    
+    return 0;
+}
 
-    deathImage.show();
+void user::playerDeath()
+{
+/*
+* user::playerDeath make death screen and exit game if health is less than or equal to zero  
+*/
+    if(health <= 0)
+    {
+        thing deathImage(0, 0, appPointer->appSCREEN_WIDTH, appPointer->appSCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
 
-    appPointer->showVisuals();
+        deathImage.show();
 
-    SDL_Delay(3000);
+        appPointer->showVisuals();
 
-    exit(0);
+        SDL_Delay(3000);
+
+        exit(0);
+    }
 }
 
 
 
-enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){}
-
-void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
+enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
+/*
+* enemys::enemys construct enemys with thing constructor 
+* Pre and postconditions are taken care of by thing constructor 
+*/
+}
+
+void enemys::spawnEnemys(int& enemySpawnTimer)
+{
+/*
+* enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed 
+*/
     if(enemySpawnTimer <= 0 && health == 0)
     {
-       x = 1280;
-       y = rand() % 620;
+       x = appPointer->appSCREEN_WIDTH;
+       y = rand() % appPointer->appSCREEN_HEIGHT;
 
        speed = minimum + (rand() % maximum);
 
@@ -305,7 +456,10 @@ void enemys::spawnEnemys(int& enemySpawnTimer, user& player)
 
 void enemys::didEnemyKill(user& player)
 {
-    if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
+/*
+* enemys::didEnemyKill take one health from player and make them use the sad texture if health is not zero and then put at a invalid x value 
+*/
+    if(collision(player.x, player.y, player.w, player.h, x, y, w, h) && health != 0)
     {
         health = 0;
         x = 1000;
@@ -317,6 +471,9 @@ void enemys::didEnemyKill(user& player)
 
 void enemys::makeEnd(int& levelOne)
 {
+/*
+* enemys::makeEnd create the secret end with the enemy 
+*/
     newTexture("images/secretEnd.gif");
     speed = 1;
     levelOne = 1;
@@ -328,8 +485,11 @@ void enemys::makeEnd(int& levelOne)
     SDL_Delay(60000);
 }
 
-void enemys::scaleDifficulty(const int& counter)
+void enemys::scaleDifficulty(int counter)
 {
+/*
+* enemys::scaleDifficulty Increase the speed range of the enemy based on the players score
+*/
     if(counter > 200)
     {
         maximum = 20;
@@ -344,15 +504,25 @@ void enemys::scaleDifficulty(const int& counter)
 
 
 
-points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){}
-
-void points::initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
+/*
+* points::points construct a points with the thing constructor
+* pre and postconditions are handled by thing constructor 
+*/
+}
+
+void points::initPoints()
+{
+/*
+* points::initPoints spawn point at a random point if it has no health and keep in the bounds of SCREEN_WIDTH and SCREEN_HEIGHT
+*/
     if (health > 0)
     {
         x -= speed;
 
-        if (x > SCREEN_WIDTH)
+        if (x > appPointer->appSCREEN_WIDTH)
         {
             health = 0;
         }
@@ -360,7 +530,7 @@ void points::initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
         {
             health = 0;
         }
-        else if (y > SCREEN_HEIGHT)
+        else if (y > appPointer->appSCREEN_HEIGHT)
         {
             health = 0;
         }
@@ -371,8 +541,8 @@ void points::initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
     }
     else
     {
-        x = SCREEN_WIDTH;
-        y = rand() % SCREEN_HEIGHT;
+        x = appPointer->appSCREEN_WIDTH;
+        y = rand() % appPointer->appSCREEN_HEIGHT;
 
         randomNum = 1 + (rand() % 9);
         health = randomNum;
@@ -382,7 +552,13 @@ void points::initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 
 void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 {
-    if(collision(player.x, player.y, player.w, player.h, x, y, w, h))
+/*
+* points::didYouGetPoints detect collision of bullet and player and handle them 
+*/
+    auto playerPointCollision = std::async(std::launch::async, collision, player.x, player.y, player.w, player.h, x, y, w, h);
+    auto bulletPointCollision = std::async(std::launch::async, collision, bullet.x, bullet.y, bullet.w, bullet.h, x, y, w, h);
+
+    if(playerPointCollision.get() && health != 0)
     {
         if(health > player.health)
         {
@@ -404,7 +580,7 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
         health = 0;
         counter++;
     }
-    else if(collision(x, y, w, h, bullet.x, bullet.y, bullet.w, bullet.h))
+    else if(bulletPointCollision.get() && bullet.health != 0 && health != 0)
     {
         bullet.health += 1;
         health = 0;
@@ -414,10 +590,20 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
 
 
 
-bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer){};
-
-void bulletClass::logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) 
+: thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
+/*
+* bulletClass::bulletClass construct a valid bulletClass
+* thing constructor handles pre and postconditions
+*/
+};
+
+void bulletClass::logic(const user& player)
+{
+/*
+* bulletClass::logic move bulletClass based on player direction and set health to zero if off screen 
+*/
     if(player.direction == 1)
     {
         y -= speed;
@@ -435,7 +621,7 @@ void bulletClass::logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN
         x += speed;
     }
 
-    if (x > SCREEN_WIDTH)
+    if (x > appPointer->appSCREEN_WIDTH)
     {
         health = 0;
     }
@@ -443,7 +629,7 @@ void bulletClass::logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN
     {
         health = 0;
     }
-    else if (y > SCREEN_HEIGHT)
+    else if (y > appPointer->appSCREEN_HEIGHT)
     {
         health = 0;
     }
@@ -455,7 +641,10 @@ void bulletClass::logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN
 
 void bulletClass::didBulletHit(thing& enemy, int& counter)
 {
-    if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h))
+/*
+* bulletClass::didBulletHit check if bullet colides with enemy and set enemy health to zero if true then update counter 
+*/
+    if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h) && health != 0 && enemy.health != 0)
     {
         enemy.health = 0;
         enemy.x = 1000;
@@ -469,13 +658,45 @@ void bulletClass::didBulletHit(thing& enemy, int& counter)
 
 healthDisplay::healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical)
 {
-    fullHealth = ifullHealth;
-    halfHealth = ihalfHealth;
-    critical = icritical;
+/*
+* healthDisplay::healthDisplay construct a health display with 3 textures  
+*
+* pre and postconditions:
+*
+* Precondition pointers are not NULL
+*/
+    try
+    {
+        if(ifullHealth == NULL || ifullHealth == nullptr)
+        {
+            throw std::invalid_argument("ifullHealth can not be NULL");
+        }
+        else if(ihalfHealth == NULL || ihalfHealth == nullptr)
+        {
+            throw std::invalid_argument("ihalfHealth can not be NULL");
+        }
+        else if(icritical == NULL || icritical == nullptr)
+        {
+            throw std::invalid_argument("icritical can not be NULL");
+        }
+
+        fullHealth = ifullHealth;
+        halfHealth = ihalfHealth;
+        critical = icritical;
+    }
+    catch(...)
+    {
+        SDL_DestroyTexture(ifullHealth);
+        SDL_DestroyTexture(ihalfHealth);
+        SDL_DestroyTexture(icritical);
+    }
 }
 
-SDL_Texture* healthDisplay::healthDisplayUpdate(user& player)
+SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
 {
+/*
+* healthDisplay::healthDisplayUpdate update healthDisplay based on player health
+*/
     switch(player.health)
     {
         case 10:
@@ -502,5 +723,8 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(user& player)
 //Takes two objects dimetions
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
+/*
+* collision use the two objects x y w h to detect collision 
+*/
     return ( std::max(x1, x2) < std::min(x1 + w1, x2 + w2) ) && ( std::max(y1, y2) < std::min(y1 + h1, y2 + h2) );
 }

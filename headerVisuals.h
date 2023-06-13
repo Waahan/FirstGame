@@ -19,7 +19,7 @@ class App
     friend Messages;
 
     public:
-    App(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
     App(App& copyApp) = delete;
     ~App();
 
@@ -31,6 +31,9 @@ class App
     void makeVisuals();
     void showVisuals();
 
+    const int appSCREEN_WIDTH;
+    const int appSCREEN_HEIGHT;
+
     protected:
     SDL_Renderer* renderer = NULL;
 
@@ -41,20 +44,14 @@ class App
 class Messages
 {
     public:
-    Messages(const char* message, int x, int y, int w, int h, App& app);
-    Messages(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app);
+    Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
     Messages(Messages& copyMessage) = delete;
     ~Messages();
 
-    void newMessage(const char* message, int x, int y, int w, int h, App& app);
-    void newMessage(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app);
+    void newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
     
-    void drawMessage(App& app);
+    void drawMessage(const App& app);
 
-    private:
-    TTF_Font* font = NULL;
-    
-    public:
     const SDL_Color White = {255, 255, 255};
     const SDL_Color Red = {255, 0, 0};
     const SDL_Color Orange = {255, 165, 0};
@@ -65,6 +62,8 @@ class Messages
     const SDL_Color Violet = {238, 130, 238};
 
     private:
+    TTF_Font* font = NULL;
+    
     SDL_Surface* surfaceMessage = NULL;
     SDL_Texture* Message = NULL;
 

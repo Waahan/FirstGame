@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <climits>
 #include <future>
@@ -22,7 +23,7 @@ int main(int argc, char* args[])
     int oldCounter = 0;
     bool start = false;
 
-    enum class color: unsigned char { red = 0, orange = 1, yellow = 2, green = 3, blue = 4, indigo = 5, violet = 6 };
+    enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet };
     color myColor;
 
     int startTimer = 0;
@@ -40,10 +41,10 @@ int main(int argc, char* args[])
 
     thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
 
-    Messages Score("Score", 0, 0, 100, 100, app);
-    Messages Title("Sus invaders", 0, 0, 500, 500, Score.Blue, app);
-    Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app);
-    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, Score.Red, app);
+    Messages Score("Score", 0, 0, 100, 100, app, Score.Green);
+    Messages Title("Sus invaders", 0, 0, 500, 500, app, Score.White);
+    Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app, Score.White);
+    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, app, Score.Red);
 
     healthDisplay playerHealthDisplay(app.loadImages("images/Health1.jpg"), app.loadImages("images/Health2.jpg"), app.loadImages("images/Health3.jpg"));
 
@@ -62,33 +63,35 @@ int main(int argc, char* args[])
 	    switch(myColor)
 	    {
 		case color::red:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Red, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Red);
 		    myColor = color::orange;
 		    break;
 		case color::orange:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Orange, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Orange);
 		    myColor = color::yellow;
 		    break;
 		case color::yellow:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Yellow, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Yellow);
 		    myColor = color::green;
 		    break;
 		case color::green:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Green, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Green);
 		    myColor = color::blue;
 		    break;
 		case color::blue:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Blue, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Blue);
 		    myColor = color::indigo;
 		    break;
 		case color::indigo:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Indigo, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Indigo);
 		    myColor = color::violet;
 		    break;
 		case color::violet:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, Title.Violet, app);
+		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Violet);
 		    myColor = color::red;
                     break;
+                default:
+                    myColor = color::red;
 	    }
             
 	}
@@ -108,8 +111,8 @@ int main(int argc, char* args[])
 
 	if (oldCounter != counter)
 	{
-	    std::string counterString = "Score:"+std::__cxx11::to_string(counter);
-	    Score.newMessage(counterString.c_str(), 0, 0, 100, 100, app);
+	    std::string counterString = "Score:"+std::to_string(counter);
+	    Score.newMessage(counterString.c_str(), 0, 0, 100, 100, app, Score.Green);
 
 	    oldCounter = counter;
 	}
@@ -120,14 +123,14 @@ int main(int argc, char* args[])
 
 	player.input(bullet, bullet2);
 
-        bullet.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
-	bullet2.logic(player, SCREEN_WIDTH, SCREEN_HEIGHT);
-	enemy.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
-	player.logic(SCREEN_WIDTH, SCREEN_HEIGHT);
+        bullet.logic(player);
+	bullet2.logic(player);
+	enemy.logic();
+	player.logic();
 
-	point.initPoints(SCREEN_WIDTH, SCREEN_HEIGHT);
+	point.initPoints();
 
-        auto spawnEnemys = std::async(std::launch::async, [&enemy, &enemySpawnTimer, &player](){ enemy.spawnEnemys(enemySpawnTimer, player); } );
+        enemy.spawnEnemys(enemySpawnTimer);
 
 	enemy.scaleDifficulty(counter);
 	Score.drawMessage(app);
@@ -147,8 +150,6 @@ int main(int argc, char* args[])
 	    levelOne += 1;
 	}
 
-	spawnEnemys.get();
-
 	enemy.show();
 
         bullet.show();
@@ -157,11 +158,7 @@ int main(int argc, char* args[])
 
         point.show();
 	
-	if(!player.show())
-	{
-	    player.playerDeath(SCREEN_WIDTH, SCREEN_HEIGHT);
-	    return 0;
-	}
+	player.show();
 
 	SDL_Texture* loadHealthDisplay = playerHealthDisplay.healthDisplayUpdate(player);
 	app.imagePos(loadHealthDisplay, 100, 0, 10, 10);
