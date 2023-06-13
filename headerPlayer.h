@@ -24,9 +24,10 @@ class thing
 {
     public:
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    thing(thing& copyThing) = delete;
     virtual ~thing(){ SDL_DestroyTexture(texture); }
 
-    virtual void logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    virtual void logic();
     virtual void newTexture(SDL_Texture* newTexture);
     virtual void newTexture(const char* newTexturePath);
     virtual int show();
@@ -50,16 +51,17 @@ class user : public thing
     user(user& userCopy) = delete;
     ~user(){ SDL_DestroyTexture(texture); }
 
-    void doKeyDown(SDL_KeyboardEvent *event, const bool& DownUp);
+    void doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
 
     void input(thing& bullet, thing& bullet2);
 
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
 
-    void logic(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    void logic();
 
-    void playerDeath(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    int show();
+    void playerDeath();
 
     protected:
     char direction;
@@ -78,10 +80,10 @@ class enemys : public thing
     enemys(enemys& copyEnemy) = delete;
     ~enemys(){ SDL_DestroyTexture(texture); }
 
-    void spawnEnemys(int& enemySpawnTimer, user& player);
+    void spawnEnemys(int& enemySpawnTimer);
     void didEnemyKill(user& player);
     void makeEnd(int& levelOne);
-    void scaleDifficulty(const int& counter);
+    void scaleDifficulty(int counter);
 
     private:
     int minimum = 1;
@@ -96,7 +98,7 @@ class points : public thing
     points(points& copyPoints) = delete;
     ~points(){ SDL_DestroyTexture(texture); }
 
-    void initPoints(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    void initPoints();
     void didYouGetPoints(user& player, thing& bullet, int& counter);
 
     private:
@@ -110,7 +112,7 @@ class bulletClass : public thing
     bulletClass(bulletClass& copyBullet) = delete;
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
-    void logic(user& player, const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT);
+    void logic(const user& player);
     void didBulletHit(thing& enemy, int& counter);
 };
 
@@ -121,7 +123,7 @@ class healthDisplay
      healthDisplay(healthDisplay& copyHealthDisplay) = delete;
      ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
      
-     SDL_Texture* healthDisplayUpdate(user& player);
+     SDL_Texture* healthDisplayUpdate(const user& player);
      
      SDL_Texture* fullHealth;
      SDL_Texture* halfHealth;

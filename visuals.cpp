@@ -11,7 +11,7 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
-App::App(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
+App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), appSCREEN_HEIGHT(SCREEN_HEIGHT)
 {
 /*
  * App::App init window, renderer and libraries 
@@ -31,7 +31,7 @@ App::App(const int& SCREEN_WIDTH, const int& SCREEN_HEIGHT)
 
     windowFlags = 0;
      
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
         std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
 	throw std::runtime_error("SDL_Init failed");
@@ -253,7 +253,7 @@ void App::showVisuals()
 
 
 
-Messages::Messages(const char* message, int x, int y, int w, int h, App& app)
+Messages::Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
 {
 /*
  * Messages::Messages open a font for font pointer and make a surface and texture for renderering to the screen
@@ -285,7 +285,7 @@ Messages::Messages(const char* message, int x, int y, int w, int h, App& app)
     {
         // as TTF_RenderText_Solid could only be used on
         // SDL_Surface then you have to create the surface first
-        surfaceMessage = TTF_RenderText_Solid(font, message, White);
+        surfaceMessage = TTF_RenderText_Solid(font, message, color);
 
         if(surfaceMessage == NULL || surfaceMessage == nullptr)
         {
@@ -329,82 +329,6 @@ Messages::Messages(const char* message, int x, int y, int w, int h, App& app)
     }
 }
 
-Messages::Messages(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app)
-{
-/*
- * Message::Messages open a font for the font pointer and set the color, x y w h, and message
- * 
- * pre and post conditions:
- * 
- * Precondition message is not NULL
- * Precondition w and h are not less than or equal to zero 
-*/
-    if(message == NULL || message == nullptr)
-    {
-        throw std::invalid_argument("message can not be NULL");
-    }
-    else if(w <= 0 || h <= 0)
-    {
-        throw std::invalid_argument("w and h can not be less than or equal to zero");
-    }
-
-    //this opens a font style and sets a size
-    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
-
-    if(font == NULL || font == nullptr)
-    {
-        std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_OpenFont failed");
-    }
-    
-    try
-    {
-        // as TTF_RenderText_Solid could only be used on
-        // SDL_Surface then you have to create the surface first
-        surfaceMessage = TTF_RenderText_Solid(font, message, color);
-
-        if(surfaceMessage == NULL || surfaceMessage == nullptr)
-        {
-            std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("TTF_RenderText_Solid failed");
-        }
-    }
-    catch(...)
-    {
-        TTF_CloseFont(font);
-        font = nullptr;
-        
-        throw;
-    }
-
-    try
-    {
-        // now you can convert it into a texture
-        Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-        if(Message == NULL)
-        {
-            std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("SDL_CreateTextureFromSurface failed");
-        }
-
-        Message_rect.x = x;  //controls the rect's x coordinate
-        Message_rect.y = y; // controls the rect's y coordinte
-        Message_rect.w = w; // controls the width of the rect
-        Message_rect.h = h; // controls the height of the rect
-    }
-    catch(...)
-    {
-        TTF_CloseFont(font);
-        font = nullptr;
-        
-        SDL_FreeSurface(surfaceMessage);
-        surfaceMessage = nullptr;
-
-        throw;
-    }
-}
-
 Messages::~Messages()
 {
 /*
@@ -425,7 +349,7 @@ Messages::~Messages()
     font = nullptr;
 }
 
-void Messages::newMessage(const char* message, int x, int y, int w, int h, App& app)
+void Messages::newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
 {
 /*
  * Messages::newMessage creates a new message from x y w h and message 
@@ -446,7 +370,7 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, App& 
 
     SDL_FreeSurface(surfaceMessage);
 
-    surfaceMessage = TTF_RenderText_Solid(font, message, White);
+    surfaceMessage = TTF_RenderText_Solid(font, message, color);
 
     if(surfaceMessage == NULL || surfaceMessage == nullptr)
     {
@@ -469,52 +393,7 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, App& 
     Message_rect.h = h;
 }
 
-void Messages::newMessage(const char* message, int x, int y, int w, int h, const SDL_Color& color, App& app)
-{
-/*
- * Messages::newMessage takes message x y w h and color and draws it to screen
- * 
- * pre and postconditions:
- *
- * Precondition message can not be NULL
- * Precondition w and h can not be less than or equal to zero
-*/
-    if(message == NULL || message == nullptr)
-    {
-        throw std::invalid_argument("message to be NULL");
-    }
-    else if(w <= 0 || h <= 0)
-    {
-        throw std::invalid_argument("w and h can not be less than or equal to zero");
-    }
-
-    SDL_FreeSurface(surfaceMessage);
-
-    surfaceMessage = TTF_RenderText_Solid(font, message, color);
-
-    if(surfaceMessage == NULL || surfaceMessage == nullptr)
-    {
-        std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_RenderText_Solid failed");
-    }
-
-    SDL_DestroyTexture(Message);
-
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
-
-    if(Message == NULL || Message == nullptr)
-    {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_CreateTextureFromSurface failed");
-    }
-
-    Message_rect.x = x;
-    Message_rect.y = y;
-    Message_rect.w = w;
-    Message_rect.h = h;
-}
-
-void Messages::drawMessage(App& app)
+void Messages::drawMessage(const App& app)
 {
 /*
  * Message::drawMessage draws message to screen
