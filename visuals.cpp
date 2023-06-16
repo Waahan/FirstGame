@@ -50,6 +50,23 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), a
         SDL_Quit();
 	throw;
     }
+
+    try
+    {
+        windowIcon = SDL_LoadBMP("images/Player.bmp");
+
+        if(windowIcon == NULL)
+        {
+            std::cerr << "SDL_LoadBMP failed: " << SDL_GetError() << std::endl;
+            throw std::runtime_error("SDL_LoadBMP failed");
+        } 
+    }
+    catch(...)
+    {
+        SDL_Quit();
+        TTF_Quit();
+        throw;
+    }
     
     try
     {
@@ -67,7 +84,33 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), a
         SDL_Quit();
 	TTF_Quit();
 
+        SDL_FreeSurface(windowIcon);
+        windowIcon = nullptr;
+
 	throw;
+    }
+
+    try
+    {
+        windowIcon = SDL_ConvertSurfaceFormat(windowIcon, SDL_PIXELFORMAT_ARGB8888, 0);
+        
+        if(windowIcon == NULL)
+        {
+            std::cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << std::endl;
+        }
+
+        SDL_SetWindowIcon(window, windowIcon);
+    }
+    catch(...)
+    {
+        SDL_Quit();
+        TTF_Quit();
+
+        SDL_DestroyWindow(window);
+        window = nullptr;
+
+        SDL_FreeSurface(windowIcon);
+        windowIcon = nullptr;
     }
 
     try
@@ -138,6 +181,9 @@ App::~App()
 
     SDL_DestroyWindow(window);
     window = nullptr;
+
+    SDL_FreeSurface(windowIcon);
+    windowIcon = nullptr;
 
     IMG_Quit();
     TTF_Quit();

@@ -39,6 +39,7 @@ class App
 
     private:
     SDL_Window* window = NULL;
+    SDL_Surface* windowIcon = NULL;
 };
 
 class Messages

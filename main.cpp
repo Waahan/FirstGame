@@ -46,8 +46,6 @@ int main(int argc, char* args[])
     Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app, Score.White);
     Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, app, Score.Red);
 
-    healthDisplay playerHealthDisplay(app.loadImages("images/Health1.jpg"), app.loadImages("images/Health2.jpg"), app.loadImages("images/Health3.jpg"));
-
     while(!start)
     {
         app.makeVisuals();
@@ -126,7 +124,7 @@ int main(int argc, char* args[])
         bullet.logic(player);
 	bullet2.logic(player);
 	enemy.logic();
-	player.logic();
+	player.logic(enemy, point, counter);
 
 	point.initPoints();
 
@@ -135,12 +133,9 @@ int main(int argc, char* args[])
 	enemy.scaleDifficulty(counter);
 	Score.drawMessage(app);
 
-        bullet.didBulletHit(enemy, counter);
-        bullet2.didBulletHit(enemy, counter);
 	enemy.didEnemyKill(player);
-	point.didYouGetPoints(player, bullet, counter);
-
-	if(counter > 400 && levelOne == 0)
+	
+        if(counter > 400 && levelOne == 0)
 	{
 	    enemy.makeEnd(levelOne);
 	}
@@ -152,16 +147,9 @@ int main(int argc, char* args[])
 
 	enemy.show();
 
-        bullet.show();
-
-        bullet2.show();
-
         point.show();
 	
 	player.show();
-
-	SDL_Texture* loadHealthDisplay = playerHealthDisplay.healthDisplayUpdate(player);
-	app.imagePos(loadHealthDisplay, 100, 0, 10, 10);
 
 	app.showVisuals();
 
