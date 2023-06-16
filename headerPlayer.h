@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <climits>
 #include <future>
@@ -24,6 +25,7 @@ class thing
 {
     public:
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    thing(){};
     thing(thing& copyThing) = delete;
     virtual ~thing(){ SDL_DestroyTexture(texture); }
 
@@ -38,8 +40,8 @@ class thing
     int h;
     int health;
     int speed;
-    SDL_Texture* texture;
-    App* appPointer;
+    SDL_Texture* texture = NULL;
+    App* appPointer = NULL;
 };
 
 class user : public thing
@@ -49,7 +51,7 @@ class user : public thing
     public:
     user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
     user(user& userCopy) = delete;
-    ~user(){ SDL_DestroyTexture(texture); }
+    ~user();
 
     void doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
 
@@ -58,7 +60,7 @@ class user : public thing
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
 
-    void logic();
+    void logic(thing& enemy, points& point, int& counter);
 
     int show();
     void playerDeath();
@@ -71,6 +73,11 @@ class user : public thing
     bool playerRight = 0;
     bool playerFired = 0;
     char back;
+    
+    SDL_Texture* healthDisplayCurrent;
+    healthDisplay* playerHealth;
+
+    std::vector<bulletClass*> bullets;
 };
 
 class enemys : public thing
@@ -103,12 +110,16 @@ class points : public thing
 
     private:
     int randomNum;
+    bool isHealth = false;
 };
 
 class bulletClass : public thing
 {
+    friend user;
+
     public:
     bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    bulletClass() : thing() {};
     bulletClass(bulletClass& copyBullet) = delete;
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
@@ -118,16 +129,17 @@ class bulletClass : public thing
 
 class healthDisplay
 {
-     public:
-     healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
-     healthDisplay(healthDisplay& copyHealthDisplay) = delete;
-     ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
+    public:     
+    healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
+    healthDisplay() : fullHealth(nullptr), halfHealth(nullptr), critical(nullptr){}
+    healthDisplay(healthDisplay& copyHealthDisplay) = delete;
+    ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
      
-     SDL_Texture* healthDisplayUpdate(const user& player);
+    SDL_Texture* healthDisplayUpdate(const user& player);
      
-     SDL_Texture* fullHealth;
-     SDL_Texture* halfHealth;
-     SDL_Texture* critical;
+    SDL_Texture* fullHealth;
+    SDL_Texture* halfHealth;
+    SDL_Texture* critical;
 };
 
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);

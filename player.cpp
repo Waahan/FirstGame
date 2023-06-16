@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <climits>
 #include <future>
@@ -24,8 +25,7 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
 *
 * Postcondition constructs a valid thing
 * Postcondition itexture is destroyed even if exceptions are thrown 
-*/
-    
+*/    
     try
     {
         if(iappPointer == NULL || iappPointer == nullptr)
@@ -126,7 +126,7 @@ int thing::show()
 /*
 * thing::show use imagePos to display thing on screen
 */
-    if(health != 0)
+    if(health > 0)
     {
         appPointer->imagePos(texture, x, y, w, h);
         return 1;
@@ -139,7 +139,8 @@ int thing::show()
 
 
 
-user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
+user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) 
+: thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
 {
 /*
 * user::user construct a valid user 
@@ -161,11 +162,31 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 
         back = iback;
         direction = idirection;
+
+        playerHealth = new healthDisplay;
+        playerHealth->fullHealth = appPointer->loadImages("images/Health1.jpg");
+        playerHealth->halfHealth = appPointer->loadImages("images/Health2.jpg");
+        playerHealth->critical = appPointer->loadImages("images/Health3.jpg");
     }
     catch(...)
     {
         SDL_DestroyTexture(itexture);
         throw;
+    }
+}
+
+user::~user()
+{
+    SDL_DestroyTexture(texture);
+    SDL_DestroyTexture(healthDisplayCurrent);
+
+    delete playerHealth;
+
+    for(auto& currentBullet : bullets)
+    {
+        delete currentBullet;
+        currentBullet = nullptr;
+        bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
     }
 }
 
@@ -185,8 +206,8 @@ void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
     }
 
     //Ignores keyboard repeat events
-    if(event->repeat == 0)
-    {
+    //if(event->repeat == 0)
+    //{
         if(event->keysym.scancode == SDL_SCANCODE_UP || event->keysym.scancode == SDL_SCANCODE_W)
 	{
 	    playerUp = DownUp;
@@ -211,8 +232,7 @@ void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
         {
 	    playerFired = DownUp;
 	}
-
-    }
+    //}
 }
 
 void user::input(thing& bullet, thing& bullet2)
@@ -242,6 +262,7 @@ void user::input(thing& bullet, thing& bullet2)
 		break;
 	}
     }
+    
     if (playerUp)
     {
             y -= speed;
@@ -266,41 +287,26 @@ void user::input(thing& bullet, thing& bullet2)
             direction = 4;
 	    newTexture("images/PlayerRight.png");
     }
-    if (playerFired && bullet.health == 0)
+    if (playerFired)
     {
-            bullet.x = x;
-            bullet.y = y;
-            bullet.health = 1;
-            bullet.speed = speed/2;
-	    newTexture("images/Player.png");
-    }
-    else if (playerFired && bullet2.health == 0 && bullet.health == 1)
-    {
-            bullet2.x = x;
-            bullet2.y = y;
-            bullet2.health = 1;
-            bullet2.speed = speed/2;
-	    newTexture("images/Player.png");
-    }
-    else if(playerFired && bullet2.health > 0 && bullet.health > 0)
-    {
-            if(bullet.speed < 65535)
+            for(auto& currentBullet : bullets)
             {
-                bullet.speed += 2;
+                currentBullet->speed += 2;
             }
-            else
-            {
-                bullet.speed = 20;
-            }
+            
+            bulletClass* newBulletClass = new bulletClass; 
 
-            if(bullet2.speed < 65535)
-            {
-                bullet2.speed += 2;
-            }
-            else
-            {
-                bullet2.speed = 20;
-            }
+            newBulletClass->appPointer = appPointer;
+            newBulletClass->texture = appPointer->loadImages("images/bullet.png");
+            newBulletClass->x = x;
+            newBulletClass->y = y;
+            newBulletClass->w = 22;
+            newBulletClass->h = 22;
+            newBulletClass->speed = 2;
+
+            bullets.push_back(newBulletClass);
+	    
+            newTexture("images/Player.png");
     }
 }
 
@@ -353,7 +359,7 @@ void user::menuInput(bool& start)
     }
 }
 
-void user::logic()
+void user::logic(thing& enemy, points& point, int& counter)
 {
 /*
 * user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT 
@@ -375,6 +381,27 @@ void user::logic()
     {
         y -= back;
     }
+
+    for(auto& currentBullet : bullets)
+    {
+        currentBullet->logic(*this);
+        currentBullet->didBulletHit(enemy, counter);
+        point.didYouGetPoints(*this, *currentBullet, counter);
+
+        if(currentBullet->health <= 0)
+        {
+            delete currentBullet;
+            currentBullet = nullptr;
+        }
+    }
+
+    for(auto& currentBullet : bullets)
+    {
+        if(currentBullet == nullptr)
+        {
+            bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
+        }
+    }
 }
 
 int user::show()
@@ -382,9 +409,18 @@ int user::show()
 /*
 * user::show show user or call playerDeath 
 */
-    if(health != 0)
+    if(health > 0)
     {
         appPointer->imagePos(texture, x, y, w, h);
+        
+        healthDisplayCurrent = playerHealth->healthDisplayUpdate(*this);
+        appPointer->imagePos(healthDisplayCurrent, 100, 0, 10, 10);
+    
+        for(auto& currentBullet : bullets)
+        {
+            currentBullet->show();
+        }
+
         return 1;
     }
     else
@@ -431,7 +467,7 @@ void enemys::spawnEnemys(int& enemySpawnTimer)
 /*
 * enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed 
 */
-    if(enemySpawnTimer <= 0 && health == 0)
+    if(enemySpawnTimer <= 0 && health <= 0)
     {
        x = appPointer->appSCREEN_WIDTH;
        y = rand() % appPointer->appSCREEN_HEIGHT;
@@ -459,12 +495,12 @@ void enemys::didEnemyKill(user& player)
 /*
 * enemys::didEnemyKill take one health from player and make them use the sad texture if health is not zero and then put at a invalid x value 
 */
-    if(collision(player.x, player.y, player.w, player.h, x, y, w, h) && health != 0)
+    if(collision(player.x, player.y, player.w, player.h, x, y, w, h) && health > 0)
     {
         health = 0;
         x = 1000;
         y = 1000;
-        player.health -= 1;
+        player.health -= 3;
         player.newTexture("images/PlayerSad.png");
     }
 }
@@ -547,6 +583,9 @@ void points::initPoints()
         randomNum = 1 + (rand() % 9);
         health = randomNum;
         speed = randomNum;
+
+        isHealth = false;
+        newTexture("images/points.png");
     }
 }
 
@@ -564,9 +603,9 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
         {
 	    int randomNum = rand() % 2;
 
-	    if(randomNum)
+	    if(randomNum && isHealth)
 	    {
-                player.health += health;
+                player.health += 4;
 	    }
 
             player.newTexture("images/PlayerHappy.png");
@@ -580,10 +619,11 @@ void points::didYouGetPoints(user& player, thing& bullet, int& counter)
         health = 0;
         counter++;
     }
-    else if(bulletPointCollision.get() && bullet.health != 0 && health != 0)
+    else if(bulletPointCollision.get() && bullet.health != 0 && health != 0 && !isHealth)
     {
         bullet.health += 1;
-        health = 0;
+        newTexture("images/health.png");
+        isHealth = true;
         counter++;
     }
 }
