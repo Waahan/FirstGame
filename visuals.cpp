@@ -24,97 +24,77 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), a
     {
         throw std::invalid_argument("SCREEN_WIDTH and SCREEN_HEIGHT can not be less than or equal to zero");
     }
-
-    int rendererFlags = SDL_RENDERER_ACCELERATED, windowFlags = 0;
-
-    rendererFlags = SDL_RENDERER_ACCELERATED;
-
-    windowFlags = 0;
-     
-    if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
-    {
-        std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
-	throw std::runtime_error("SDL_Init failed");
-    }
     
+    std::string errorMessage = "";
+    bool failedSDL = false;
+    bool failedIMG = false;
+    bool failedTTF = false;
+    bool failedWindowIcon = false;
+    bool failedWindow = false;
+    bool failedRenderer = false;
+
     try
     {
+        int rendererFlags = SDL_RENDERER_ACCELERATED, windowFlags = 0;
+
+        rendererFlags = SDL_RENDERER_ACCELERATED;
+
+        windowFlags = 0;
+     
+        if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
+        {
+            std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
+            errorMessage = errorMessage+"SDL_Init failed";
+            failedSDL = true;
+        }
+
+        int flags = IMG_INIT_JPG | IMG_INIT_PNG;
+        int initted = IMG_Init(flags);
+    
+        if((initted & flags) != flags) 
+        {   
+            std::cerr << "IMG_Init: Failed to init required jpg and png support!" << std::endl;
+            std::cerr << "IMG_Init: " << IMG_GetError() << std::endl;
+            errorMessage = errorMessage+"IMG_Init failed";
+            failedIMG = true;
+        }  
+    
         if(TTF_Init() < 0)
         {
             std::cerr << "Could not start SDL ttf:" << SDL_GetError() << std::endl;
-	    throw std::runtime_error("TTF_Init failed");
+	    errorMessage = errorMessage+"TTF_Init failed";
+            failedTTF = true;
         }
-    }
-    catch(...)
-    {
-        SDL_Quit();
-	throw;
-    }
-
-    try
-    {
+    
         windowIcon = SDL_LoadBMP("images/Player.bmp");
 
         if(windowIcon == NULL)
         {
             std::cerr << "SDL_LoadBMP failed: " << SDL_GetError() << std::endl;
-            throw std::runtime_error("SDL_LoadBMP failed");
+            errorMessage = errorMessage+"SDL_LoadBMP failed";
+            failedWindowIcon = true;
         } 
-    }
-    catch(...)
-    {
-        SDL_Quit();
-        TTF_Quit();
-        throw;
-    }
     
-    try
-    {
         window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
 
-        //Check if window was created
-        if (!window)
+        if(!window)
         {
             std::cerr << "Failed to open window: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("SDL_CreateWindow failed");
+	    errorMessage = errorMessage+"SDL_CreateWindow failed";
+            failedWindow = true;
         }
-    }
-    catch(...)
-    {
-        SDL_Quit();
-	TTF_Quit();
 
-        SDL_FreeSurface(windowIcon);
-        windowIcon = nullptr;
-
-	throw;
-    }
-
-    try
-    {
         windowIcon = SDL_ConvertSurfaceFormat(windowIcon, SDL_PIXELFORMAT_ARGB8888, 0);
         
         if(windowIcon == NULL)
         {
             std::cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << std::endl;
+            errorMessage = errorMessage+"SDL_ConvertSurfaceFormat failed";
+            failedWindowIcon = true;
         }
 
-        SDL_SetWindowIcon(window, windowIcon);
-    }
-    catch(...)
-    {
-        SDL_Quit();
-        TTF_Quit();
+        SDL_SetWindowIcon(window, windowIcon);   
 
-        SDL_DestroyWindow(window);
-        window = nullptr;
-
-        SDL_FreeSurface(windowIcon);
-        windowIcon = nullptr;
-    }
-
-    try
-    {
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
         //-1 so SDL use the first graphics acceleration device it finds
@@ -124,46 +104,45 @@ App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), a
         if(!renderer)
         {
             std::cerr << "Renderer failed: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("SDL_CreateRenderer failed");
+            errorMessage = errorMessage+"SDL_CreateRenderer failed";
+            failedRenderer = true;
         }
 
-    }
-    catch(...)
-    {
-	SDL_DestroyWindow(window);
-        window = nullptr;
-
-        SDL_Quit();
-	TTF_Quit();
-
-	throw;
-    }
-
-    //Allows window to load .png and .jpg images
-    int flags = IMG_INIT_JPG | IMG_INIT_PNG;
-    int initted = IMG_Init(flags);
-
-    try
-    {
-        if ((initted & flags) != flags) 
+        if(errorMessage != "")
         {
-	    std::cerr << "IMG_Init: Failed to init required jpg and png support!" << std::endl;
-	    std::cerr << "IMG_Init: " << IMG_GetError() << std::endl;
-	    throw std::runtime_error("IMG_Init failed");
+            throw std::runtime_error(errorMessage);
         }
     }
     catch(...)
     {
-        SDL_DestroyRenderer(renderer);
-	renderer = nullptr;
+        if(!failedSDL)
+            SDL_Quit();
+        
+        if(!failedIMG)
+            IMG_Quit();
 
-	SDL_DestroyWindow(window);
-	window = nullptr;
+        if(!failedTTF)
+            TTF_Quit();
+        
+        if(!failedWindowIcon)
+        {
+            SDL_FreeSurface(windowIcon);
+            windowIcon = nullptr;
+        }
+        
+        if(!failedWindow)
+        {
+            SDL_DestroyWindow(window);
+            window = nullptr;
+        }
 
-	SDL_Quit();
-	TTF_Quit();
+        if(!failedRenderer)
+        {
+            SDL_DestroyRenderer(renderer);
+            renderer = nullptr;
+        }
 
-	throw;
+        throw;
     }
 }
 
@@ -190,7 +169,6 @@ App::~App()
     SDL_Quit();
 }
 
-//For loading image to the window
 SDL_Texture* App::loadImages(const char* imageFile)
 {
 /*
@@ -243,10 +221,6 @@ void App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
     dest.y = y;
     dest.w = w;
     dest.h = h;
-
-    //Query the attributes of a texture
-    //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
-    SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h);
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     SDL_RenderCopy(renderer, image, NULL, &dest);
@@ -318,58 +292,72 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
         throw std::invalid_argument("h and w can not be less than or equal to zero");
     }
 
-    //this opens a font style and sets a size
-    font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
+    std::string errorMessage = "";
+    bool openFontFailed = false;
+    bool surfaceMessageFailed = false;
+    bool textureMessageFailed = false;
 
-    if(font == NULL || font == nullptr)
+    try
     {
-        std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
-	throw std::runtime_error("TTF_OpenFont failed");
-    }
+        //this opens a font style and sets a size
+        font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
+
+        if(font == NULL || font == nullptr)
+        {
+            std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
+	    errorMessage = errorMessage+"TTF_OpenFont failed";
+            openFontFailed = true;
+        }
     
-    try 
-    {
-        // as TTF_RenderText_Solid could only be used on
         // SDL_Surface then you have to create the surface first
         surfaceMessage = TTF_RenderText_Solid(font, message, color);
 
         if(surfaceMessage == NULL || surfaceMessage == nullptr)
         {
             std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("TTF_RenderText_Solid failed");
+            errorMessage = errorMessage+"TTF_RenderText_Solid failed";
+            surfaceMessageFailed = true;
         }
-    }
-    catch(...)
-    {
-        TTF_CloseFont(font);
-        font = nullptr;
-        
-        throw;
-    }
-
-    try
-    {
+    
         // now you can convert it into a texture
         Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
 
         if(Message == NULL || Message == nullptr)
         {
             std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-	    throw std::runtime_error("SDL_CreateTextureFromSurface failed");
+            errorMessage = errorMessage+"SDL_CreateTextureFromSurface failed";
+            textureMessageFailed = true;
         }
 
         Message_rect.x = x;  //controls the rect's x coordinate
         Message_rect.y = y; // controls the rect's y coordinte
         Message_rect.w = w; // controls the width of the rect
         Message_rect.h = h; // controls the height of the rect
+        
+        if(errorMessage != "")
+        {
+            throw std::runtime_error(errorMessage);
+        }
     }
     catch(...)
     {
-        TTF_CloseFont(font);
-        font = nullptr;
+        if(!surfaceMessageFailed)
+        {
+            SDL_FreeSurface(surfaceMessage);
+            surfaceMessage = nullptr;
+        }
+
+        if(!textureMessageFailed)
+        {
+            SDL_DestroyTexture(Message);
+            Message = nullptr;
+        }
         
-        SDL_FreeSurface(surfaceMessage);
-        surfaceMessage = nullptr;
+        if(!openFontFailed) 
+        {
+            TTF_CloseFont(font);
+            font = nullptr;
+        }
 
         throw;
     }

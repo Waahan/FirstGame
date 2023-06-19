@@ -55,7 +55,7 @@ class user : public thing
 
     void doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
 
-    void input(thing& bullet, thing& bullet2);
+    void input();
 
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
