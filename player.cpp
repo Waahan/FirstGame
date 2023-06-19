@@ -235,7 +235,7 @@ void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
     //}
 }
 
-void user::input(thing& bullet, thing& bullet2)
+void user::input()
 {
 /*
 * user::input do actions based on event.type and doKeyDown
@@ -411,10 +411,10 @@ int user::show()
 */
     if(health > 0)
     {
-        appPointer->imagePos(texture, x, y, w, h);
+        appPointer->imagePos(texture, x, y);
         
         healthDisplayCurrent = playerHealth->healthDisplayUpdate(*this);
-        appPointer->imagePos(healthDisplayCurrent, 100, 0, 10, 10);
+        appPointer->imagePos(healthDisplayCurrent, 100, 0);
     
         for(auto& currentBullet : bullets)
         {

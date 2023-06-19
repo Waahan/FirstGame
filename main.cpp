@@ -32,9 +32,6 @@ int main(int argc, char* args[])
 
     user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), &app, 30, 1);
 
-    bulletClass bullet(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"), &app);
-    bulletClass bullet2(1000, 1000, 22, 22, 0, 1, app.loadImages("images/bullet.png"), &app);
-
     enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"), &app);
 
     points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"), &app);
@@ -119,10 +116,8 @@ int main(int argc, char* args[])
 	    oldCounter = counter;
 	}
 
-	player.input(bullet, bullet2);
+	player.input();
 
-        bullet.logic(player);
-	bullet2.logic(player);
 	enemy.logic();
 	player.logic(enemy, point, counter);
 
