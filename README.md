@@ -34,4 +34,4 @@ Installing on linux
 Thank You
 ---------
 
-I would like to give a special thank you to my puppy Obi for helping me with this project. ![Obi](images/puppy.jpg) I love you puppy. And a thank you to the rest of the family. You really helped with this project.
+I would like to give a special thank you to my puppy Obi for helping me with this project. I love you puppy. And a thank you to the rest of the family. You really helped with this project.

@@ -1,3 +1,11 @@
 /build/*
 /build
-LICENSE
+.CMakeLists.txt.swp
+.gitignore.swp
+.headerPlayer.h.swp
+.headerVisuals.h.swp
+.main.cpp.swp
+.player.cpp.swp
+.README.md.swp
+.visuals.cpp.swp
+images/puppy.jpg

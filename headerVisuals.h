@@ -19,7 +19,7 @@ class App
     friend Messages;
 
     public:
-    App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+    explicit App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
     App(App& copyApp) = delete;
     ~App();
 
@@ -31,8 +31,8 @@ class App
     void makeVisuals();
     void showVisuals();
 
-    const int appSCREEN_WIDTH;
-    const int appSCREEN_HEIGHT;
+    const int SCREEN_WIDTH;
+    const int SCREEN_HEIGHT;
 
     protected:
     SDL_Renderer* renderer = NULL;
@@ -45,7 +45,7 @@ class App
 class Messages
 {
     public:
-    Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
+    explicit Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
     Messages(Messages& copyMessage) = delete;
     ~Messages();
 
