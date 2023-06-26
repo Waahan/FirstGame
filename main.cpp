@@ -14,33 +14,26 @@
 
 int main(int argc, char* args[])
 {
-    const int SCREEN_WIDTH = 1280;
-    const int SCREEN_HEIGHT = 720;
-
-    int enemySpawnTimer = 0;
     int levelOne = 0;
-    int counter = 0;
-    int oldCounter = 0;
+    int startTimer = 0;
     bool start = false;
 
     enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet };
     color myColor;
 
-    int startTimer = 0;
+    App app(1280, 720);
 
-    App app(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    user player(100, 100, 90, 90, 10, 10, app.loadImages("images/Player.png"), &app, 30, 1);
+    user player(100, 100, 90, 90, 3, 10, app.loadImages("images/Player.png"), &app, 30, 1);
 
     enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"), &app);
 
     points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"), &app);
 
-    thing background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
+    thing background(0, 0, app.SCREEN_WIDTH, app.SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
 
     Messages Score("Score", 0, 0, 100, 100, app, Score.Green);
     Messages Title("Sus invaders", 0, 0, 500, 500, app, Score.White);
-    Messages Start("Enter to start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 500, 100, app, Score.White);
+    Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, app, Score.White);
     Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, app, Score.Red);
 
     while(!start)
@@ -102,35 +95,25 @@ int main(int argc, char* args[])
     {
         app.makeVisuals();
 
-	app.imagePos(background.texture, background.x, background.y, background.w, background.h);
+	background.show();
 
-	if (oldCounter != counter)
-	{
-	    std::string counterString = "Score:"+std::to_string(counter);
-	    Score.newMessage(counterString.c_str(), 0, 0, 100, 100, app, Score.Green);
-
-	    oldCounter = counter;
-	}
-	else
-	{
-	    oldCounter = counter;
-	}
+	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 0, 0, 100, 100, app, Score.Green);
 
 	player.input();
 
 	enemy.logic();
-	player.logic(enemy, point, counter);
+	player.logic(enemy, point);
 
 	point.initPoints();
 
-        enemy.spawnEnemys(enemySpawnTimer);
+        enemy.spawnEnemys();
 
-	enemy.scaleDifficulty(counter);
+	enemy.scaleDifficulty(player.playerScore);
 	Score.drawMessage(app);
 
 	enemy.didEnemyKill(player);
 	
-        if(counter > 400 && levelOne == 0)
+        if(player.playerScore.count() > 400 && levelOne == 0)
 	{
 	    enemy.makeEnd(levelOne);
 	}

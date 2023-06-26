@@ -11,7 +11,7 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
-App::App(int SCREEN_WIDTH, int SCREEN_HEIGHT) : appSCREEN_WIDTH(SCREEN_WIDTH), appSCREEN_HEIGHT(SCREEN_HEIGHT)
+App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT)
 {
 /*
  * App::App init window, renderer and libraries 
@@ -234,7 +234,7 @@ void App::imagePos(SDL_Texture* image, int x, int y)
  * pre and postconditions:
  *
  * Precondition image is not NULL
- */
+*/
     if(image == NULL || image == nullptr)
     {
         throw std::invalid_argument("image can not be NULL");
@@ -434,4 +434,3 @@ void Messages::drawMessage(const App& app)
 */
     SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
 }
-

@@ -13,6 +13,7 @@
 #include "headerVisuals.h"
 
 thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
+ : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}, texture{itexture}, appPointer{iappPointer}
 {
 /*
 * thing::thing create a thing with the x y w h texture and app pointer 
@@ -22,9 +23,6 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
 * Precondition iappPointer and itexture can not be NULL
 * Precondition iw and ih can not be less or equal to zero 
 * Precondition ihealth can not be less than zero
-*
-* Postcondition constructs a valid thing
-* Postcondition itexture is destroyed even if exceptions are thrown 
 */    
     try
     {
@@ -44,15 +42,6 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
         {
             throw std::invalid_argument("health can not be less than zero");
         }
-
-        x = ix;
-        y = iy;
-        w = iw;
-        h = ih;
-        health = ihealth;
-        speed = ispeed;
-        texture = itexture;
-        appPointer = iappPointer;
     }
     catch(...)
     {
@@ -61,12 +50,68 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
     }
 }
 
+thing::thing(const thing& copyFromThing)
+: x{copyFromThing.x}, y{copyFromThing.y}, w{copyFromThing.w}, h{copyFromThing.h}, health{copyFromThing.health}, speed{copyFromThing.speed}, texture{copyFromThing.appPointer->loadImages("images/defaultThing.png")}, appPointer{copyFromThing.appPointer}
+{
+    std::cerr << "It is better to move a thing then copy";
+}
+
+thing& thing::operator=(const thing& copyFromThing)
+{
+    x = copyFromThing.x;
+    y = copyFromThing.y;
+    w = copyFromThing.w;
+    h = copyFromThing.h;
+    health = copyFromThing.health;
+    speed = copyFromThing.speed;
+    texture = copyFromThing.appPointer->loadImages("images/defaultThing.png");
+    appPointer = copyFromThing.appPointer;
+
+    return *this;
+}
+
+thing::thing(thing&& moveFromThing)
+ : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, health{moveFromThing.health}, speed(moveFromThing.speed), texture{moveFromThing.texture}, appPointer{moveFromThing.appPointer}
+{
+    moveFromThing.x = 0;
+    moveFromThing.y = 0;
+    moveFromThing.w = 0;
+    moveFromThing.h = 0;
+    moveFromThing.health = 0;
+    moveFromThing.speed = 0;
+    moveFromThing.texture = nullptr;
+    moveFromThing.appPointer = nullptr;
+}
+
+thing& thing::operator=(thing&& moveFromThing)
+{
+    x = moveFromThing.x;
+    y = moveFromThing.y;
+    w = moveFromThing.w;
+    h = moveFromThing.h;
+    health = moveFromThing.health;
+    speed = moveFromThing.speed;
+    texture = moveFromThing.texture;
+    appPointer = moveFromThing.appPointer;
+
+    moveFromThing.x = 0;
+    moveFromThing.y = 0;
+    moveFromThing.w = 0;
+    moveFromThing.h = 0;
+    moveFromThing.health = 0;
+    moveFromThing.speed = 0;
+    moveFromThing.texture = nullptr;
+    moveFromThing.appPointer = nullptr;
+
+    return *this;
+}
+
 void thing::logic()
 {
 /*
 * thing::logic sets health equal to zero if thing is outside SCREEN_WIDTH and SCREEN_HEIGHT
 */
-    if (x > appPointer->appSCREEN_WIDTH)
+    if (x > appPointer->SCREEN_WIDTH)
     {
         health = 0;
     }
@@ -74,7 +119,7 @@ void thing::logic()
     {
         health = 0;
     }
-    else if (y > appPointer->appSCREEN_HEIGHT)
+    else if (y > appPointer->SCREEN_HEIGHT)
     {
         health = 0;
     }
@@ -96,7 +141,7 @@ void thing::newTexture(SDL_Texture* newTexture)
     if(newTexture == nullptr || newTexture == NULL)
     {
 	std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
-	return;
+        throw std::invalid_argument("newTexture can not be NULL");
     }
 
     SDL_DestroyTexture(texture);
@@ -137,6 +182,186 @@ int thing::show()
     }
 }
 
+/* 
+    Get functions return protected value
+*/
+inline int thing::getX() const
+{
+    return x;
+}
+
+inline int thing::getY() const
+{
+    return y;
+}
+
+inline int thing::getW() const
+{
+    return w;
+}
+
+inline int thing::getH() const
+{
+    return h;
+}
+
+inline int thing::getHealth() const
+{
+    return health;
+}
+
+inline int thing::getSpeed() const
+{
+    return speed;
+}
+
+inline SDL_Texture* thing::getTexture() const
+{
+    return texture;
+}
+
+inline void thing::setX(int setX)
+{
+/*
+* thing::setX set x equal to setX
+* 
+* Pre and postconditions:
+*
+* Precondition setX is in window x 
+*/
+    if(setX > appPointer->SCREEN_WIDTH || setX < 0)
+    {
+        throw std::out_of_range("x can not be less than screen_width or greater than zero");    
+    }
+
+    x = setX;
+}
+
+inline void thing::setY(int setY)
+{
+/*
+* thing::setY set y equal to y
+*
+* Pre and postconditions:
+*
+* Precondition setY is in window y
+*/
+    if(setY > appPointer->SCREEN_HEIGHT || setY < 0)
+    {
+        throw std::out_of_range("y can not be less than screen_height or greater than zero");
+    }
+
+    y = setY;
+}
+
+inline void thing::setW(int setW)
+{
+/*
+* thing::setW set w equal to setW
+*
+* Pre and postconditions:
+*
+* Precondition setW is not less than or equal to zero
+*/
+    if(setW <= 0)
+    {
+        throw std::invalid_argument("w can not be less than or equal to zero");
+    }
+
+    w = setW;
+}
+
+inline void thing::setH(int setH)
+{
+/*
+* thing::setH set h equal to setH
+*
+* Pre and postconditions:
+*
+* Precondition setH is not less than or equal to zero
+*/
+    if(setH <= 0)
+    {
+        throw std::invalid_argument("h can not be less than or equal to zero");
+    }
+
+    h = setH;
+}
+
+inline void thing::setSpeed(int setSpeed)
+{
+/*
+* thing::setSpeed set speed equal to setSpeed
+*/
+    speed = setSpeed;
+}
+
+inline void thing::setHealth(int setHealth)
+{
+/*
+* thing::setHealth set health equal to setHealth
+*
+* Pre and postconditions:
+*
+* Precondition setHealth can not be less than zero
+*/
+    if(setHealth < 0)
+    {
+        throw std::invalid_argument("health can not be less than zero");
+    }
+
+    health = setHealth;
+}
+
+inline void thing::removeFromScreen()
+{
+    x = appPointer->SCREEN_WIDTH * 2;
+    y = appPointer->SCREEN_HEIGHT * 2;
+}
+
+inline void thing::minusHealth(int subtractNum)
+{
+/*
+* thing::minusHealth subtract subtractNum from health
+*
+* Pre and postconditions:
+*
+* Precondition health can not be negative
+*/
+    int checkNum = health - subtractNum;
+    
+    if(checkNum < 0)
+    {
+        throw std::invalid_argument("health can not be less than zero");
+    }
+
+    health -= subtractNum;
+}
+
+
+
+counter::counter()
+{
+    updateStringCount();
+}   
+
+std::string counter::stringCurrentCount()
+{
+    if(oldCount != currentCount)
+    {
+        updateStringCount();
+    }
+
+    return stringCount;
+}
+
+counter& counter::operator++(int)
+{
+    currentCount++;
+
+    return *this;
+}
+
 
 
 user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) 
@@ -147,10 +372,6 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 *
 * pre and postconditions:
 *
-* Precondition iw and ih can not be less than or equal to zero handled by thing 
-* Precondition ihealth can not be less than zero handled by thing
-* Precondition itexture can not be NULL handled by thing
-* Precondition iappPointer can not be NULL handled by thing
 * Precondition idirection can not be anything other than 1 2 3 or 4 
 */
     try
@@ -163,16 +384,24 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
         back = iback;
         direction = idirection;
 
-        playerHealth = new healthDisplay;
-        playerHealth->fullHealth = appPointer->loadImages("images/Health1.jpg");
-        playerHealth->halfHealth = appPointer->loadImages("images/Health2.jpg");
-        playerHealth->critical = appPointer->loadImages("images/Health3.jpg");
+        playerHealth = new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") };
     }
     catch(...)
     {
         SDL_DestroyTexture(itexture);
         throw;
     }
+}
+
+user::user(const user& copyFromUser)
+: thing(copyFromUser), direction{copyFromUser.direction}, back{copyFromUser.back}
+{}
+
+user::user(user&& moveFromUser)
+ : thing(moveFromUser), direction{moveFromUser.direction}, back{moveFromUser.back}
+{
+    moveFromUser.direction = 0;
+    moveFromUser.back = 0;
 }
 
 user::~user()
@@ -294,15 +523,7 @@ void user::input()
                 currentBullet->speed += 2;
             }
             
-            bulletClass* newBulletClass = new bulletClass; 
-
-            newBulletClass->appPointer = appPointer;
-            newBulletClass->texture = appPointer->loadImages("images/bullet.png");
-            newBulletClass->x = x;
-            newBulletClass->y = y;
-            newBulletClass->w = 22;
-            newBulletClass->h = 22;
-            newBulletClass->speed = 2;
+            bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, appPointer->loadImages("images/bullet.png"), appPointer}; 
 
             bullets.push_back(newBulletClass);
 	    
@@ -359,7 +580,7 @@ void user::menuInput(bool& start)
     }
 }
 
-void user::logic(thing& enemy, points& point, int& counter)
+void user::logic(thing& enemy, points& point)
 {
 /*
 * user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT 
@@ -369,7 +590,7 @@ void user::logic(thing& enemy, points& point, int& counter)
     {
         x += back;
     }
-    else if (x > appPointer->appSCREEN_WIDTH-100)
+    else if (x > appPointer->SCREEN_WIDTH-100)
     {
         x -= back;
     }
@@ -377,16 +598,16 @@ void user::logic(thing& enemy, points& point, int& counter)
     {
         y += back;
     }
-    else if (y > appPointer->appSCREEN_HEIGHT-100)
+    else if (y > appPointer->SCREEN_HEIGHT-100)
     {
         y -= back;
-    }
+    }    
 
     for(auto& currentBullet : bullets)
     {
         currentBullet->logic(*this);
-        currentBullet->didBulletHit(enemy, counter);
-        point.didYouGetPoints(*this, *currentBullet, counter);
+        currentBullet->didBulletHit(enemy, playerScore);
+        point.didYouGetPoints(*this, *currentBullet, playerScore);
 
         if(currentBullet->health <= 0)
         {
@@ -439,7 +660,7 @@ void user::playerDeath()
 */
     if(health <= 0)
     {
-        thing deathImage(0, 0, appPointer->appSCREEN_WIDTH, appPointer->appSCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
+        thing deathImage(0, 0, appPointer->SCREEN_WIDTH, appPointer->SCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
 
         deathImage.show();
 
@@ -449,6 +670,11 @@ void user::playerDeath()
 
         exit(0);
     }
+}
+
+inline int user::getDirection() const 
+{
+    return direction;
 }
 
 
@@ -462,21 +688,27 @@ enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Text
 */
 }
 
-void enemys::spawnEnemys(int& enemySpawnTimer)
+enemys::enemys(const enemys& copyFromEnemy)
+ : thing(copyFromEnemy)
+{}
+
+enemys::enemys(enemys&& moveFromEnemy)
+ : thing(moveFromEnemy)
+{}
+
+void enemys::spawnEnemys()
 {
 /*
 * enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed 
 */
     if(enemySpawnTimer <= 0 && health <= 0)
     {
-       x = appPointer->appSCREEN_WIDTH;
-       y = rand() % appPointer->appSCREEN_HEIGHT;
+       x = appPointer->SCREEN_WIDTH;
+       y = rand() % appPointer->SCREEN_HEIGHT;
 
        speed = minimum + (rand() % maximum);
 
        health = 1;
-
-       smart = rand() % 2;
 
        x -= rand() % 10;
 
@@ -495,12 +727,11 @@ void enemys::didEnemyKill(user& player)
 /*
 * enemys::didEnemyKill take one health from player and make them use the sad texture if health is not zero and then put at a invalid x value 
 */
-    if(collision(player.x, player.y, player.w, player.h, x, y, w, h) && health > 0)
+    if(collision(player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h) && health > 0)
     {
         health = 0;
-        x = 1000;
-        y = 1000;
-        player.health -= 3;
+        removeFromScreen();
+        player.minusHealth(1);
         player.newTexture("images/PlayerSad.png");
     }
 }
@@ -521,17 +752,17 @@ void enemys::makeEnd(int& levelOne)
     SDL_Delay(60000);
 }
 
-void enemys::scaleDifficulty(int counter)
+void enemys::scaleDifficulty(const counter& playerScore)
 {
 /*
 * enemys::scaleDifficulty Increase the speed range of the enemy based on the players score
 */
-    if(counter > 200)
+    if(playerScore.count() > 200)
     {
         maximum = 20;
 	minimum = 5;
     }
-    else if(counter > 400)
+    else if(playerScore.count() > 400)
     {
         maximum = 30;
 	minimum = 10;
@@ -549,6 +780,14 @@ points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Text
 */
 }
 
+points::points(const points& copyFromPoint)
+ : thing(copyFromPoint) 
+{}
+
+points::points(points&& moveFromPoint)
+ : thing(moveFromPoint)
+{}
+
 void points::initPoints()
 {
 /*
@@ -558,7 +797,7 @@ void points::initPoints()
     {
         x -= speed;
 
-        if (x > appPointer->appSCREEN_WIDTH)
+        if (x > appPointer->SCREEN_WIDTH)
         {
             health = 0;
         }
@@ -566,7 +805,7 @@ void points::initPoints()
         {
             health = 0;
         }
-        else if (y > appPointer->appSCREEN_HEIGHT)
+        else if (y > appPointer->SCREEN_HEIGHT)
         {
             health = 0;
         }
@@ -577,8 +816,8 @@ void points::initPoints()
     }
     else
     {
-        x = appPointer->appSCREEN_WIDTH;
-        y = rand() % appPointer->appSCREEN_HEIGHT;
+        x = appPointer->SCREEN_WIDTH;
+        y = rand() % appPointer->SCREEN_HEIGHT;
 
         randomNum = 1 + (rand() % 9);
         health = randomNum;
@@ -589,42 +828,42 @@ void points::initPoints()
     }
 }
 
-void points::didYouGetPoints(user& player, thing& bullet, int& counter)
+void points::didYouGetPoints(user& player, thing& bullet, counter& playerScore)
 {
 /*
 * points::didYouGetPoints detect collision of bullet and player and handle them 
 */
-    auto playerPointCollision = std::async(std::launch::async, collision, player.x, player.y, player.w, player.h, x, y, w, h);
-    auto bulletPointCollision = std::async(std::launch::async, collision, bullet.x, bullet.y, bullet.w, bullet.h, x, y, w, h);
+    auto playerPointCollision = std::async(std::launch::async, collision, player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h);
+    auto bulletPointCollision = std::async(std::launch::async, collision, bullet.getX(), bullet.getY(), bullet.getW(), bullet.getH(), x, y, w, h);
 
     if(playerPointCollision.get() && health != 0)
     {
-        if(health > player.health)
+        if(health > player.getHealth())
         {
 	    int randomNum = rand() % 2;
 
 	    if(randomNum && isHealth)
 	    {
-                player.health += 4;
+                player.minusHealth(-1);
 	    }
 
             player.newTexture("images/PlayerHappy.png");
         }
         else
         {
-            counter++;
+            playerScore++;
             player.newTexture("images/PlayerHappy.png");
         }
 
         health = 0;
-        counter++;
+        playerScore++;
     }
-    else if(bulletPointCollision.get() && bullet.health != 0 && health != 0 && !isHealth)
+    else if(bulletPointCollision.get() && bullet.getHealth() != 0 && health != 0 && !isHealth)
     {
-        bullet.health += 1;
+        bullet.minusHealth(-1);
         newTexture("images/health.png");
         isHealth = true;
-        counter++;
+        playerScore++;
     }
 }
 
@@ -639,29 +878,37 @@ bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed
 */
 };
 
+bulletClass::bulletClass(const bulletClass& copyFromBullet)
+ : thing(copyFromBullet)
+{}
+
+bulletClass::bulletClass(bulletClass&& moveFromBullet)
+ : thing(moveFromBullet)
+{}
+
 void bulletClass::logic(const user& player)
 {
 /*
 * bulletClass::logic move bulletClass based on player direction and set health to zero if off screen 
 */
-    if(player.direction == 1)
+    if(player.getDirection() == 1)
     {
         y -= speed;
     }
-    else if(player.direction == 2)
+    else if(player.getDirection() == 2)
     {
         y += speed;
     }
-    else if(player.direction == 3)
+    else if(player.getDirection() == 3)
     {
         x -= speed;
     }
-    else if(player.direction == 4)
+    else if(player.getDirection() == 4)
     {
         x += speed;
     }
 
-    if (x > appPointer->appSCREEN_WIDTH)
+    if (x > appPointer->SCREEN_WIDTH)
     {
         health = 0;
     }
@@ -669,7 +916,7 @@ void bulletClass::logic(const user& player)
     {
         health = 0;
     }
-    else if (y > appPointer->appSCREEN_HEIGHT)
+    else if (y > appPointer->SCREEN_HEIGHT)
     {
         health = 0;
     }
@@ -679,57 +926,36 @@ void bulletClass::logic(const user& player)
     }
 }
 
-void bulletClass::didBulletHit(thing& enemy, int& counter)
+void bulletClass::didBulletHit(thing& enemy, counter& playerScore)
 {
 /*
 * bulletClass::didBulletHit check if bullet colides with enemy and set enemy health to zero if true then update counter 
 */
-    if(collision(x, y, w, h, enemy.x, enemy.y, enemy.w, enemy.h) && health != 0 && enemy.health != 0)
+    if(collision(x, y, w, h, enemy.getX(), enemy.getY(), enemy.getW(), enemy.getH()) && health != 0 && enemy.getHealth() != 0)
     {
-        enemy.health = 0;
-        enemy.x = 1000;
-        enemy.y = 1000;
+        enemy.setHealth(0);
+        enemy.removeFromScreen();
         health -= 1;
-        counter++;
+        playerScore++;
     }
 }
 
 
 
 healthDisplay::healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical)
+: fullHealth(ifullHealth), halfHealth(ihalfHealth), critical(icritical) 
 {
 /*
 * healthDisplay::healthDisplay construct a health display with 3 textures  
-*
-* pre and postconditions:
-*
-* Precondition pointers are not NULL
 */
-    try
-    {
-        if(ifullHealth == NULL || ifullHealth == nullptr)
-        {
-            throw std::invalid_argument("ifullHealth can not be NULL");
-        }
-        else if(ihalfHealth == NULL || ihalfHealth == nullptr)
-        {
-            throw std::invalid_argument("ihalfHealth can not be NULL");
-        }
-        else if(icritical == NULL || icritical == nullptr)
-        {
-            throw std::invalid_argument("icritical can not be NULL");
-        }
+}
 
-        fullHealth = ifullHealth;
-        halfHealth = ihalfHealth;
-        critical = icritical;
-    }
-    catch(...)
-    {
-        SDL_DestroyTexture(ifullHealth);
-        SDL_DestroyTexture(ihalfHealth);
-        SDL_DestroyTexture(icritical);
-    }
+healthDisplay::healthDisplay(healthDisplay&& moveFromHealthDisplay)
+ : fullHealth{moveFromHealthDisplay.fullHealth}, halfHealth{moveFromHealthDisplay.halfHealth}, critical{moveFromHealthDisplay.critical}
+{
+    moveFromHealthDisplay.fullHealth = nullptr;
+    moveFromHealthDisplay.halfHealth = nullptr;
+    moveFromHealthDisplay.critical = nullptr;
 }
 
 SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
@@ -737,20 +963,20 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
 /*
 * healthDisplay::healthDisplayUpdate update healthDisplay based on player health
 */
-    switch(player.health)
+    switch(player.getHealth())
     {
-        case 10:
+        case 3:
 	    return fullHealth;
-	case 5:
+	case 2:
 	    return halfHealth;
 	case 1:
 	    return critical;
 	default:
-	    if(player.health > 5)
+	    if(player.getHealth() > 2)
 	    {
 	        return fullHealth;
 	    }
-	    else if(player.health > 1)
+	    else if(player.getHealth() > 1)
 	    {
 	        return halfHealth;
 	    }

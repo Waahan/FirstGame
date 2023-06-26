@@ -16,6 +16,7 @@
 
 class thing;
 class user;
+class counter;
 class enemys;
 class points;
 class bulletClass;
@@ -26,14 +27,39 @@ class thing
     public:
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
     thing(){};
-    thing(thing& copyThing) = delete;
+
+    thing(const thing& copyFromThing);
+    thing& operator=(const thing& copyFromThing);
+
+    thing(thing&& moveFromThing);
+    thing& operator=(thing&& moveFromThing);
+
     virtual ~thing(){ SDL_DestroyTexture(texture); }
 
     virtual void logic();
     virtual void newTexture(SDL_Texture* newTexture);
     virtual void newTexture(const char* newTexturePath);
     virtual int show();
-    
+
+    inline int getX() const;
+    inline int getY() const;
+    inline int getW() const;
+    inline int getH() const;
+    inline int getHealth() const;
+    inline int getSpeed() const;
+    inline SDL_Texture* getTexture() const;
+
+    inline void setX(int setX);
+    inline void setY(int setY);
+    inline void setW(int setW);
+    inline void setH(int setH);
+    inline void setSpeed(int setSpeed);
+    inline void setHealth(int setHealth);
+
+    inline void removeFromScreen();
+    inline void minusHealth(int subtractNum);
+
+    protected:    
     int x;
     int y;
     int w;
@@ -44,13 +70,30 @@ class thing
     App* appPointer = NULL;
 };
 
+class counter
+{
+    public:
+    counter();
+
+    inline unsigned long long count() const { return currentCount; }
+    std::string stringCurrentCount();
+    counter& operator++(int);
+    
+    protected:
+    void updateStringCount(){ stringCount = std::to_string(currentCount); oldCount = currentCount; }
+
+    unsigned long long currentCount = 0;
+
+    unsigned long long oldCount = 0;
+    std::string stringCount;
+};
+
 class user : public thing
 {
-    friend bulletClass;
-
     public:
-    user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
-    user(user& userCopy) = delete;
+    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
+    user(const user& copyFromUser);
+    user(user&& moveFromUser);
     ~user();
 
     void doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
@@ -60,10 +103,14 @@ class user : public thing
     void keyMenu(bool& start, SDL_KeyboardEvent *event);
     void menuInput(bool& start);
 
-    void logic(thing& enemy, points& point, int& counter);
+    void logic(thing& enemy, points& point);
 
     int show();
     void playerDeath();
+
+    inline int getDirection() const;
+
+    counter playerScore;
 
     protected:
     char direction;
@@ -83,30 +130,32 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    enemys(enemys& copyEnemy) = delete;
+    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    enemys(const enemys& copyFromEnemy);
+    enemys(enemys&& moveFromEnemy);
     ~enemys(){ SDL_DestroyTexture(texture); }
 
-    void spawnEnemys(int& enemySpawnTimer);
+    void spawnEnemys();
     void didEnemyKill(user& player);
     void makeEnd(int& levelOne);
-    void scaleDifficulty(int counter);
+    void scaleDifficulty(const counter& playerScore);
 
     private:
     int minimum = 1;
     int maximum = 15;
-    int smart;
+    int enemySpawnTimer = 0;
 };
 
 class points : public thing
 {
     public:
-    points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    points(points& copyPoints) = delete;
+    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    points(const points& copyFromPoints);
+    points(points&& moveFromPoint);
     ~points(){ SDL_DestroyTexture(texture); }
 
     void initPoints();
-    void didYouGetPoints(user& player, thing& bullet, int& counter);
+    void didYouGetPoints(user& player, thing& bullet, counter& playerScore);
 
     private:
     int randomNum;
@@ -118,21 +167,22 @@ class bulletClass : public thing
     friend user;
 
     public:
-    bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
     bulletClass() : thing() {};
-    bulletClass(bulletClass& copyBullet) = delete;
+    bulletClass(const bulletClass& copyFromBullet);
+    bulletClass(bulletClass&& moveFromBullet);
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
     void logic(const user& player);
-    void didBulletHit(thing& enemy, int& counter);
+    void didBulletHit(thing& enemy, counter& playerScore);
 };
 
 class healthDisplay
 {
     public:     
-    healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical);
-    healthDisplay() : fullHealth(nullptr), halfHealth(nullptr), critical(nullptr){}
-    healthDisplay(healthDisplay& copyHealthDisplay) = delete;
+    explicit healthDisplay(SDL_Texture* ifullHealth = nullptr, SDL_Texture* ihalfHealth = nullptr, SDL_Texture* icritical = nullptr);
+    healthDisplay(const healthDisplay& copyFromHealthDisplay) = delete;
+    healthDisplay(healthDisplay&& moveFromHealthDisplay);
     ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
      
     SDL_Texture* healthDisplayUpdate(const user& player);
