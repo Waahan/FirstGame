@@ -53,11 +53,21 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
 thing::thing(const thing& copyFromThing)
 : x{copyFromThing.x}, y{copyFromThing.y}, w{copyFromThing.w}, h{copyFromThing.h}, health{copyFromThing.health}, speed{copyFromThing.speed}, texture{copyFromThing.appPointer->loadImages("images/defaultThing.png")}, appPointer{copyFromThing.appPointer}
 {
+/*
+* thing::thing copy constructor make a copy of thing as best as I can 
+*
+* Postcondition warn about copying thing
+*/
     std::cerr << "It is better to move a thing then copy";
 }
 
 thing& thing::operator=(const thing& copyFromThing)
 {
+/*
+* thing::operator= copy copy thing 
+*
+* Postcondition warn about copying thing
+*/
     x = copyFromThing.x;
     y = copyFromThing.y;
     w = copyFromThing.w;
@@ -67,12 +77,19 @@ thing& thing::operator=(const thing& copyFromThing)
     texture = copyFromThing.appPointer->loadImages("images/defaultThing.png");
     appPointer = copyFromThing.appPointer;
 
+    std::cerr << "It is best to move thing not copy it";
+
     return *this;
 }
 
 thing::thing(thing&& moveFromThing)
  : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, health{moveFromThing.health}, speed(moveFromThing.speed), texture{moveFromThing.texture}, appPointer{moveFromThing.appPointer}
 {
+/*
+* thing::thing move constructor move thing
+*
+* Postcondition thing&& can not destroy texture pointer when deconstructed
+*/
     moveFromThing.x = 0;
     moveFromThing.y = 0;
     moveFromThing.w = 0;
@@ -85,6 +102,9 @@ thing::thing(thing&& moveFromThing)
 
 thing& thing::operator=(thing&& moveFromThing)
 {
+/*
+* thing::operator= move same thing as thing move constructor
+*/
     x = moveFromThing.x;
     y = moveFromThing.y;
     w = moveFromThing.w;
@@ -342,11 +362,17 @@ inline void thing::minusHealth(int subtractNum)
 
 counter::counter()
 {
+/*
+* counter::counter just update string count
+*/
     updateStringCount();
 }   
 
 std::string counter::stringCurrentCount()
 {
+/*
+* counter::stringCurrentCount return current count as a string update if needed 
+*/
     if(oldCount != currentCount)
     {
         updateStringCount();
@@ -357,6 +383,9 @@ std::string counter::stringCurrentCount()
 
 counter& counter::operator++(int)
 {
+/*
+* counter::operator++ increase the currentCount by one
+*/
     currentCount++;
 
     return *this;
@@ -395,10 +424,16 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 
 user::user(const user& copyFromUser)
 : thing(copyFromUser), direction{copyFromUser.direction}, back{copyFromUser.back}
+/*
+* user::user copy constructor uses the default thing copy constructor and then just add the extra varibles 
+*/
 {}
 
 user::user(user&& moveFromUser)
  : thing(moveFromUser), direction{moveFromUser.direction}, back{moveFromUser.back}
+/*
+* Same as the copy constructor description but for move
+*/
 {
     moveFromUser.direction = 0;
     moveFromUser.back = 0;
@@ -406,6 +441,9 @@ user::user(user&& moveFromUser)
 
 user::~user()
 {
+/*
+* user::~user delete texture healthDisplayCurrent playerHealth a bullets 
+*/
     SDL_DestroyTexture(texture);
     SDL_DestroyTexture(healthDisplayCurrent);
 
@@ -583,7 +621,7 @@ void user::menuInput(bool& start)
 void user::logic(thing& enemy, points& point)
 {
 /*
-* user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT 
+* user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT and delete bullets when outside of the window
 */
     // Remember [x, y] where y is upside down
     if (x < 0)
@@ -628,7 +666,7 @@ void user::logic(thing& enemy, points& point)
 int user::show()
 {
 /*
-* user::show show user or call playerDeath 
+* user::show show user, healthDiplay and bullets or call playerDeath 
 */
     if(health > 0)
     {
@@ -721,7 +759,7 @@ void enemys::spawnEnemys()
 	enemySpawnTimer--;
     }
 }
-
+ 
 void enemys::didEnemyKill(user& player)
 {
 /*
