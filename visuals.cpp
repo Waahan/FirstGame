@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "headerVisuals.h"
 #include "headerPlayer.h"
@@ -29,6 +30,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
     bool failedSDL = false;
     bool failedIMG = false;
     bool failedTTF = false;
+    bool failedMix = false;
     bool failedWindowIcon = false;
     bool failedWindow = false;
     bool failedRenderer = false;
@@ -37,10 +39,13 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
     {
         int rendererFlags = SDL_RENDERER_ACCELERATED, windowFlags = 0;
 
+        //https://wiki.libsdl.org/SDL2/SDL_RendererFlags
         rendererFlags = SDL_RENDERER_ACCELERATED;
-
+        
+        //https://wiki.libsdl.org/SDL2/SDL_WindowFlags
         windowFlags = 0;
      
+        //https://wiki.libsdl.org/SDL2/SDL_Init
         if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
         {
             std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
@@ -51,6 +56,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
         int flags = IMG_INIT_JPG | IMG_INIT_PNG;
         int initted = IMG_Init(flags);
     
+        //https://wiki.libsdl.org/SDL2_image/IMG_Init
         if((initted & flags) != flags) 
         {   
             std::cerr << "IMG_Init: Failed to init required jpg and png support!" << std::endl;
@@ -59,11 +65,20 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
             failedIMG = true;
         }  
     
+        //https://wiki.libsdl.org/SDL2_ttf/TTF_Init
         if(TTF_Init() < 0)
         {
             std::cerr << "Could not start SDL ttf:" << SDL_GetError() << std::endl;
 	    errorMessage = errorMessage+"TTF_Init failed";
             failedTTF = true;
+        }
+        
+        //https://wiki.libsdl.org/SDL2_mixer/Mix_Init
+        if(Mix_Init(MIX_INIT_MP3) < 0)
+        {
+            std::cerr << "Could not init SDL mixer: " << SDL_GetError() << std::endl;
+            errorMessage = errorMessage+"Mix_Init failed";
+            failedMix = true;
         }
     
         windowIcon = SDL_LoadBMP("images/Player.bmp");
@@ -74,7 +89,8 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
             errorMessage = errorMessage+"SDL_LoadBMP failed";
             failedWindowIcon = true;
         } 
-    
+        
+        //https://wiki.libsdl.org/SDL2/SDL_CreateWindow
         window = SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
 
         if(!window)
@@ -93,11 +109,13 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
             failedWindowIcon = true;
         }
 
+        //https://wiki.libsdl.org/SDL2/SDL_SetWindowIcon
         SDL_SetWindowIcon(window, windowIcon);   
 
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
         //-1 so SDL use the first graphics acceleration device it finds
+        //https://wiki.libsdl.org/SDL2/SDL_CreateRenderer
         renderer = SDL_CreateRenderer(window, -1, rendererFlags);
 
         //Check if renderer is working
@@ -123,6 +141,9 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
 
         if(!failedTTF)
             TTF_Quit();
+
+        if(!failedMix)
+            Mix_Quit();
         
         if(!failedWindowIcon)
         {
@@ -164,6 +185,7 @@ App::~App()
     SDL_FreeSurface(windowIcon);
     windowIcon = nullptr;
 
+    Mix_Quit();
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
