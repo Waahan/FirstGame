@@ -3,7 +3,7 @@ First Game
 
 My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. I try to use camel case, RAII and 4 space indentation in the project as much as possible. 
 
-To use build the project you must edit the CMakeLists.txt file to include your SDL2 image libary and SDL2 TTF libary. If you are on debain you can run sudo apt-file list "PACKAGE NAME" and include the file with the .so.0 at the end.
+To use build you should just have to download the dependencies below. And cmake will do the rest.
 
 Dependencies
 ------------
@@ -25,13 +25,12 @@ Installing on linux
 	mkdir build
 	cd build
 	mkdir images
-	cd ..
 	cd images
-	cp * /home/"$(whoami)"/FirstGame/build/images
+	cp ../../images/* .
+        cd ..
 	cmake ..
 	make
 	./main
-
 
 Thank You
 ---------
