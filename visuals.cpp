@@ -68,7 +68,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
         //https://wiki.libsdl.org/SDL2_ttf/TTF_Init
         if(TTF_Init() < 0)
         {
-            std::cerr << "Could not start SDL ttf:" << SDL_GetError() << std::endl;
+            std::cerr << "Could not start SDL ttf:" << TTF_GetError() << std::endl;
 	    errorMessage = errorMessage+"TTF_Init failed";
             failedTTF = true;
         }
@@ -76,7 +76,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
         //https://wiki.libsdl.org/SDL2_mixer/Mix_Init
         if(Mix_Init(MIX_INIT_MP3) < 0)
         {
-            std::cerr << "Could not init SDL mixer: " << SDL_GetError() << std::endl;
+            std::cerr << "Could not init SDL mixer: " << Mix_GetError() << std::endl;
             errorMessage = errorMessage+"Mix_Init failed";
             failedMix = true;
         }
@@ -133,35 +133,35 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
     }
     catch(...)
     {
-        if(!failedSDL)
-            SDL_Quit();
-        
-        if(!failedIMG)
-            IMG_Quit();
-
-        if(!failedTTF)
-            TTF_Quit();
-
-        if(!failedMix)
-            Mix_Quit();
-        
-        if(!failedWindowIcon)
+        if(!failedRenderer)
         {
-            SDL_FreeSurface(windowIcon);
-            windowIcon = nullptr;
+            SDL_DestroyRenderer(renderer);
+            renderer = nullptr;
         }
-        
+
         if(!failedWindow)
         {
             SDL_DestroyWindow(window);
             window = nullptr;
         }
 
-        if(!failedRenderer)
+        if(!failedWindowIcon)
         {
-            SDL_DestroyRenderer(renderer);
-            renderer = nullptr;
+            SDL_FreeSurface(windowIcon);
+            windowIcon = nullptr;
         }
+
+        if(!failedMix)
+            Mix_Quit();
+
+        if(!failedTTF)
+            TTF_Quit();
+
+        if(!failedIMG)
+            IMG_Quit();
+
+        if(!failedSDL)
+            SDL_Quit();
 
         throw;
     }
@@ -211,7 +211,7 @@ SDL_Texture* App::loadImages(const char* imageFile)
 
     if(Image == NULL)
     {
-        std::cerr << "IMG_LoadTexture failed: " << SDL_GetError() << std::endl; 
+        std::cerr << "IMG_LoadTexture failed: " << IMG_GetError() << std::endl; 
 	throw std::runtime_error("IMG_LoadTexture failed");
     }
 
@@ -326,7 +326,7 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
 
         if(font == NULL || font == nullptr)
         {
-            std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
+            std::cerr << "TTF_OpenFont failed: " << TTF_GetError() << std::endl;
 	    errorMessage = errorMessage+"TTF_OpenFont failed";
             openFontFailed = true;
         }
@@ -336,7 +336,7 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
 
         if(surfaceMessage == NULL || surfaceMessage == nullptr)
         {
-            std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
+            std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
             errorMessage = errorMessage+"TTF_RenderText_Solid failed";
             surfaceMessageFailed = true;
         }
@@ -355,7 +355,7 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
         Message_rect.y = y; // controls the rect's y coordinte
         Message_rect.w = w; // controls the width of the rect
         Message_rect.h = h; // controls the height of the rect
-        
+
         if(errorMessage != "")
         {
             throw std::runtime_error(errorMessage);
@@ -412,14 +412,14 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, const
  * 
  * pre and postconditions:
  *
- * Precondition message can not be NULL
+ * Precondition message is not NULL
  * Precondition w and h must not be less than or equal to 0
 */
-    if(message == NULL || nullptr)
+    if(message == nullptr || message == NULL)
     {
-        throw std::invalid_argument("new message can not be NULL");
+        throw std::invalid_argument("message can not be NULL");
     }
-    else if(w <= 0 || h <= 0)
+    else if(w =< 0 || h =< 0)
     {
         throw std::invalid_argument("new message h and w can not be less than or equal to zero");
     }
@@ -430,7 +430,7 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, const
 
     if(surfaceMessage == NULL || surfaceMessage == nullptr)
     {
-        std::cerr << "TTF_RenderText_Solid failed: " << SDL_GetError() << std::endl;
+        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
 	throw std::runtime_error("TTF_RenderText_Solid failed");
     }
     
