@@ -126,7 +126,7 @@ thing& thing::operator=(thing&& moveFromThing)
     return *this;
 }
 
-void thing::logic()
+thing& thing::logic()
 {
 /*
 * thing::logic sets health equal to zero if thing is outside SCREEN_WIDTH and SCREEN_HEIGHT
@@ -147,9 +147,11 @@ void thing::logic()
     {
         health = 0;
     }
+
+    return *this;
 }
 
-void thing::newTexture(SDL_Texture* newTexture)
+thing& thing::newTexture(SDL_Texture* newTexture)
 {
 /*
 * thing::newTexture set newTexture to texture 
@@ -166,9 +168,11 @@ void thing::newTexture(SDL_Texture* newTexture)
 
     SDL_DestroyTexture(texture);
     texture = newTexture;
+
+    return *this;
 }
 
-void thing::newTexture(const char* newTexturePath)
+thing& thing::newTexture(const char* newTexturePath)
 {
 /*
 * thing::newTexture load newTexture from the file path 
@@ -184,6 +188,8 @@ void thing::newTexture(const char* newTexturePath)
 
     SDL_DestroyTexture(texture);
     texture = appPointer->loadImages(newTexturePath);
+
+    return *this;
 }
 
 int thing::show()
@@ -240,7 +246,7 @@ inline SDL_Texture* thing::getTexture() const
     return texture;
 }
 
-inline void thing::setX(int setX)
+inline thing& thing::setX(int setX)
 {
 /*
 * thing::setX set x equal to setX
@@ -255,9 +261,11 @@ inline void thing::setX(int setX)
     }
 
     x = setX;
+
+    return *this;
 }
 
-inline void thing::setY(int setY)
+inline thing& thing::setY(int setY)
 {
 /*
 * thing::setY set y equal to y
@@ -272,9 +280,11 @@ inline void thing::setY(int setY)
     }
 
     y = setY;
+
+    return *this;
 }
 
-inline void thing::setW(int setW)
+inline thing& thing::setW(int setW)
 {
 /*
 * thing::setW set w equal to setW
@@ -289,9 +299,11 @@ inline void thing::setW(int setW)
     }
 
     w = setW;
+
+    return *this;
 }
 
-inline void thing::setH(int setH)
+inline thing& thing::setH(int setH)
 {
 /*
 * thing::setH set h equal to setH
@@ -306,17 +318,21 @@ inline void thing::setH(int setH)
     }
 
     h = setH;
+
+    return *this;
 }
 
-inline void thing::setSpeed(int setSpeed)
+inline thing& thing::setSpeed(int setSpeed)
 {
 /*
 * thing::setSpeed set speed equal to setSpeed
 */
     speed = setSpeed;
+
+    return *this;
 }
 
-inline void thing::setHealth(int setHealth)
+inline thing& thing::setHealth(int setHealth)
 {
 /*
 * thing::setHealth set health equal to setHealth
@@ -331,15 +347,22 @@ inline void thing::setHealth(int setHealth)
     }
 
     health = setHealth;
+
+    return *this;
 }
 
-inline void thing::removeFromScreen()
+inline thing& thing::removeFromScreen()
 {
+/*
+* thing::removeFromScreen get thing off screeen
+*/
     x = appPointer->SCREEN_WIDTH * 2;
     y = appPointer->SCREEN_HEIGHT * 2;
+
+    return *this;
 }
 
-inline void thing::minusHealth(int subtractNum)
+inline thing& thing::minusHealth(int subtractNum)
 {
 /*
 * thing::minusHealth subtract subtractNum from health
@@ -356,6 +379,8 @@ inline void thing::minusHealth(int subtractNum)
     }
 
     health -= subtractNum;
+
+    return *this;
 }
 
 
@@ -458,7 +483,7 @@ user::~user()
 }
 
 //Scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
+user& user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
 {
 /*
 * user::doKeyDown handle event keys by setting playerUp playerDown playerLeft playerRight and playerFired to true or false
@@ -500,9 +525,11 @@ void user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
 	    playerFired = DownUp;
 	}
     //}
+
+    return *this;
 }
 
-void user::input()
+user& user::input()
 {
 /*
 * user::input do actions based on event.type and doKeyDown
@@ -567,9 +594,11 @@ void user::input()
 	    
             newTexture("images/Player.png");
     }
+    
+    return *this;
 }
 
-void user::keyMenu(bool& start, SDL_KeyboardEvent *event)
+user& user::keyMenu(bool& start, SDL_KeyboardEvent *event)
 {
 /*
 * user::keyMenu handle key board events on the start menu 
@@ -591,9 +620,11 @@ void user::keyMenu(bool& start, SDL_KeyboardEvent *event)
             start = true;
         }
     }
+
+    return *this;
 }
 
-void user::menuInput(bool& start)
+user& user::menuInput(bool& start)
 {
 /*
 * user::menuInput Handle menu input 
@@ -616,9 +647,11 @@ void user::menuInput(bool& start)
                 break;
         }
     }
+
+    return *this;
 }
 
-void user::logic(thing& enemy, points& point)
+user& user::logic(thing& enemy, points& point)
 {
 /*
 * user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT and delete bullets when outside of the window
@@ -661,6 +694,8 @@ void user::logic(thing& enemy, points& point)
             bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
         }
     }
+
+    return *this;
 }
 
 int user::show()
@@ -734,7 +769,7 @@ enemys::enemys(enemys&& moveFromEnemy)
  : thing(moveFromEnemy)
 {}
 
-void enemys::spawnEnemys()
+enemys& enemys::spawnEnemys()
 {
 /*
 * enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed 
@@ -758,9 +793,11 @@ void enemys::spawnEnemys()
 
 	enemySpawnTimer--;
     }
+
+    return *this;
 }
  
-void enemys::didEnemyKill(user& player)
+enemys& enemys::didEnemyKill(user& player)
 {
 /*
 * enemys::didEnemyKill take one health from player and make them use the sad texture if health is not zero and then put at a invalid x value 
@@ -772,6 +809,8 @@ void enemys::didEnemyKill(user& player)
         player.minusHealth(1);
         player.newTexture("images/PlayerSad.png");
     }
+
+    return *this;
 }
 
 void enemys::makeEnd(int& levelOne)
@@ -790,7 +829,7 @@ void enemys::makeEnd(int& levelOne)
     SDL_Delay(60000);
 }
 
-void enemys::scaleDifficulty(const counter& playerScore)
+enemys& enemys::scaleDifficulty(const counter& playerScore)
 {
 /*
 * enemys::scaleDifficulty Increase the speed range of the enemy based on the players score
@@ -805,6 +844,8 @@ void enemys::scaleDifficulty(const counter& playerScore)
         maximum = 30;
 	minimum = 10;
     }
+
+    return *this;
 }
 
 
@@ -826,7 +867,7 @@ points::points(points&& moveFromPoint)
  : thing(moveFromPoint)
 {}
 
-void points::initPoints()
+points& points::initPoints()
 {
 /*
 * points::initPoints spawn point at a random point if it has no health and keep in the bounds of SCREEN_WIDTH and SCREEN_HEIGHT
@@ -864,9 +905,11 @@ void points::initPoints()
         isHealth = false;
         newTexture("images/points.png");
     }
+
+    return *this;
 }
 
-void points::didYouGetPoints(user& player, thing& bullet, counter& playerScore)
+points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScore)
 {
 /*
 * points::didYouGetPoints detect collision of bullet and player and handle them 
@@ -903,6 +946,8 @@ void points::didYouGetPoints(user& player, thing& bullet, counter& playerScore)
         isHealth = true;
         playerScore++;
     }
+    
+    return *this;
 }
 
 
@@ -924,7 +969,7 @@ bulletClass::bulletClass(bulletClass&& moveFromBullet)
  : thing(moveFromBullet)
 {}
 
-void bulletClass::logic(const user& player)
+bulletClass& bulletClass::logic(const user& player)
 {
 /*
 * bulletClass::logic move bulletClass based on player direction and set health to zero if off screen 
@@ -962,9 +1007,11 @@ void bulletClass::logic(const user& player)
     {
         health = 0;
     }
+
+    return *this;
 }
 
-void bulletClass::didBulletHit(thing& enemy, counter& playerScore)
+bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore)
 {
 /*
 * bulletClass::didBulletHit check if bullet colides with enemy and set enemy health to zero if true then update counter 
@@ -976,6 +1023,8 @@ void bulletClass::didBulletHit(thing& enemy, counter& playerScore)
         health -= 1;
         playerScore++;
     }
+
+    return *this;
 }
 
 

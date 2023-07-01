@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <climits>
 #include <future>
@@ -31,6 +32,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
     bool failedIMG = false;
     bool failedTTF = false;
     bool failedMix = false;
+    bool failedOpenAudio = false;
     bool failedWindowIcon = false;
     bool failedWindow = false;
     bool failedRenderer = false;
@@ -79,6 +81,13 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
             std::cerr << "Could not init SDL mixer: " << Mix_GetError() << std::endl;
             errorMessage = errorMessage+"Mix_Init failed";
             failedMix = true;
+        }
+
+        if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0)
+        {
+            std::cerr << "Mix_OpenAudio failed: " << Mix_GetError() << std::endl;
+            errorMessage = errorMessage+"Mix_OpenAudio Failed";
+            failedOpenAudio = true;
         }
     
         windowIcon = SDL_LoadBMP("images/Player.bmp");
@@ -151,6 +160,9 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
             windowIcon = nullptr;
         }
 
+        if(!failedOpenAudio)
+            Mix_CloseAudio();
+
         if(!failedMix)
             Mix_Quit();
 
@@ -185,6 +197,8 @@ App::~App()
     SDL_FreeSurface(windowIcon);
     windowIcon = nullptr;
 
+    Mix_CloseAudio();    
+
     Mix_Quit();
     IMG_Quit();
     TTF_Quit();
@@ -218,7 +232,7 @@ SDL_Texture* App::loadImages(const char* imageFile)
     return Image;
 }
 
-void App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
+App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
 {
 /*
  * App::imagePos render image onto the window
@@ -246,9 +260,11 @@ void App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     SDL_RenderCopy(renderer, image, NULL, &dest);
+
+    return *this;
 }
 
-void App::imagePos(SDL_Texture* image, int x, int y)
+App& App::imagePos(SDL_Texture* image, int x, int y)
 {
 /*
  * App::imagePos renders image to window
@@ -273,9 +289,30 @@ void App::imagePos(SDL_Texture* image, int x, int y)
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     SDL_RenderCopy(renderer, image, NULL, &dest);
+
+    return *this;
 }
 
-void App::makeVisuals()
+App& App::imagePos(const Image& image, int x, int y, int w, int h)
+{
+    SDL_Rect dest;
+    dest.x = x;
+    dest.y = y;
+    dest.w = w;
+    dest.h = h;
+
+    if(h == 0 || w == 0)
+    {
+        dest.w = image.getCurrentImageSrc().w;
+        dest.h = image.getCurrentImageSrc().h;
+    }
+
+    SDL_RenderCopy(renderer, image.getImageTexture(), &image.getCurrentImageSrc(), &dest);
+    
+    return *this;
+}
+
+App& App::makeVisuals()
 {
 /*
  * App::makeVisuals draw a black background then clear the renderer
@@ -283,14 +320,32 @@ void App::makeVisuals()
     //Color for background         0, 0, 0, 0, is for black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
+
+    return *this;
 }
 
-void App::showVisuals()
+App& App::showVisuals()
 {
 /*
  * App::showVisuals present the renderer
 */
     SDL_RenderPresent(renderer);
+
+    return *this;
+}
+
+
+
+Image::Image(std::string path, App& app, int x, int y, int w, int h)
+: imageTexture{app.loadImages(path.c_str())}
+{
+    SDL_Rect temp;
+    temp.x = x;
+    temp.y = y;
+    temp.w = w;
+    temp.h = h;
+
+    images.push_back(temp);
 }
 
 
@@ -405,7 +460,7 @@ Messages::~Messages()
     font = nullptr;
 }
 
-void Messages::newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
+Messages& Messages::newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
 {
 /*
  * Messages::newMessage creates a new message from x y w h and message 
@@ -419,7 +474,7 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, const
     {
         throw std::invalid_argument("message can not be NULL");
     }
-    else if(w =< 0 || h =< 0)
+    else if(w <= 0 || h <= 0)
     {
         throw std::invalid_argument("new message h and w can not be less than or equal to zero");
     }
@@ -447,12 +502,39 @@ void Messages::newMessage(const char* message, int x, int y, int w, int h, const
     Message_rect.y = y;
     Message_rect.w = w;
     Message_rect.h = h;
+
+    return *this;
 }
 
-void Messages::drawMessage(const App& app)
+Messages& Messages::drawMessage(const App& app)
 {
 /*
  * Message::drawMessage draws message to screen
 */
     SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
+
+    return *this;
+}
+
+
+
+audio::audio(std::string path)
+ : currentMusic{Mix_LoadMUS(path.c_str())}
+{
+    if(currentMusic == NULL || currentMusic == nullptr)
+    {
+        std::cerr << "Mix_LoadMUS failed: " << Mix_GetError() << std::endl;
+        throw std::runtime_error("Mix_LoadMUS failed");
+    }
+}
+
+inline audio& audio::play(int loops)
+{
+    if(Mix_PlayMusic(currentMusic, loops) < 0)
+    {
+        std::cerr << "Mix_PlayMusic failed: " << Mix_GetError() << std::endl;
+        throw std::runtime_error("Mix_PlayMusic failed");
+    }
+    
+    return *this;
 }
