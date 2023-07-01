@@ -15,8 +15,8 @@
 #include "headerVisuals.h"
 
 class thing;
-class user;
 class counter;
+class user;
 class enemys;
 class points;
 class bulletClass;
@@ -36,9 +36,9 @@ class thing
 
     virtual ~thing(){ SDL_DestroyTexture(texture); }
 
-    virtual void logic();
-    virtual void newTexture(SDL_Texture* newTexture);
-    virtual void newTexture(const char* newTexturePath);
+    virtual thing& logic();
+    virtual thing& newTexture(SDL_Texture* newTexture);
+    virtual thing& newTexture(const char* newTexturePath);
     virtual int show();
 
     inline int getX() const;
@@ -49,15 +49,15 @@ class thing
     inline int getSpeed() const;
     inline SDL_Texture* getTexture() const;
 
-    inline void setX(int setX);
-    inline void setY(int setY);
-    inline void setW(int setW);
-    inline void setH(int setH);
-    inline void setSpeed(int setSpeed);
-    inline void setHealth(int setHealth);
+    inline thing& setX(int setX);
+    inline thing& setY(int setY);
+    inline thing& setW(int setW);
+    inline thing& setH(int setH);
+    inline thing& setSpeed(int setSpeed);
+    inline thing& setHealth(int setHealth);
 
-    inline void removeFromScreen();
-    inline void minusHealth(int subtractNum);
+    inline thing& removeFromScreen();
+    inline thing& minusHealth(int subtractNum);
 
     protected:    
     int x;
@@ -96,16 +96,16 @@ class user : public thing
     user(user&& moveFromUser);
     ~user();
 
-    void doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
+    user& doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
 
-    void input();
+    user& input();
 
-    void keyMenu(bool& start, SDL_KeyboardEvent *event);
-    void menuInput(bool& start);
+    user& keyMenu(bool& start, SDL_KeyboardEvent *event);
+    user& menuInput(bool& start);
 
-    void logic(thing& enemy, points& point);
+    user& logic(thing& enemy, points& point);
 
-    int show();
+    int show() override;
     void playerDeath();
 
     inline int getDirection() const;
@@ -135,10 +135,10 @@ class enemys : public thing
     enemys(enemys&& moveFromEnemy);
     ~enemys(){ SDL_DestroyTexture(texture); }
 
-    void spawnEnemys();
-    void didEnemyKill(user& player);
+    enemys& spawnEnemys();
+    enemys& didEnemyKill(user& player);
     void makeEnd(int& levelOne);
-    void scaleDifficulty(const counter& playerScore);
+    enemys& scaleDifficulty(const counter& playerScore);
 
     private:
     int minimum = 1;
@@ -154,8 +154,8 @@ class points : public thing
     points(points&& moveFromPoint);
     ~points(){ SDL_DestroyTexture(texture); }
 
-    void initPoints();
-    void didYouGetPoints(user& player, thing& bullet, counter& playerScore);
+    points& initPoints();
+    points& didYouGetPoints(user& player, thing& bullet, counter& playerScore);
 
     private:
     int randomNum;
@@ -173,8 +173,8 @@ class bulletClass : public thing
     bulletClass(bulletClass&& moveFromBullet);
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
-    void logic(const user& player);
-    void didBulletHit(thing& enemy, counter& playerScore);
+    bulletClass& logic(const user& player);
+    bulletClass& didBulletHit(thing& enemy, counter& playerScore);
 };
 
 class healthDisplay
