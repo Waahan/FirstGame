@@ -27,8 +27,8 @@ class App
     App(const App& copyFromApp) = delete;
     App& operator=(const App& copyFromApp) = delete;  
     
-    App(App&& moveFromApp) = default;
-    App& operator=(App&& moveFromApp) = default; 
+    App(App&& moveFromApp);
+    App& operator=(App&& moveFromApp); 
 
     ~App();
 
@@ -53,13 +53,13 @@ class App
 class Image
 {
     public:
-    Image(std::string imagePath, App& app, int x, int y, int w, int h);
+    explicit Image(std::string imagePath, App& app, int x, int y, int w, int h);
     
     Image(const Image& copyFromImage) = delete;
     Image& operator=(const Image& copyFromImage) = delete;
 
-    Image(Image&& moveFromImage) = default;
-    Image& operator=(Image&& moveFromImage) = default;
+    Image(Image&& moveFromImage);
+    Image& operator=(Image&& moveFromImage);
 
     ~Image() { SDL_DestroyTexture(imageTexture); }
 
@@ -88,8 +88,8 @@ class Messages
     Messages(const Messages& copyFromMessage) = delete;
     Messages& operator=(const Messages& copyFromMessage) = delete;
 
-    Messages(Messages&& moveFromMessage) = default;
-    Messages& operator=(Messages&& moveFromMessage) = default;
+    Messages(Messages&& moveFromMessage);
+    Messages& operator=(Messages&& moveFromMessage);
     
     ~Messages();
 
@@ -118,13 +118,13 @@ class Messages
 class audio
 {
     public:
-    audio(std::string path);
+    explicit audio(std::string path);
 
     audio(const audio& copyFromAudio) = delete;
     audio& operator=(const audio& copyFromAudio) = delete;
 
-    audio(audio&& moveFromAudio) = default;
-    audio& operator=(audio&& moveFromAudio) = default;
+    audio(audio&& moveFromAudio);
+    audio& operator=(audio&& moveFromAudio);
 
     ~audio(){ Mix_FreeMusic(currentMusic); }
 

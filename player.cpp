@@ -393,6 +393,8 @@ counter::counter()
     updateStringCount();
 }   
 
+counter::~counter(){}
+
 std::string counter::stringCurrentCount()
 {
 /*
