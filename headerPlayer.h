@@ -75,6 +75,14 @@ class counter
     public:
     counter();
 
+    counter(const counter& copyFromCounter) = delete;
+    counter& operator=(const counter& copyFromCounter) = delete;
+
+    counter(counter&& moveFromCounter) = delete;
+    counter& operator=(counter&& moveFromCounter) = delete;
+
+    ~counter();
+
     inline unsigned long long count() const { return currentCount; }
     std::string stringCurrentCount();
     counter& operator++(int);

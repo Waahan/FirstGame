@@ -179,6 +179,27 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), S
     }
 }
 
+App::App(App&& moveFromApp)
+ : SCREEN_WIDTH{moveFromApp.SCREEN_WIDTH}, SCREEN_HEIGHT{moveFromApp.SCREEN_HEIGHT}, window{moveFromApp.window}, renderer{moveFromApp.renderer}, windowIcon{moveFromApp.windowIcon}
+{
+    moveFromApp.window = nullptr;
+    moveFromApp.renderer = nullptr;
+    moveFromApp.windowIcon = nullptr;
+}
+
+App& App::operator=(App&& moveFromApp)
+{
+    window = moveFromApp.window;
+    renderer = moveFromApp.renderer;
+    windowIcon = moveFromApp.windowIcon;
+
+    moveFromApp.window = nullptr;
+    moveFromApp.renderer = nullptr;
+    moveFromApp.windowIcon = nullptr;
+
+    return *this;
+}
+
 App::~App()
 {
 /*
@@ -348,6 +369,25 @@ Image::Image(std::string path, App& app, int x, int y, int w, int h)
     images.push_back(temp);
 }
 
+Image::Image(Image&& moveFromImage)
+ : imageTexture{moveFromImage.imageTexture}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
+{
+    moveFromImage.imageTexture = nullptr;
+    moveFromImage.currentImageNum = 0;
+}
+
+Image& Image::operator=(Image&& moveFromImage)
+{
+    imageTexture = moveFromImage.imageTexture;
+    images = std::move(moveFromImage.images);
+    currentImageNum = moveFromImage.currentImageNum;
+
+    moveFromImage.imageTexture = nullptr;
+    moveFromImage.currentImageNum = 0;
+
+    return *this;
+}
+
 
 
 Messages::Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
@@ -440,6 +480,47 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
     }
 }
 
+Messages::Messages(Messages&& moveFromMessage)
+ : font{moveFromMessage.font}, surfaceMessage{moveFromMessage.surfaceMessage}, Message{moveFromMessage.Message}
+{
+    Message_rect.x = moveFromMessage.Message_rect.x;
+    Message_rect.y = moveFromMessage.Message_rect.y;
+    Message_rect.w = moveFromMessage.Message_rect.w;
+    Message_rect.h = moveFromMessage.Message_rect.h;
+
+    moveFromMessage.font = NULL;
+    moveFromMessage.surfaceMessage = NULL;
+    moveFromMessage.Message = NULL;
+    
+    moveFromMessage.Message_rect.x = 0;
+    moveFromMessage.Message_rect.y = 0;
+    moveFromMessage.Message_rect.w = 0;
+    moveFromMessage.Message_rect.h = 0;
+}
+
+Messages& Messages::operator=(Messages&& moveFromMessage)
+{
+    font = moveFromMessage.font;
+    surfaceMessage = moveFromMessage.surfaceMessage;
+    Message = moveFromMessage.Message;
+
+    Message_rect.x = moveFromMessage.Message_rect.x;
+    Message_rect.y = moveFromMessage.Message_rect.y;
+    Message_rect.w = moveFromMessage.Message_rect.w;
+    Message_rect.h = moveFromMessage.Message_rect.h;
+
+    moveFromMessage.font = NULL;
+    moveFromMessage.surfaceMessage = NULL;
+    moveFromMessage.Message = NULL;
+
+    moveFromMessage.Message_rect.x = 0;
+    moveFromMessage.Message_rect.y = 0;
+    moveFromMessage.Message_rect.w = 0;
+    moveFromMessage.Message_rect.h = 0;
+
+    return *this;
+}
+
 Messages::~Messages()
 {
 /*
@@ -526,6 +607,20 @@ audio::audio(std::string path)
         std::cerr << "Mix_LoadMUS failed: " << Mix_GetError() << std::endl;
         throw std::runtime_error("Mix_LoadMUS failed");
     }
+}
+
+audio::audio(audio&& moveFromAudio)
+ : currentMusic{moveFromAudio.currentMusic}
+{
+    moveFromAudio.currentMusic = NULL;
+}
+
+audio& audio::operator=(audio&& moveFromAudio)
+{
+    currentMusic = moveFromAudio.currentMusic;
+    moveFromAudio.currentMusic = NULL;
+
+    return *this;
 }
 
 inline audio& audio::play(int loops)
