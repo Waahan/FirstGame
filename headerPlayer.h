@@ -122,11 +122,16 @@ class user : public thing
 
     protected:
     char direction;
-    bool playerUp = 0;
-    bool playerDown = 0;
-    bool playerLeft = 0;
-    bool playerRight = 0;
-    bool playerFired = 0;
+    bool playerUp = false;
+    bool playerDown = false;
+    bool playerLeft = false;
+    bool playerRight = false;
+    bool playerFired = false;
+
+    bool useController = false;
+    SDL_Joystick* joystickOne;
+    SDL_Joystick* joystickTwo;
+
     char back;
     
     SDL_Texture* healthDisplayCurrent;
