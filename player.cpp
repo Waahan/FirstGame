@@ -441,6 +441,17 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
         direction = idirection;
 
         playerHealth = new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") };
+
+        if(SDL_NumJoysticks > 0)
+        {
+            useController = true;
+
+            // 0 is left 1 is right 
+            joystickOne = SDL_JoystickOpen(0);
+            joystickTwo = SDL_JoystickOpen(1);
+
+            SDL_JoystickEventState(SDL_ENABLE);
+        }
     }
     catch(...)
     {
@@ -481,6 +492,15 @@ user::~user()
         delete currentBullet;
         currentBullet = nullptr;
         bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
+    }
+
+    if(useController)
+    {
+        SDL_JoystickClose(joystickOne);
+        joystickOne = NULL;
+        
+        SDL_JoystickClose(joystickTwo);
+        joystickTwo = NULL;
     }
 }
 
@@ -553,6 +573,34 @@ user& user::input()
 	    case SDL_KEYUP:
 		doKeyDown(&event.key, false);
 		break;
+
+            case SDL_JOYAXISMOTION:
+                // 0 left 1 right 
+                if(event.jaxis.which == 1)
+                {
+                    // axis can be 0 for left and right 1 for up and down 
+                    if(event.jaxis.value < -8000 && event.jaxis.axis == 0)
+                    {
+                        //left motion
+                        x -= speed;
+                    }
+                    else if(event.jaxis.value > 8000 && event.jaxis.axis == 0)
+                    {
+                        //right motion
+                        x += speed;
+                    }
+                    else if(event.jaxis.value < -8000 && event.jaxis.axis == 1)
+                    {
+                        //up motion
+                        y -= speed;
+                    }
+                    else if(event.jaxis.value > 8000 && event.jaxis.axis == 1)
+                    {
+                        //down motion
+                        y += speed;
+                    }
+                }
+                break;
 
 	    default:
 		break;
