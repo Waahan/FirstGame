@@ -390,19 +390,19 @@ Image& Image::operator=(Image&& moveFromImage)
 
 
 
-Messages::Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
+Messages::Messages(std::string message, int x, int y, int w, int h, App* app, Messages::color newColor)
 {
 /*
  * Messages::Messages open a font for font pointer and make a surface and texture for renderering to the screen
  * 
  * pre and postconditions:
  *
- * Precondition message is not NULL
- * Precondtition w and h are not less than or equal to 0
+ * w and h are not less than or equal to zero
+ * app is not NULL
 */
-    if(message == NULL || message == nullptr)
+    if(app == NULL || app == nullptr)
     {
-        throw std::invalid_argument("message can not be NULL");
+        throw std::invalid_argument("app can not be NULL");
     }
     else if(w <= 0 || h <= 0)
     {
@@ -419,17 +419,21 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
         //this opens a font style and sets a size
         font = TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24);
 
-        if(font == NULL || font == nullptr)
+        if(font == NULL)
         {
             std::cerr << "TTF_OpenFont failed: " << TTF_GetError() << std::endl;
 	    errorMessage = errorMessage+"TTF_OpenFont failed";
             openFontFailed = true;
         }
     
-        // SDL_Surface then you have to create the surface first
-        surfaceMessage = TTF_RenderText_Solid(font, message, color);
+        SDL_Color messageColor;
 
-        if(surfaceMessage == NULL || surfaceMessage == nullptr)
+        colorToSDLColor(messageColor, newColor);
+        
+        // You have to create the surface first
+        surfaceMessage = TTF_RenderText_Solid(font, message.c_str(), messageColor);
+
+        if(surfaceMessage == NULL)
         {
             std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
             errorMessage = errorMessage+"TTF_RenderText_Solid failed";
@@ -437,15 +441,18 @@ Messages::Messages(const char* message, int x, int y, int w, int h, const App& a
         }
     
         // now you can convert it into a texture
-        Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+        Message = SDL_CreateTextureFromSurface(app->renderer, surfaceMessage);
 
-        if(Message == NULL || Message == nullptr)
+        if(Message == NULL)
         {
             std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
             errorMessage = errorMessage+"SDL_CreateTextureFromSurface failed";
             textureMessageFailed = true;
         }
 
+        currentMessage = std::move(message);
+        currentColor = newColor;
+        appPointer = app;      
         Message_rect.x = x;  //controls the rect's x coordinate
         Message_rect.y = y; // controls the rect's y coordinte
         Message_rect.w = w; // controls the width of the rect
@@ -541,28 +548,38 @@ Messages::~Messages()
     font = nullptr;
 }
 
-Messages& Messages::newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color)
+Messages& Messages::newMessage(std::string message, int x, int y, int w, int h, Messages::color newColor)
 {
 /*
  * Messages::newMessage creates a new message from x y w h and message 
  * 
  * pre and postconditions:
  *
- * Precondition message is not NULL
- * Precondition w and h must not be less than or equal to 0
+ * Precondition w and h can not be less than zero
+ * Precondition set message to current message if it is invalidMessage
 */
-    if(message == nullptr || message == NULL)
+    if(message == "invalidMessage")
     {
-        throw std::invalid_argument("message can not be NULL");
+        message = currentMessage;
     }
-    else if(w <= 0 || h <= 0)
+    
+    if(newColor == color::none)
     {
-        throw std::invalid_argument("new message h and w can not be less than or equal to zero");
+        newColor = currentColor;
+    }
+
+    if(w < 0 || h < 0)
+    {
+        throw std::invalid_argument("new message h and w can not be less than zero");
     }
 
     SDL_FreeSurface(surfaceMessage);
 
-    surfaceMessage = TTF_RenderText_Solid(font, message, color);
+    SDL_Color messageColor;
+
+    colorToSDLColor(messageColor, newColor);
+
+    surfaceMessage = TTF_RenderText_Solid(font, message.c_str(), messageColor);
 
     if(surfaceMessage == NULL || surfaceMessage == nullptr)
     {
@@ -572,27 +589,157 @@ Messages& Messages::newMessage(const char* message, int x, int y, int w, int h, 
     
     SDL_DestroyTexture(Message);
 
-    Message = SDL_CreateTextureFromSurface(app.renderer, surfaceMessage);
+    Message = SDL_CreateTextureFromSurface(appPointer->renderer, surfaceMessage);
 
     if(Message == NULL || Message == nullptr)
     {
         std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
     }
 
-    Message_rect.x = x;
-    Message_rect.y = y;
-    Message_rect.w = w;
-    Message_rect.h = h;
+    if(currentMessage != message)
+    {
+        currentMessage = std::move(message);
+    }
+
+    if(x != 2345)
+    {
+        Message_rect.x = x;
+    }
+    
+    if(y != 2345)
+    {
+        Message_rect.y = y;
+    }
+    
+    if(w != 0)
+    {
+        Message_rect.w = w;
+    }
+    
+    if(h != 0)
+    {
+        Message_rect.h = h;
+    }
 
     return *this;
 }
 
-Messages& Messages::drawMessage(const App& app)
+Messages& Messages::drawMessage()
 {
 /*
  * Message::drawMessage draws message to screen
 */
-    SDL_RenderCopy(app.renderer, Message, NULL, &Message_rect);
+    SDL_RenderCopy(appPointer->renderer, Message, NULL, &Message_rect);
+
+    return *this;
+}
+
+Messages& Messages::colorToSDLColor(SDL_Color& messageColor, Messages::color newColor)
+{
+    switch (newColor)
+    {
+        case color::red:
+            messageColor = Red;
+            break;
+
+        case color::orange:
+            messageColor = Orange;
+            break;
+
+        case color::yellow:
+            messageColor = Yellow;
+            break;
+
+        case color::green:
+            messageColor = Green;
+            break;
+
+        case color::blue:
+            messageColor = Blue;
+            break;
+
+        case color::indigo:
+            messageColor = Indigo;
+            break;
+
+        case color::violet:
+            messageColor = Violet;
+            break;
+
+        default:
+            messageColor = White;
+            break;
+    }
+
+    return *this;
+}
+
+Messages& Messages::nextColor()
+{
+    switch(currentColor)
+    {
+        case color::red:
+            currentColor = color::orange;
+            break;
+
+        case color::orange:
+            currentColor = color::yellow;
+            break;
+
+        case color::yellow:
+            currentColor = color::green;
+            break;
+
+        case color::green:
+            currentColor = color::blue;
+            break;
+
+        case color::blue:
+            currentColor = color::indigo;
+            break;
+
+        case color::indigo:
+            currentColor = color::violet;
+            break;
+
+        case color::violet:
+            currentColor = color::red;
+            break;
+
+        default:
+            currentColor = color::red;
+            break;
+    }
+
+    return *this;
+}
+
+Messages& Messages::rainbowColorSwitch()
+{
+    nextColor();
+
+    SDL_FreeSurface(surfaceMessage);
+
+    SDL_Color messageColor;
+
+    colorToSDLColor(messageColor, currentColor);
+
+    surfaceMessage = TTF_RenderText_Solid(font, currentMessage.c_str(), messageColor);
+
+    if(surfaceMessage == NULL || surfaceMessage == nullptr)
+    {
+        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
+        throw std::runtime_error("TTF_RenderText_Solid failed");
+    }
+
+    SDL_DestroyTexture(Message);
+
+    Message = SDL_CreateTextureFromSurface(appPointer->renderer, surfaceMessage);
+
+    if(Message == NULL || Message == nullptr)
+    {
+        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
+    }
 
     return *this;
 }

@@ -83,7 +83,9 @@ class Image
 class Messages
 {
     public:
-    explicit Messages(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
+    enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet, none};
+    
+    explicit Messages(std::string message, int x, int y, int w, int h, App* app, Messages::color newColor = Messages::color::none);
     
     Messages(const Messages& copyFromMessage) = delete;
     Messages& operator=(const Messages& copyFromMessage) = delete;
@@ -93,9 +95,12 @@ class Messages
     
     ~Messages();
 
-    Messages& newMessage(const char* message, int x, int y, int w, int h, const App& app, const SDL_Color& color = {255, 255, 255} );
+    Messages& newMessage(std::string message = "invalidMessage", int x = 2345, int y = 2345, int w = 0, int h = 0, Messages::color newColor = Messages::color::none);
     
-    Messages& drawMessage(const App& app);
+    Messages& drawMessage();
+
+    Messages& colorToSDLColor(SDL_Color& messageColor, Messages::color newColor);
+    Messages& rainbowColorSwitch();
 
     const SDL_Color White = {255, 255, 255};
     const SDL_Color Red = {255, 0, 0};
@@ -108,11 +113,15 @@ class Messages
 
     private:
     TTF_Font* font = NULL;
-    
     SDL_Surface* surfaceMessage = NULL;
     SDL_Texture* Message = NULL;
 
+    std::string currentMessage;
     SDL_Rect Message_rect;
+    color currentColor;
+    App* appPointer = nullptr;
+    
+    Messages& nextColor();
 };
 
 class audio
