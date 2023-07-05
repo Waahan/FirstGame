@@ -14,12 +14,11 @@ find_library(
     
     NAMES libsdl2-image-2.0-0 libSDL2_image-2.0.so.0 libSDL2_image-2.0.so.0.2.3
 
-    PATHS /usr/lib
+    PATHS 
+    /usr/lib
     /usr/lib64
     /usr/local/lib
     /usr/local/lib64
-
-    PATH_SUFFIXES release
 )
 
 find_library(
@@ -27,12 +26,11 @@ find_library(
 
     NAMES libsdl2-ttf-2.0-0 libSDL2_ttf-2.0.so.0 libSDL2_ttf-2.0.so.0.14.1
 
-    PATHS /usr/lib
+    PATHS 
+    /usr/lib
     /usr/lib64
     /usr/local/lib
     /usr/local/lib64
-
-    PATH_SUFFIXES release
 )
 
 find_library(
@@ -40,12 +38,11 @@ find_library(
 
     NAMES libsdl2-mixer-2.0-0 libSDL2_mixer-2.0.so.0 libSDL2_mixer-2.0.so.0.2.2
 
-    PATHS /usr/lib
+    PATHS 
+    /usr/lib
     /usr/lib64
     /usr/local/lib
     /usr/local/lib64
-
-    PATH_SUFFIXES release
 )
 
 add_executable(main main.cpp player.cpp visuals.cpp)

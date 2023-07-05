@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "headerVisuals.h"
 #include "headerPlayer.h"
@@ -17,9 +18,6 @@ int main(int argc, char* args[])
     int levelOne = 0;
     int startTimer = 0;
     bool start = false;
-
-    enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet };
-    color myColor;
 
     App app(1280, 720);
 
@@ -31,57 +29,24 @@ int main(int argc, char* args[])
 
     thing background(0, 0, app.SCREEN_WIDTH, app.SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
 
-    Messages Score("Score", 0, 0, 100, 100, app, Score.Green);
-    Messages Title("Sus invaders", 0, 0, 500, 500, app, Score.White);
-    Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, app, Score.White);
-    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, app, Score.Red);
+    Messages Score("Score", 0, 0, 100, 100, &app, Messages::color::green);
+    Messages Title("Sus invaders", 0, 0, 500, 500, &app);
+    Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, &app);
+    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, &app, Messages::color::red);
 
     while(!start)
     {
         app.makeVisuals();
 
-	Start.drawMessage(app);
-	Controls.drawMessage(app);
-	Title.drawMessage(app);
+	Start.drawMessage();
+	Controls.drawMessage();
+	Title.drawMessage();
 	
 	if(startTimer > 100)
 	{
 	    startTimer = 0;
 
-	    switch(myColor)
-	    {
-		case color::red:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Red);
-		    myColor = color::orange;
-		    break;
-		case color::orange:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Orange);
-		    myColor = color::yellow;
-		    break;
-		case color::yellow:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Yellow);
-		    myColor = color::green;
-		    break;
-		case color::green:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Green);
-		    myColor = color::blue;
-		    break;
-		case color::blue:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Blue);
-		    myColor = color::indigo;
-		    break;
-		case color::indigo:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Indigo);
-		    myColor = color::violet;
-		    break;
-		case color::violet:
-		    Title.newMessage("Sus invaders", 0, 0, 500, 500, app, Title.Violet);
-		    myColor = color::red;
-                    break;
-                default:
-                    myColor = color::red;
-	    }
-            
+            Title.rainbowColorSwitch();
 	}
 
 	startTimer++;
@@ -97,7 +62,7 @@ int main(int argc, char* args[])
 
 	background.show();
 
-	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 0, 0, 100, 100, app, Score.Green);
+	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
 
 	player.input();
 
@@ -109,7 +74,7 @@ int main(int argc, char* args[])
         enemy.spawnEnemys();
 
 	enemy.scaleDifficulty(player.playerScore);
-	Score.drawMessage(app);
+	Score.drawMessage();
 
 	enemy.didEnemyKill(player);
 	
