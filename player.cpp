@@ -442,13 +442,28 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 
         playerHealth = new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") };
 
-        if(SDL_NumJoysticks > 0)
+        std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
+        if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
         {
             useController = true;
 
             // 0 is left 1 is right 
-            joystickOne = SDL_JoystickOpen(0);
-            joystickTwo = SDL_JoystickOpen(1);
+            gameController = SDL_GameControllerOpen(0);
+
+            joystickOne = SDL_GameControllerGetJoystick(gameController);
+            joystickTwo = SDL_GameControllerGetJoystick(gameController);
+
+            if(joystickOne == NULL || joystickTwo == NULL)
+            {
+                std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
+            }
+            
+            if(gameController == NULL)
+            {
+                std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
+            }
+    
+            std::cout << "Found game controller: " << SDL_GameControllerName(gameController) << std::endl;
 
             SDL_JoystickEventState(SDL_ENABLE);
         }
@@ -501,6 +516,9 @@ user::~user()
         
         SDL_JoystickClose(joystickTwo);
         joystickTwo = NULL;
+
+        SDL_GameControllerClose(gameController);        
+        gameController = NULL;
     }
 }
 
@@ -575,31 +593,143 @@ user& user::input()
 		break;
 
             case SDL_JOYAXISMOTION:
-                // 0 left 1 right 
-                if(event.jaxis.which == 1)
+                // 0 left 1 right
+                if(event.jaxis.which == 0)
                 {
                     // axis can be 0 for left and right 1 for up and down 
-                    if(event.jaxis.value < -8000 && event.jaxis.axis == 0)
+                    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
                     {
                         //left motion
                         x -= speed;
                     }
-                    else if(event.jaxis.value > 8000 && event.jaxis.axis == 0)
+                    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
                     {
                         //right motion
                         x += speed;
                     }
-                    else if(event.jaxis.value < -8000 && event.jaxis.axis == 1)
+                    else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
                     {
                         //up motion
                         y -= speed;
                     }
-                    else if(event.jaxis.value > 8000 && event.jaxis.axis == 1)
+                    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
                     {
                         //down motion
                         y += speed;
                     }
                 }
+
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+                    std::cout << "Trigger left" << std::endl;
+
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                    std::cout << "Trigger right" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_INVALID)
+                    std::cout << "axis invalid" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+                    std::cout << "axis leftx" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+                    std::cout << "axis lefty" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTX)
+                    std::cout << "axis rightx" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
+                    std::cout << "axis righty" << std::endl;
+                
+                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_MAX)
+                    std::cout << "Axis max" << std::endl;
+
+                break;
+
+            case SDL_CONTROLLERBUTTONDOWN:
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+                {
+                    playerFired = true;
+                }
+                
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+                    std::cout << "LEFTSHOULDER" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE1)
+                    std::cout << "PADDLE1" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE2)
+                    std::cout << "PADDLE2" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE3)
+                    std::cout << "PADDLE3" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE4)
+                    std::cout << "PADDLE4" << std::endl;
+                
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_A)
+                    std::cout << "BUTTONA" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B)
+                    std::cout << "BUTTONB" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_X)
+                    std::cout << "BUTTONX" << std::endl;
+                
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_Y)
+                    std::cout << "BUTTONY" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+                    std::cout << "BUTTON BACK" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_GUIDE)
+                    std::cout << "BUTTON GUIDE" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_START)
+                    std::cout << "BUTTON START" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MISC1)
+                    std::cout << "BUTTON MISC1" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_INVALID)
+                    std::cout << "button invalid" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSTICK)
+                    std::cout << "button left stick" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSTICK)
+                    std::cout << "button right stick" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+                    std::cout << "button dpad up" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                    std::cout << "button dpad down" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+                    std::cout << "button dpad left" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+                    std::cout << "button dpad right" << std::endl;
+                
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_TOUCHPAD)
+                    std::cout << "button touchpad" << std::endl;
+
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MAX)
+                    std::cout << "button max" << std::endl;
+
+                break;
+
+            case SDL_CONTROLLERBUTTONUP:
+                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+                {
+                    playerFired = false;
+                }
+                break;
+            
+            case SDL_MOUSEBUTTONDOWN:
+                break;
+            
+            case SDL_TEXTEDITING:
                 break;
 
 	    default:

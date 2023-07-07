@@ -132,6 +132,7 @@ class user : public thing
     bool useController = false;
     SDL_Joystick* joystickOne;
     SDL_Joystick* joystickTwo;
+    SDL_GameController* gameController = NULL;
 
     char back;
     
