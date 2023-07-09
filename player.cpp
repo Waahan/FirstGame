@@ -464,6 +464,10 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
             }
     
             std::cout << "Found game controller: " << SDL_GameControllerName(gameController) << std::endl;
+            std::cout << "joystick axes num: " << SDL_JoystickNumAxes(joystickOne) << std::endl;
+            std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne) << std::endl;
+            std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne) << std::endl;
+            std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne) << std::endl;
 
             SDL_JoystickEventState(SDL_ENABLE);
         }
@@ -593,58 +597,115 @@ user& user::input()
 		break;
 
             case SDL_JOYAXISMOTION:
-                // 0 left 1 right
-                if(event.jaxis.which == 0)
+                
+                playerUp = false;
+                playerDown = false;
+                playerLeft = false;
+                playerRight = false;
+
+                if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
                 {
-                    // axis can be 0 for left and right 1 for up and down 
-                    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                    {
-                        //left motion
-                        x -= speed;
-                    }
-                    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                    {
-                        //right motion
-                        x += speed;
-                    }
-                    else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                    {
-                        //up motion
-                        y -= speed;
-                    }
-                    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                    {
-                        //down motion
-                        y += speed;
-                    }
+                    //left motion
+                    playerLeft = true;
+                    joystickDirection = directions::left;
+                }
+                else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::left)
+                {
+                    playerLeft = true;
+                }
+                else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+                {
+                    //right motion
+                    playerRight = true;
+                    joystickDirection = directions::right;
+                }
+                else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::right)
+                {
+                    playerRight = true;
+                }
+                else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+                {
+                    //up motion
+                    playerUp = true;
+                    joystickDirection = directions::up;
+                }
+                else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::up)
+                {
+                    playerUp = true;
+                }
+                else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+                {
+                    //down motion
+                    playerDown = true;
+                    joystickDirection = directions::up;
+                }
+                else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::down)
+                { 
+                   playerDown = true;
+                }
+                else
+                {
+                    joystickDirection = directions::none;
                 }
 
+                if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                    playerFired = true;
+                else
+                    playerFired = false;
+
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    std::cout << "Trigger left" << std::endl;
+                    std::cout << "Trigger left. value: " << event.jaxis.value << std::endl;
 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    std::cout << "Trigger right" << std::endl;
+                    std::cout << "Trigger right. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_INVALID)
-                    std::cout << "axis invalid" << std::endl;
+                    std::cout << "axis invalid. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                    std::cout << "axis leftx" << std::endl;
+                    std::cout << "axis leftx. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                    std::cout << "axis lefty" << std::endl;
+                    std::cout << "axis lefty. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTX)
-                    std::cout << "axis rightx" << std::endl;
+                    std::cout << "axis rightx. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
-                    std::cout << "axis righty" << std::endl;
+                    std::cout << "axis righty. value: " << event.jaxis.value << std::endl;
                 
                 if(event.jaxis.axis == SDL_CONTROLLER_AXIS_MAX)
-                    std::cout << "Axis max" << std::endl;
+                    std::cout << "Axis max. value: " << event.jaxis.value << std::endl;
 
                 break;
 
+            case SDL_JOYBALLMOTION:
+                playerUp = false;
+                playerDown = false;
+                playerLeft = false;
+                playerRight = false;
+
+                if(event.jhat.value == SDL_HAT_UP)
+                {
+                    playerUp = true;
+                }
+                
+                if(event.jhat.value == SDL_HAT_DOWN)
+                {
+                    playerDown = true;
+                }
+    
+                if(event.jhat.value == SDL_HAT_LEFT)
+                {
+                    playerLeft = true;
+                }
+
+                if(event.jhat.value == SDL_HAT_RIGHT)
+                {
+                    playerRight = true;
+                }
+
+                break;
             case SDL_CONTROLLERBUTTONDOWN:
                 if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
                 {

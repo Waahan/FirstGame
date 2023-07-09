@@ -122,6 +122,8 @@ class user : public thing
     counter playerScore;
 
     protected:
+    enum class directions: unsigned char { up, down, left, right, none};
+
     char direction;
     bool playerUp = false;
     bool playerDown = false;
@@ -133,6 +135,7 @@ class user : public thing
     SDL_Joystick* joystickOne;
     SDL_Joystick* joystickTwo;
     SDL_GameController* gameController = NULL;
+    directions joystickDirection;
 
     char back;
     
