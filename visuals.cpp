@@ -13,6 +13,69 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
+template<typename T, void (*destroyFunc)(T*)>
+SDL_Pointer<T, destroyFunc>::SDL_Pointer(SDL_Pointer&& moveFrom) noexcept
+ : pointer(moveFrom.pointer)
+{
+    moveFrom.pointer = NULL;
+}
+
+template<typename T, void (*destroyFunc)(T*)>
+SDL_Pointer<T, destroyFunc>& SDL_Pointer<T, destroyFunc>::operator=(SDL_Pointer&& moveFrom) noexcept
+{
+    if(this != &moveFrom)
+    {
+        destroyFunc(pointer);
+        pointer = moveFrom.pointer;
+        moveFrom.pointer = NULL;
+    }
+    
+    return *this;
+}
+
+template<typename T, void (*destroyFunc)(T*)>
+inline T* SDL_Pointer<T, destroyFunc>::release() noexcept
+{
+    T* newPointer = pointer;
+    pointer = NULL;
+    return newPointer;
+}
+
+template<typename T, void (*destroyFunc)(T*)>
+inline void SDL_Pointer<T, destroyFunc>::reset(T* newPointer) noexcept
+{
+    T* oldPointer = pointer;
+    pointer = newPointer;
+    
+    if(oldPointer)
+    {
+        destroyFunc(oldPointer);
+    }
+}
+
+template<typename T, void (*destroyFunc)(T*)>
+inline void SDL_Pointer<T, destroyFunc>::swap(SDL_Pointer& other) noexcept
+{
+    T* oldPointer = pointer;
+    pointer = other.pointer;
+    other.pointer = oldPointer;
+}
+
+template<typename T, void (*destroyFunc)(T*)>
+inline SDL_Pointer<T, destroyFunc>::operator bool() const noexcept
+{
+    if(pointer != NULL || pointer != nullptr)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+
 App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT)
 {
 /*
