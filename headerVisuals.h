@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 #include <future>
+#include <ostream>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -16,6 +17,37 @@ class App;
 class Image;
 class Messages;
 class Audio;
+
+template<typename T, void (*destroyFunc)(T*)>
+class SDL_Pointer
+{
+    public:
+    explicit SDL_Pointer(T* ipointer = NULL) noexcept : pointer(ipointer) {}
+
+    SDL_Pointer(const SDL_Pointer& copyFrom) = delete;
+    SDL_Pointer& operator=(const SDL_Pointer& copyFrom) = delete;
+
+    SDL_Pointer(SDL_Pointer&& moveFrom) noexcept;
+    SDL_Pointer& operator=(SDL_Pointer&& moveFrom) noexcept;
+    
+    ~SDL_Pointer() { if(pointer) destroyFunc(pointer); }
+
+    inline T* release() noexcept;
+    inline void reset(T* newPointer) noexcept;
+    inline void swap(SDL_Pointer& other) noexcept;
+
+    T* get() const noexcept { return pointer; }
+    inline explicit operator bool() const noexcept;
+
+    T& operator*() noexcept { return *pointer; }
+    T* operator->() const noexcept { return pointer; }
+
+    template<typename templateOstream, typename otherOstream>
+    void operator<<(std::basic_ostream<templateOstream, otherOstream>& os) const noexcept { os << pointer; }
+    
+    private:
+    T* pointer;
+};
 
 class App
 {
