@@ -13,69 +13,6 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
-template<typename T, void (*destroyFunc)(T*)>
-SDL_Pointer<T, destroyFunc>::SDL_Pointer(SDL_Pointer&& moveFrom) noexcept
- : pointer(moveFrom.pointer)
-{
-    moveFrom.pointer = NULL;
-}
-
-template<typename T, void (*destroyFunc)(T*)>
-SDL_Pointer<T, destroyFunc>& SDL_Pointer<T, destroyFunc>::operator=(SDL_Pointer&& moveFrom) noexcept
-{
-    if(this != &moveFrom)
-    {
-        destroyFunc(pointer);
-        pointer = moveFrom.pointer;
-        moveFrom.pointer = NULL;
-    }
-    
-    return *this;
-}
-
-template<typename T, void (*destroyFunc)(T*)>
-inline T* SDL_Pointer<T, destroyFunc>::release() noexcept
-{
-    T* newPointer = pointer;
-    pointer = NULL;
-    return newPointer;
-}
-
-template<typename T, void (*destroyFunc)(T*)>
-inline void SDL_Pointer<T, destroyFunc>::reset(T* newPointer) noexcept
-{
-    T* oldPointer = pointer;
-    pointer = newPointer;
-    
-    if(oldPointer)
-    {
-        destroyFunc(oldPointer);
-    }
-}
-
-template<typename T, void (*destroyFunc)(T*)>
-inline void SDL_Pointer<T, destroyFunc>::swap(SDL_Pointer& other) noexcept
-{
-    T* oldPointer = pointer;
-    pointer = other.pointer;
-    other.pointer = oldPointer;
-}
-
-template<typename T, void (*destroyFunc)(T*)>
-inline SDL_Pointer<T, destroyFunc>::operator bool() const noexcept
-{
-    if(pointer != NULL || pointer != nullptr)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-
 App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT) : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT)
 {
 /*
@@ -252,13 +189,20 @@ App::App(App&& moveFromApp)
 
 App& App::operator=(App&& moveFromApp)
 {
-    window = moveFromApp.window;
-    renderer = moveFromApp.renderer;
-    windowIcon = moveFromApp.windowIcon;
+    if(this != &moveFromApp)
+    {
+        SDL_DestroyWindow(window);
+        SDL_DestroyRenderer(renderer);
+        SDL_FreeSurface(windowIcon);
 
-    moveFromApp.window = nullptr;
-    moveFromApp.renderer = nullptr;
-    moveFromApp.windowIcon = nullptr;
+        window = moveFromApp.window;
+        renderer = moveFromApp.renderer;
+        windowIcon = moveFromApp.windowIcon;
+
+        moveFromApp.window = nullptr;
+        moveFromApp.renderer = nullptr;
+        moveFromApp.windowIcon = nullptr;
+    }
 
     return *this;
 }
@@ -441,12 +385,17 @@ Image::Image(Image&& moveFromImage)
 
 Image& Image::operator=(Image&& moveFromImage)
 {
-    imageTexture = moveFromImage.imageTexture;
-    images = std::move(moveFromImage.images);
-    currentImageNum = moveFromImage.currentImageNum;
+    if(this != &moveFromImage)
+    {
+        SDL_DestroyTexture(imageTexture);
 
-    moveFromImage.imageTexture = nullptr;
-    moveFromImage.currentImageNum = 0;
+        imageTexture = moveFromImage.imageTexture;
+        images = std::move(moveFromImage.images);
+        currentImageNum = moveFromImage.currentImageNum;
+
+        moveFromImage.imageTexture = nullptr;
+        moveFromImage.currentImageNum = 0;
+    }
 
     return *this;
 }
@@ -570,23 +519,30 @@ Messages::Messages(Messages&& moveFromMessage)
 
 Messages& Messages::operator=(Messages&& moveFromMessage)
 {
-    font = moveFromMessage.font;
-    surfaceMessage = moveFromMessage.surfaceMessage;
-    Message = moveFromMessage.Message;
+    if(this != &moveFromMessage)
+    {
+        TTF_CloseFont(font);
+        SDL_FreeSurface(surfaceMessage);
+        SDL_DestroyTexture(Message);
 
-    Message_rect.x = moveFromMessage.Message_rect.x;
-    Message_rect.y = moveFromMessage.Message_rect.y;
-    Message_rect.w = moveFromMessage.Message_rect.w;
-    Message_rect.h = moveFromMessage.Message_rect.h;
+        font = moveFromMessage.font;
+        surfaceMessage = moveFromMessage.surfaceMessage;
+        Message = moveFromMessage.Message;
 
-    moveFromMessage.font = NULL;
-    moveFromMessage.surfaceMessage = NULL;
-    moveFromMessage.Message = NULL;
+        Message_rect.x = moveFromMessage.Message_rect.x;
+        Message_rect.y = moveFromMessage.Message_rect.y;
+        Message_rect.w = moveFromMessage.Message_rect.w;
+        Message_rect.h = moveFromMessage.Message_rect.h;
 
-    moveFromMessage.Message_rect.x = 0;
-    moveFromMessage.Message_rect.y = 0;
-    moveFromMessage.Message_rect.w = 0;
-    moveFromMessage.Message_rect.h = 0;
+        moveFromMessage.font = NULL;
+        moveFromMessage.surfaceMessage = NULL;
+        moveFromMessage.Message = NULL;
+
+        moveFromMessage.Message_rect.x = 0;
+        moveFromMessage.Message_rect.y = 0;
+        moveFromMessage.Message_rect.w = 0;
+        moveFromMessage.Message_rect.h = 0;
+    }
 
     return *this;
 }
@@ -827,8 +783,11 @@ audio::audio(audio&& moveFromAudio)
 
 audio& audio::operator=(audio&& moveFromAudio)
 {
-    currentMusic = moveFromAudio.currentMusic;
-    moveFromAudio.currentMusic = NULL;
+    if(this != &moveFromAudio)
+    {
+        currentMusic = moveFromAudio.currentMusic;
+        moveFromAudio.currentMusic = NULL;
+    }
 
     return *this;
 }

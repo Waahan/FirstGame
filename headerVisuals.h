@@ -7,6 +7,7 @@
 #include <climits>
 #include <future>
 #include <ostream>
+#include <memory>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -19,35 +20,13 @@ class Messages;
 class Audio;
 
 template<typename T, void (*destroyFunc)(T*)>
-class SDL_Pointer
+struct SDL_Delete
 {
-    public:
-    explicit SDL_Pointer(T* ipointer = NULL) noexcept : pointer(ipointer) {}
-
-    SDL_Pointer(const SDL_Pointer& copyFrom) = delete;
-    SDL_Pointer& operator=(const SDL_Pointer& copyFrom) = delete;
-
-    SDL_Pointer(SDL_Pointer&& moveFrom) noexcept;
-    SDL_Pointer& operator=(SDL_Pointer&& moveFrom) noexcept;
-    
-    ~SDL_Pointer() { if(pointer) destroyFunc(pointer); }
-
-    inline T* release() noexcept;
-    inline void reset(T* newPointer) noexcept;
-    inline void swap(SDL_Pointer& other) noexcept;
-
-    T* get() const noexcept { return pointer; }
-    inline explicit operator bool() const noexcept;
-
-    T& operator*() noexcept { return *pointer; }
-    T* operator->() const noexcept { return pointer; }
-
-    template<typename templateOstream, typename otherOstream>
-    void operator<<(std::basic_ostream<templateOstream, otherOstream>& os) const noexcept { os << pointer; }
-    
-    private:
-    T* pointer;
+    void operator()(T* SDL_pointer){ destroyFunc(SDL_pointer); }
 };
+
+template<typename T, void (*destroyFunc)(T*)>
+using SDL_Pointer = std::unique_ptr<T, SDL_Delete<T, destroyFunc>>;
 
 class App
 {

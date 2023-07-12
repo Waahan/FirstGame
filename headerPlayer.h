@@ -27,7 +27,7 @@ class thing
 {
     public:
     thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    thing(){};
+    constexpr thing() : x(0), y(0), w(0), h(0), health(0), speed(0), texture(nullptr), appPointer(NULL) {}
 
     thing(const thing& copyFromThing);
     thing& operator=(const thing& copyFromThing);
@@ -101,8 +101,13 @@ class user : public thing
 {
     public:
     explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
-    user(const user& copyFromUser);
-    user(user&& moveFromUser);
+
+    user(const user& copyFromUser) = delete;
+    user& operator=(const user& copyFromUser) = delete;
+
+    user(user&& moveFromUser) = delete;
+    user& operator=(user&& moveFromUser) = delete;
+
     ~user();
 
     user& doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
@@ -149,8 +154,13 @@ class enemys : public thing
 {
     public:
     explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    enemys(const enemys& copyFromEnemy);
-    enemys(enemys&& moveFromEnemy);
+
+    enemys(const enemys& copyFromEnemy) = delete;
+    enemys& operator=(const enemys& copyFromEnemy) = delete;
+
+    enemys(enemys&& moveFromEnemy) = delete;
+    enemys& operator=(enemys&& moveFromEnemy) = delete;
+
     ~enemys(){ SDL_DestroyTexture(texture); }
 
     enemys& spawnEnemys();
@@ -168,8 +178,13 @@ class points : public thing
 {
     public:
     explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    points(const points& copyFromPoints);
-    points(points&& moveFromPoint);
+    
+    points(const points& copyFromPoint) = delete;
+    points& operator=(const points& copyFromPoint) = delete;
+    
+    points(points&& moveFromPoint) = delete;
+    points& operator=(points&& moveFromPoint) = delete;
+
     ~points(){ SDL_DestroyTexture(texture); }
 
     points& initPoints();
@@ -186,9 +201,15 @@ class bulletClass : public thing
 
     public:
     explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    bulletClass() : thing() {};
-    bulletClass(const bulletClass& copyFromBullet);
-    bulletClass(bulletClass&& moveFromBullet);
+
+    constexpr bulletClass() : thing() {};
+
+    bulletClass(const bulletClass& copyFromBullet) = delete;   
+    bulletClass& operator=(const bulletClass& copyFromBullet) = delete;
+
+    bulletClass(bulletClass&& moveFromBullet) = delete;
+    bulletClass& operator=(bulletClass&& moveFromBullet) = delete;
+
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
     bulletClass& logic(const user& player);
@@ -199,8 +220,13 @@ class healthDisplay
 {
     public:     
     explicit healthDisplay(SDL_Texture* ifullHealth = nullptr, SDL_Texture* ihalfHealth = nullptr, SDL_Texture* icritical = nullptr);
+
     healthDisplay(const healthDisplay& copyFromHealthDisplay) = delete;
-    healthDisplay(healthDisplay&& moveFromHealthDisplay);
+    healthDisplay& operator=(const healthDisplay& copyFromHealthDisplay) = delete;
+
+    healthDisplay(healthDisplay&& moveFromHealthDisplay) = delete;
+    healthDisplay& operator=(healthDisplay&& moveFromHealthDisplay) = delete;
+
     ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
      
     SDL_Texture* healthDisplayUpdate(const user& player);

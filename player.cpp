@@ -105,23 +105,28 @@ thing& thing::operator=(thing&& moveFromThing)
 /*
 * thing::operator= move same thing as thing move constructor
 */
-    x = moveFromThing.x;
-    y = moveFromThing.y;
-    w = moveFromThing.w;
-    h = moveFromThing.h;
-    health = moveFromThing.health;
-    speed = moveFromThing.speed;
-    texture = moveFromThing.texture;
-    appPointer = moveFromThing.appPointer;
+    if(this != &moveFromThing)
+    {
+        SDL_DestroyTexture(texture);
 
-    moveFromThing.x = 0;
-    moveFromThing.y = 0;
-    moveFromThing.w = 0;
-    moveFromThing.h = 0;
-    moveFromThing.health = 0;
-    moveFromThing.speed = 0;
-    moveFromThing.texture = nullptr;
-    moveFromThing.appPointer = nullptr;
+        x = moveFromThing.x;
+        y = moveFromThing.y;
+        w = moveFromThing.w;
+        h = moveFromThing.h;
+        health = moveFromThing.health;
+        speed = moveFromThing.speed;
+        texture = moveFromThing.texture;
+        appPointer = moveFromThing.appPointer;
+
+        moveFromThing.x = 0;
+        moveFromThing.y = 0;
+        moveFromThing.w = 0;
+        moveFromThing.h = 0;
+        moveFromThing.health = 0;
+        moveFromThing.speed = 0;
+        moveFromThing.texture = nullptr;
+        moveFromThing.appPointer = nullptr;
+    }
 
     return *this;
 }
@@ -477,23 +482,6 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
         SDL_DestroyTexture(itexture);
         throw;
     }
-}
-
-user::user(const user& copyFromUser)
-: thing(copyFromUser), direction{copyFromUser.direction}, back{copyFromUser.back}
-/*
-* user::user copy constructor uses the default thing copy constructor and then just add the extra varibles 
-*/
-{}
-
-user::user(user&& moveFromUser)
- : thing(moveFromUser), direction{moveFromUser.direction}, back{moveFromUser.back}
-/*
-* Same as the copy constructor description but for move
-*/
-{
-    moveFromUser.direction = 0;
-    moveFromUser.back = 0;
 }
 
 user::~user()
@@ -1002,14 +990,6 @@ enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Text
 */
 }
 
-enemys::enemys(const enemys& copyFromEnemy)
- : thing(copyFromEnemy)
-{}
-
-enemys::enemys(enemys&& moveFromEnemy)
- : thing(moveFromEnemy)
-{}
-
 enemys& enemys::spawnEnemys()
 {
 /*
@@ -1099,14 +1079,6 @@ points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Text
 * pre and postconditions are handled by thing constructor 
 */
 }
-
-points::points(const points& copyFromPoint)
- : thing(copyFromPoint) 
-{}
-
-points::points(points&& moveFromPoint)
- : thing(moveFromPoint)
-{}
 
 points& points::initPoints()
 {
@@ -1202,14 +1174,6 @@ bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed
 */
 };
 
-bulletClass::bulletClass(const bulletClass& copyFromBullet)
- : thing(copyFromBullet)
-{}
-
-bulletClass::bulletClass(bulletClass&& moveFromBullet)
- : thing(moveFromBullet)
-{}
-
 bulletClass& bulletClass::logic(const user& player)
 {
 /*
@@ -1276,14 +1240,6 @@ healthDisplay::healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth,
 /*
 * healthDisplay::healthDisplay construct a health display with 3 textures  
 */
-}
-
-healthDisplay::healthDisplay(healthDisplay&& moveFromHealthDisplay)
- : fullHealth{moveFromHealthDisplay.fullHealth}, halfHealth{moveFromHealthDisplay.halfHealth}, critical{moveFromHealthDisplay.critical}
-{
-    moveFromHealthDisplay.fullHealth = nullptr;
-    moveFromHealthDisplay.halfHealth = nullptr;
-    moveFromHealthDisplay.critical = nullptr;
 }
 
 SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
