@@ -68,6 +68,8 @@ thing& thing::operator=(const thing& copyFromThing)
 *
 * Postcondition warn about copying thing
 */
+    SDL_DestroyTexture(texture);
+
     x = copyFromThing.x;
     y = copyFromThing.y;
     w = copyFromThing.w;
@@ -327,7 +329,7 @@ inline thing& thing::setH(int setH)
     return *this;
 }
 
-inline thing& thing::setSpeed(int setSpeed)
+inline thing& thing::setSpeed(int setSpeed) noexcept
 {
 /*
 * thing::setSpeed set speed equal to setSpeed
@@ -445,7 +447,7 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
         back = iback;
         direction = idirection;
 
-        playerHealth = new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") };
+        playerHealth.reset(new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") });
 
         std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
         if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
@@ -491,8 +493,6 @@ user::~user()
 */
     SDL_DestroyTexture(texture);
     SDL_DestroyTexture(healthDisplayCurrent);
-
-    delete playerHealth;
 
     for(auto& currentBullet : bullets)
     {
@@ -1216,7 +1216,7 @@ bulletClass& bulletClass::logic(const user& player)
     return *this;
 }
 
-bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore)
+inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore)
 {
 /*
 * bulletClass::didBulletHit check if bullet colides with enemy and set enemy health to zero if true then update counter 
@@ -1271,7 +1271,7 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
 
 
 //Takes two objects dimetions
-int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+inline int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
 /*
 * collision use the two objects x y w h to detect collision 

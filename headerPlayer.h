@@ -54,7 +54,7 @@ class thing
     inline thing& setY(int setY);
     inline thing& setW(int setW);
     inline thing& setH(int setH);
-    inline thing& setSpeed(int setSpeed);
+    inline thing& setSpeed(int setSpeed) noexcept;
     inline thing& setHealth(int setHealth);
 
     inline thing& removeFromScreen();
@@ -88,7 +88,7 @@ class counter
     std::string stringCurrentCount();
     counter& operator++(int);
     
-    protected:
+    private:
     void updateStringCount(){ stringCount = std::to_string(currentCount); oldCount = currentCount; }
 
     unsigned long long currentCount = 0;
@@ -126,7 +126,7 @@ class user : public thing
 
     counter playerScore;
 
-    protected:
+    private:
     enum class directions: unsigned char { up, down, left, right, none};
 
     char direction;
@@ -145,7 +145,7 @@ class user : public thing
     char back;
     
     SDL_Texture* healthDisplayCurrent;
-    healthDisplay* playerHealth;
+    std::unique_ptr<healthDisplay> playerHealth;
 
     std::vector<bulletClass*> bullets;
 };
@@ -213,7 +213,7 @@ class bulletClass : public thing
     ~bulletClass(){ SDL_DestroyTexture(texture); }
 
     bulletClass& logic(const user& player);
-    bulletClass& didBulletHit(thing& enemy, counter& playerScore);
+    inline bulletClass& didBulletHit(thing& enemy, counter& playerScore);
 };
 
 class healthDisplay
@@ -236,4 +236,4 @@ class healthDisplay
     SDL_Texture* critical;
 };
 
-int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
+inline int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);

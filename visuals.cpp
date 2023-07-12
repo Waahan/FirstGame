@@ -233,23 +233,16 @@ App::~App()
     SDL_Quit();
 }
 
-SDL_Texture* App::loadImages(const char* imageFile)
+SDL_Texture* App::loadImages(std::string imageFile)
 {
 /*
  * App::loadImage return a SDL_Texture pointer
  * 
  * pre and postconditions:
  *
- * Precondition const char* imageFile is not NULL
- *
  * Postcondition return a valid SDL_Texture pointer
 */
-    if(imageFile == NULL || imageFile == nullptr)
-    {
-        throw std::invalid_argument("imageFile can not be NULL");
-    }
-
-    SDL_Texture* Image = Image = IMG_LoadTexture(renderer, imageFile);
+    SDL_Texture* Image = Image = IMG_LoadTexture(renderer, imageFile.c_str());
 
     if(Image == NULL)
     {
@@ -352,14 +345,12 @@ App& App::makeVisuals()
     return *this;
 }
 
-App& App::showVisuals()
+void App::showVisuals() const
 {
 /*
  * App::showVisuals present the renderer
 */
     SDL_RenderPresent(renderer);
-
-    return *this;
 }
 
 
@@ -396,6 +387,27 @@ Image& Image::operator=(Image&& moveFromImage)
         moveFromImage.imageTexture = nullptr;
         moveFromImage.currentImageNum = 0;
     }
+
+    return *this;
+}
+
+inline Image& Image::operator++(int)
+{
+    currentImageNum < images.size()-1 ? currentImageNum++ : currentImageNum = 0;
+
+    return *this;
+}
+
+inline Image& Image::operator+=(SDL_Rect&& addFrame)
+{
+    images.push_back(addFrame);
+    
+    return *this;
+}
+
+inline Image& Image::reset()
+{
+    currentImageNum = 0;
 
     return *this;
 }
@@ -689,7 +701,7 @@ Messages& Messages::colorToSDLColor(SDL_Color& messageColor, Messages::color new
             messageColor = White;
             break;
     }
-
+    
     return *this;
 }
 
@@ -785,6 +797,8 @@ audio& audio::operator=(audio&& moveFromAudio)
 {
     if(this != &moveFromAudio)
     {
+        Mix_FreeMusic(currentMusic);
+
         currentMusic = moveFromAudio.currentMusic;
         moveFromAudio.currentMusic = NULL;
     }
@@ -801,4 +815,9 @@ inline audio& audio::play(int loops)
     }
     
     return *this;
+}
+
+static inline void stopAllMusic() noexcept
+{
+    Mix_HaltMusic();
 }
