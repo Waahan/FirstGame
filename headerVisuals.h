@@ -43,14 +43,14 @@ class App
 
     ~App();
 
-    SDL_Texture *loadImages(const char* imageFile);
+    SDL_Texture *loadImages(std::string imageFile);
     
     App& imagePos(SDL_Texture* image, int x, int y, int w, int h);
     App& imagePos(SDL_Texture* image, int x, int y);
     App& imagePos(const Image& image, int x, int y, int w = 0, int h = 0);
 
     App& makeVisuals();
-    App& showVisuals();
+    void showVisuals() const;
 
     const int SCREEN_WIDTH;
     const int SCREEN_HEIGHT;
@@ -79,15 +79,17 @@ class Image
     SDL_Rect& getCurrentImageSrc() { return images[currentImageNum]; }
 
     SDL_Rect operator[](int index) const { return images[index]; }
-    Image& operator++(int){ if(currentImageNum < images.size()-1)currentImageNum++; else currentImageNum = 0; return *this; }
-    Image& operator+=(SDL_Rect&& addFrame) { images.push_back(addFrame); return *this; }
+    inline Image& operator++(int);
+    inline Image& operator+=(SDL_Rect&& addFrame);
 
     bool done() const { return images.size()-1 == currentImageNum; }
-    Image& reset() { currentImageNum = 0; return *this; }
+    inline Image& reset();
 
     private:
     SDL_Texture* imageTexture = nullptr;
+    
     std::vector<SDL_Rect> images;
+    
     int currentImageNum = 0;
 };
 
@@ -149,6 +151,7 @@ class audio
     ~audio(){ Mix_FreeMusic(currentMusic); }
 
     inline audio& play(int loops = 0);
+    static inline void stopAllMusic() noexcept;
 
     private:
     Mix_Music* currentMusic = nullptr;
