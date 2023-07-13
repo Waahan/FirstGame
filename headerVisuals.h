@@ -56,9 +56,9 @@ class App
     const int SCREEN_HEIGHT;
 
     private:
-    SDL_Renderer* renderer = NULL;
-    SDL_Window* window = NULL;
-    SDL_Surface* windowIcon = NULL;
+    SDL_Pointer<SDL_Renderer, SDL_DestroyRenderer> renderer;
+    SDL_Pointer<SDL_Window, SDL_DestroyWindow> window;
+    SDL_Pointer<SDL_Surface, SDL_FreeSurface> windowIcon;
 };
 
 class Image
@@ -105,8 +105,6 @@ class Messages
 
     Messages(Messages&& moveFromMessage);
     Messages& operator=(Messages&& moveFromMessage);
-    
-    ~Messages();
 
     Messages& newMessage(std::string message = "invalidMessage", int x = 2345, int y = 2345, int w = 0, int h = 0, Messages::color newColor = Messages::color::none);
     
@@ -125,9 +123,9 @@ class Messages
     const SDL_Color Violet = {238, 130, 238};
 
     private:
-    TTF_Font* font = NULL;
-    SDL_Surface* surfaceMessage = NULL;
-    SDL_Texture* Message = NULL;
+    SDL_Pointer<TTF_Font, TTF_CloseFont> font;
+    SDL_Pointer<SDL_Surface, SDL_FreeSurface> surfaceMessage;
+    SDL_Pointer<SDL_Texture, SDL_DestroyTexture> Message;
 
     std::string currentMessage;
     SDL_Rect Message_rect;
