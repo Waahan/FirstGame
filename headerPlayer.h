@@ -67,7 +67,11 @@ class thing
     int h;
     int health;
     int speed;
+    
+    //Use std::unordered_map of Image
     SDL_Texture* texture = NULL;
+
+    //Mabe make this static
     App* appPointer = NULL;
 };
 
@@ -89,11 +93,11 @@ class counter
     counter& operator++(int);
     
     private:
-    void updateStringCount(){ stringCount = std::to_string(currentCount); oldCount = currentCount; }
+    void updateStringCount();
 
     unsigned long long currentCount = 0;
-
     unsigned long long oldCount = 0;
+
     std::string stringCount;
 };
 
@@ -111,6 +115,10 @@ class user : public thing
     ~user();
 
     user& doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
+    user& doButtonDown(const SDL_Event& event, bool DownOrUp);
+
+    user& doAxisMove(const SDL_Event& event);
+    user& doBallMove(const SDL_Event& event);
 
     user& input();
 
@@ -129,7 +137,9 @@ class user : public thing
     private:
     enum class directions: unsigned char { up, down, left, right, none};
 
+    //Change direction to directions ^
     char direction;
+    char back;
     bool playerUp = false;
     bool playerDown = false;
     bool playerLeft = false;
@@ -137,13 +147,10 @@ class user : public thing
     bool playerFired = false;
 
     bool useController = false;
-    SDL_Joystick* joystickOne;
-    SDL_Joystick* joystickTwo;
-    SDL_GameController* gameController = NULL;
+    SDL_Pointer<SDL_Joystick, SDL_JoystickClose> joystickOne;
+    SDL_Pointer<SDL_GameController, SDL_GameControllerClose> gameController;
     directions joystickDirection;
 
-    char back;
-    
     SDL_Texture* healthDisplayCurrent;
     std::unique_ptr<healthDisplay> playerHealth;
 
