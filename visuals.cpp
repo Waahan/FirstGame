@@ -181,7 +181,7 @@ App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
     {
-        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+        //remove this after fixing std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
     }
 
     return *this;
@@ -210,13 +210,13 @@ App& App::imagePos(SDL_Texture* image, int x, int y)
     //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
     if(SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h) < 0)
     {
-        std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
+        //remove this after fixing std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
     }
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
     {
-        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+        //remove this after fixing std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
     }
 
     return *this;

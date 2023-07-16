@@ -24,29 +24,21 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
 * Precondition iw and ih can not be less or equal to zero 
 * Precondition ihealth can not be less than zero
 */    
-    try
+    if(!iappPointer)
     {
-        if(iappPointer == NULL || iappPointer == nullptr)
-        {
-            throw std::invalid_argument("iappPointer can not be NULL");
-        }
-        else if(itexture == NULL || itexture == nullptr)
-        {
-            throw std::invalid_argument("itexture can not be NULL");
-        }
-        else if(iw <= 0 || ih <= 0)
-        {
-            throw std::invalid_argument("thing w or height can not be less than or equal to zero");
-        }
-        else if(ihealth < 0)
-        {
-            throw std::invalid_argument("health can not be less than zero");
-        }
+        std::cerr << "iappPointer can not be NULL" << std::endl;
     }
-    catch(...)
+    else if(itexture == NULL || itexture == nullptr)
     {
-        SDL_DestroyTexture(itexture);
-        throw;
+        std::cerr << "itexture can not be NULL" << std::endl;
+    }
+    else if(iw <= 0 || ih <= 0)
+    {
+        std::cerr << "thing w or height can not be less than or equal to zero" << std::endl;
+    }
+    else if(ihealth < 0)
+    {
+        std::cerr << "health can not be less than zero" << std::endl;
     }
 }
 
@@ -68,16 +60,19 @@ thing& thing::operator=(const thing& copyFromThing)
 *
 * Postcondition warn about copying thing
 */
-    SDL_DestroyTexture(texture);
+    if(this != &copyFromThing)
+    {
+        SDL_DestroyTexture(texture);
 
-    x = copyFromThing.x;
-    y = copyFromThing.y;
-    w = copyFromThing.w;
-    h = copyFromThing.h;
-    health = copyFromThing.health;
-    speed = copyFromThing.speed;
-    texture = copyFromThing.appPointer->loadImages("images/defaultThing.png");
-    appPointer = copyFromThing.appPointer;
+        x = copyFromThing.x;
+        y = copyFromThing.y;
+        w = copyFromThing.w;
+        h = copyFromThing.h;
+        health = copyFromThing.health;
+        speed = copyFromThing.speed;
+        texture = copyFromThing.appPointer->loadImages("images/defaultThing.png");
+        appPointer = copyFromThing.appPointer;
+    }
 
     std::cerr << "It is best to move thing not copy it";
 
@@ -138,22 +133,8 @@ thing& thing::logic()
 /*
 * thing::logic sets health equal to zero if thing is outside SCREEN_WIDTH and SCREEN_HEIGHT
 */
-    if (x > appPointer->SCREEN_WIDTH)
-    {
+    if (x > appPointer->SCREEN_WIDTH || x < 0 || y > appPointer->SCREEN_HEIGHT || y < 0)
         health = 0;
-    }
-    else if (x < 0)
-    {
-        health = 0;
-    }
-    else if (y > appPointer->SCREEN_HEIGHT)
-    {
-        health = 0;
-    }
-    else if (y < 0)
-    {
-        health = 0;
-    }
 
     return *this;
 }
@@ -167,11 +148,8 @@ thing& thing::newTexture(SDL_Texture* newTexture)
 * 
 * Precondition newTexture is not NULL
 */
-    if(newTexture == nullptr || newTexture == NULL)
-    {
-	std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
-        throw std::invalid_argument("newTexture can not be NULL");
-    }
+    if(!newTexture)
+	    std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
 
     SDL_DestroyTexture(texture);
     texture = newTexture;
@@ -188,10 +166,8 @@ thing& thing::newTexture(const char* newTexturePath)
 *
 * Precondition newTexturePath is not NULL 
 */
-    if(newTexturePath == NULL || newTexturePath == nullptr)
-    {
-        throw std::invalid_argument("newTexturePath can not be NULL");
-    }
+    if(!newTexturePath)
+        std::cerr << "newTexturePath can not be NULL" << std::endl;
 
     SDL_DestroyTexture(texture);
     texture = appPointer->loadImages(newTexturePath);
@@ -205,14 +181,9 @@ int thing::show()
 * thing::show use imagePos to display thing on screen
 */
     if(health > 0)
-    {
         appPointer->imagePos(texture, x, y, w, h);
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    
+    return health > 0;
 }
 
 /* 
@@ -263,9 +234,7 @@ inline thing& thing::setX(int setX)
 * Precondition setX is in window x 
 */
     if(setX > appPointer->SCREEN_WIDTH || setX < 0)
-    {
-        throw std::out_of_range("x can not be less than screen_width or greater than zero");    
-    }
+        std::cerr << "x can not be less than screen_width or greater than zero" << std::endl;    
 
     x = setX;
 
@@ -282,9 +251,7 @@ inline thing& thing::setY(int setY)
 * Precondition setY is in window y
 */
     if(setY > appPointer->SCREEN_HEIGHT || setY < 0)
-    {
-        throw std::out_of_range("y can not be less than screen_height or greater than zero");
-    }
+        std::cerr << "y can not be less than screen_height or greater than zero" << std::endl;
 
     y = setY;
 
@@ -301,9 +268,7 @@ inline thing& thing::setW(int setW)
 * Precondition setW is not less than or equal to zero
 */
     if(setW <= 0)
-    {
-        throw std::invalid_argument("w can not be less than or equal to zero");
-    }
+        std::cerr << "w can not be less than or equal to zero" << std::endl;
 
     w = setW;
 
@@ -320,9 +285,7 @@ inline thing& thing::setH(int setH)
 * Precondition setH is not less than or equal to zero
 */
     if(setH <= 0)
-    {
-        throw std::invalid_argument("h can not be less than or equal to zero");
-    }
+        std::cerr << "h can not be less than or equal to zero" << std::endl;
 
     h = setH;
 
@@ -349,9 +312,7 @@ inline thing& thing::setHealth(int setHealth)
 * Precondition setHealth can not be less than zero
 */
     if(setHealth < 0)
-    {
-        throw std::invalid_argument("health can not be less than zero");
-    }
+        std::cerr << "health can not be less than zero" << std::endl;
 
     health = setHealth;
 
@@ -378,12 +339,8 @@ inline thing& thing::minusHealth(int subtractNum)
 *
 * Precondition health can not be negative
 */
-    int checkNum = health - subtractNum;
-    
-    if(checkNum < 0)
-    {
-        throw std::invalid_argument("health can not be less than zero");
-    }
+    if(health - subtractNum < 0)
+        std::cerr << "health can not be less than zero" << std::endl;
 
     health -= subtractNum;
 
@@ -425,10 +382,17 @@ counter& counter::operator++(int)
     return *this;
 }
 
+void counter::updateStringCount()
+{
+    stringCount = std::to_string(currentCount);
+    
+    oldCount = currentCount;
+}
+
 
 
 user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) 
-: thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer), back(iback), direction(idirection), joystickOne(nullptr), gameController(nullptr)
 {
 /*
 * user::user construct a valid user 
@@ -437,52 +401,39 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
 *
 * Precondition idirection can not be anything other than 1 2 3 or 4 
 */
-    try
+    if(idirection != 1 && idirection != 2 && idirection != 3 && idirection != 4)
     {
-        if(idirection != 1 && idirection != 2 && idirection != 3 && idirection != 4)
-        {
-            throw std::invalid_argument("idirection can not be anything other than 1 2 3 or 4");
-        }
-
-        back = iback;
-        direction = idirection;
-
-        playerHealth.reset(new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") });
-
-        std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
-        if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
-        {
-            useController = true;
-
-            // 0 is left 1 is right 
-            gameController = SDL_GameControllerOpen(0);
-
-            joystickOne = SDL_GameControllerGetJoystick(gameController);
-            joystickTwo = SDL_GameControllerGetJoystick(gameController);
-
-            if(joystickOne == NULL || joystickTwo == NULL)
-            {
-                std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
-            }
-            
-            if(gameController == NULL)
-            {
-                std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
-            }
-    
-            std::cout << "Found game controller: " << SDL_GameControllerName(gameController) << std::endl;
-            std::cout << "joystick axes num: " << SDL_JoystickNumAxes(joystickOne) << std::endl;
-            std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne) << std::endl;
-            std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne) << std::endl;
-            std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne) << std::endl;
-
-            SDL_JoystickEventState(SDL_ENABLE);
-        }
+        std::cerr << "idirection can not be anything other than 1 2 3 or 4" << std::endl;
     }
-    catch(...)
+
+    playerHealth.reset(new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") });
+
+    if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
     {
-        SDL_DestroyTexture(itexture);
-        throw;
+        useController = true;
+
+        gameController.reset(SDL_GameControllerOpen(0));
+
+        joystickOne.reset(SDL_GameControllerGetJoystick(gameController.get()));
+
+        if(!joystickOne)
+        {
+            std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
+        }
+            
+        if(!gameController)
+        {
+            std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
+        }
+    
+        std::cout << "Found game controller: " << SDL_GameControllerName(gameController.get()) << std::endl;
+        std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
+        std::cout << "joystick axes num: " << SDL_JoystickNumAxes(joystickOne.get()) << std::endl;
+        std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne.get()) << std::endl;
+        std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne.get()) << std::endl;
+        std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne.get()) << std::endl;
+
+        SDL_JoystickEventState(SDL_ENABLE);
     }
 }
 
@@ -492,25 +443,12 @@ user::~user()
 * user::~user delete texture healthDisplayCurrent playerHealth a bullets 
 */
     SDL_DestroyTexture(texture);
-    SDL_DestroyTexture(healthDisplayCurrent);
 
     for(auto& currentBullet : bullets)
     {
         delete currentBullet;
         currentBullet = nullptr;
         bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
-    }
-
-    if(useController)
-    {
-        SDL_JoystickClose(joystickOne);
-        joystickOne = NULL;
-        
-        SDL_JoystickClose(joystickTwo);
-        joystickTwo = NULL;
-
-        SDL_GameControllerClose(gameController);        
-        gameController = NULL;
     }
 }
 
@@ -524,15 +462,14 @@ user& user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
 *
 * Precondition event can not be NULL
 */
-    if(event == NULL || event == nullptr)
+    if(!event)
     {
-        throw std::invalid_argument("Event can not be NULL");
+        std::cerr << "Event can not be NULL" << std::endl;
     }
 
-    //Ignores keyboard repeat events
-    //if(event->repeat == 0)
-    //{
-        if(event->keysym.scancode == SDL_SCANCODE_UP || event->keysym.scancode == SDL_SCANCODE_W)
+    //Write switch statment
+
+    if(event->keysym.scancode == SDL_SCANCODE_UP || event->keysym.scancode == SDL_SCANCODE_W)
 	{
 	    playerUp = DownUp;
 	}
@@ -553,10 +490,182 @@ user& user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
 	}
 
 	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
-        {
+    {
 	    playerFired = DownUp;
 	}
-    //}
+
+    return *this;
+}
+
+user& user::doButtonDown(const SDL_Event& event, bool upOrDown)
+{
+    //Write switch statment
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+        playerFired = upOrDown;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+        std::cout << "LEFTSHOULDER" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE1)
+        std::cout << "PADDLE1" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE2)
+        std::cout << "PADDLE2" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE3)
+        std::cout << "PADDLE3" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE4)
+        std::cout << "PADDLE4" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_A)
+        std::cout << "BUTTONA" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B)
+        std::cout << "BUTTONB" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_X)
+        std::cout << "BUTTONX" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_Y)
+        std::cout << "BUTTONY" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+        std::cout << "BUTTON BACK" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_GUIDE)
+        std::cout << "BUTTON GUIDE" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_START)
+        std::cout << "BUTTON START" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MISC1)
+        std::cout << "BUTTON MISC1" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_INVALID)
+        std::cout << "button invalid" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSTICK)
+        std::cout << "button left stick" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSTICK)
+        std::cout << "button right stick" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+        std::cout << "button dpad up" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+        std::cout << "button dpad down" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+        std::cout << "button dpad left" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+        std::cout << "button dpad right" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_TOUCHPAD)
+        std::cout << "button touchpad" << std::endl;
+
+    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MAX)
+        std::cout << "button max" << std::endl;
+    
+    return *this;
+}
+
+user& user::doAxisMove(const SDL_Event& event)
+{
+    //Write switch statment
+    playerUp = false;
+    playerDown = false;
+    playerLeft = false;
+    playerRight = false;
+
+    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+    {
+        //left motion
+        playerLeft = true;
+        joystickDirection = directions::left;
+    }
+    else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::left)
+        playerLeft = true;
+    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+    {
+        //right motion
+        playerRight = true;
+        joystickDirection = directions::right;
+    }
+    else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::right)
+        playerRight = true;
+    else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+    {
+        //up motion
+        playerUp = true;
+        joystickDirection = directions::up;
+    }
+    else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::up)
+        playerUp = true;
+    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+    {
+        //down motion
+        playerDown = true;
+        joystickDirection = directions::up;
+    }
+    else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::down)
+        playerDown = true;
+    else
+        joystickDirection = directions::none;
+
+
+    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+        playerFired = true;
+    else
+        playerFired = false;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+        std::cout << "Trigger left. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+        std::cout << "Trigger right. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_INVALID)
+        std::cout << "axis invalid. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+        std::cout << "axis leftx. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+        std::cout << "axis lefty. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTX)
+        std::cout << "axis rightx. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
+        std::cout << "axis righty. value: " << event.jaxis.value << std::endl;
+
+    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_MAX)
+        std::cout << "Axis max. value: " << event.jaxis.value << std::endl;
+    
+    return *this;
+}
+
+user& user::doBallMove(const SDL_Event& event)
+{
+    playerUp = false;
+    playerDown = false;
+    playerLeft = false;
+    playerRight = false;
+
+    if(event.jhat.value == SDL_HAT_UP)
+        playerUp = true;
+
+    if(event.jhat.value == SDL_HAT_DOWN)
+        playerDown = true;
+
+    if(event.jhat.value == SDL_HAT_LEFT)
+        playerLeft = true;
+
+    if(event.jhat.value == SDL_HAT_RIGHT)
+        playerRight = true;
 
     return *this;
 }
@@ -572,207 +681,32 @@ user& user::input()
     {
         switch (event.type)
         {
-	    case SDL_QUIT:
+	        case SDL_QUIT:
                 exit(0);
-		break;
+		        break;
 
-	    case SDL_KEYDOWN:
-		doKeyDown(&event.key, true);
-		break;
+	        case SDL_KEYDOWN:
+		        doKeyDown(&event.key, true);
+		        break;
 
-	    case SDL_KEYUP:
-		doKeyDown(&event.key, false);
-		break;
+	        case SDL_KEYUP:
+		        doKeyDown(&event.key, false);
+		        break;
 
             case SDL_JOYAXISMOTION:
-                
-                playerUp = false;
-                playerDown = false;
-                playerLeft = false;
-                playerRight = false;
-
-                if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                {
-                    //left motion
-                    playerLeft = true;
-                    joystickDirection = directions::left;
-                }
-                else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::left)
-                {
-                    playerLeft = true;
-                }
-                else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                {
-                    //right motion
-                    playerRight = true;
-                    joystickDirection = directions::right;
-                }
-                else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::right)
-                {
-                    playerRight = true;
-                }
-                else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                {
-                    //up motion
-                    playerUp = true;
-                    joystickDirection = directions::up;
-                }
-                else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::up)
-                {
-                    playerUp = true;
-                }
-                else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                {
-                    //down motion
-                    playerDown = true;
-                    joystickDirection = directions::up;
-                }
-                else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::down)
-                { 
-                   playerDown = true;
-                }
-                else
-                {
-                    joystickDirection = directions::none;
-                }
-
-                if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    playerFired = true;
-                else
-                    playerFired = false;
-
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    std::cout << "Trigger left. value: " << event.jaxis.value << std::endl;
-
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    std::cout << "Trigger right. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_INVALID)
-                    std::cout << "axis invalid. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-                    std::cout << "axis leftx. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-                    std::cout << "axis lefty. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTX)
-                    std::cout << "axis rightx. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
-                    std::cout << "axis righty. value: " << event.jaxis.value << std::endl;
-                
-                if(event.jaxis.axis == SDL_CONTROLLER_AXIS_MAX)
-                    std::cout << "Axis max. value: " << event.jaxis.value << std::endl;
-
+                doAxisMove(event);
                 break;
 
             case SDL_JOYBALLMOTION:
-                playerUp = false;
-                playerDown = false;
-                playerLeft = false;
-                playerRight = false;
-
-                if(event.jhat.value == SDL_HAT_UP)
-                {
-                    playerUp = true;
-                }
-                
-                if(event.jhat.value == SDL_HAT_DOWN)
-                {
-                    playerDown = true;
-                }
-    
-                if(event.jhat.value == SDL_HAT_LEFT)
-                {
-                    playerLeft = true;
-                }
-
-                if(event.jhat.value == SDL_HAT_RIGHT)
-                {
-                    playerRight = true;
-                }
-
+                doBallMove(event);
                 break;
+
             case SDL_CONTROLLERBUTTONDOWN:
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
-                {
-                    playerFired = true;
-                }
-                
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
-                    std::cout << "LEFTSHOULDER" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE1)
-                    std::cout << "PADDLE1" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE2)
-                    std::cout << "PADDLE2" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE3)
-                    std::cout << "PADDLE3" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE4)
-                    std::cout << "PADDLE4" << std::endl;
-                
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_A)
-                    std::cout << "BUTTONA" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B)
-                    std::cout << "BUTTONB" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_X)
-                    std::cout << "BUTTONX" << std::endl;
-                
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_Y)
-                    std::cout << "BUTTONY" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
-                    std::cout << "BUTTON BACK" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_GUIDE)
-                    std::cout << "BUTTON GUIDE" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_START)
-                    std::cout << "BUTTON START" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MISC1)
-                    std::cout << "BUTTON MISC1" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_INVALID)
-                    std::cout << "button invalid" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSTICK)
-                    std::cout << "button left stick" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSTICK)
-                    std::cout << "button right stick" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
-                    std::cout << "button dpad up" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
-                    std::cout << "button dpad down" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
-                    std::cout << "button dpad left" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-                    std::cout << "button dpad right" << std::endl;
-                
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_TOUCHPAD)
-                    std::cout << "button touchpad" << std::endl;
-
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MAX)
-                    std::cout << "button max" << std::endl;
-
+                doButtonDown(event, true);
                 break;
 
             case SDL_CONTROLLERBUTTONUP:
-                if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
-                {
-                    playerFired = false;
-                }
+                doButtonDown(event, false);
                 break;
             
             case SDL_MOUSEBUTTONDOWN:
@@ -781,47 +715,45 @@ user& user::input()
             case SDL_TEXTEDITING:
                 break;
 
-	    default:
-		break;
-	}
+	        default:
+		        break;
+	    }
     }
     
     if (playerUp)
     {
-            y -= speed;
-            direction = 1;
+        y -= speed;
+        direction = 1;
 	    newTexture("images/PlayerUp.png");
     }
     if (playerDown)
     {
-            y += speed;
-            direction = 2;
+        y += speed;
+        direction = 2;
 	    newTexture("images/PlayerDown.png");
     }
     if (playerLeft)
     {
-            x -= speed;
-            direction = 3;
+        x -= speed;
+        direction = 3;
 	    newTexture("images/PlayerLeft.png");
     }
     if (playerRight)
     {
-            x += speed;
-            direction = 4;
+        x += speed;
+        direction = 4;
 	    newTexture("images/PlayerRight.png");
     }
     if (playerFired)
     {
-            for(auto& currentBullet : bullets)
-            {
-                currentBullet->speed += 2;
-            }
+        for(auto& currentBullet : bullets)
+            currentBullet->speed += 2;
             
-            bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, appPointer->loadImages("images/bullet.png"), appPointer}; 
+        bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, appPointer->loadImages("images/bullet.png"), appPointer}; 
 
-            bullets.push_back(newBulletClass);
+        bullets.push_back(newBulletClass);
 	    
-            newTexture("images/Player.png");
+        newTexture("images/Player.png");
     }
     
     return *this;
@@ -836,10 +768,8 @@ user& user::keyMenu(bool& start, SDL_KeyboardEvent *event)
 *
 * Precondition event is not NULL
 */
-    if(event == NULL || event == nullptr)
-    {
-        throw std::invalid_argument("event can not be NULL");
-    }    
+    if(!event)
+        std::cerr << "event can not be NULL" << std::endl;
 
     //Ignores keyboard repeat events
     if(event->repeat == 0)
@@ -943,16 +873,13 @@ int user::show()
         {
             currentBullet->show();
         }
-
-        return 1;
     }
     else
     {
         playerDeath();
-        return 0;
     }
     
-    return 0;
+    return health > 0;
 }
 
 void user::playerDeath()
@@ -1012,7 +939,7 @@ enemys& enemys::spawnEnemys()
     {
         x -= speed;
 
-	enemySpawnTimer--;
+	    enemySpawnTimer--;
     }
 
     return *this;
@@ -1058,12 +985,12 @@ enemys& enemys::scaleDifficulty(const counter& playerScore)
     if(playerScore.count() > 200)
     {
         maximum = 20;
-	minimum = 5;
+	    minimum = 5;
     }
     else if(playerScore.count() > 400)
     {
         maximum = 30;
-	minimum = 10;
+	    minimum = 10;
     }
 
     return *this;
@@ -1088,23 +1015,8 @@ points& points::initPoints()
     if (health > 0)
     {
         x -= speed;
-
-        if (x > appPointer->SCREEN_WIDTH)
-        {
-            health = 0;
-        }
-        else if (x < 0)
-        {
-            health = 0;
-        }
-        else if (y > appPointer->SCREEN_HEIGHT)
-        {
-            health = 0;
-        }
-        else if (y < 0)
-        {
-            health = 0;
-        }
+        
+        thing::logic();
     }
     else
     {
@@ -1134,12 +1046,12 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
     {
         if(health > player.getHealth())
         {
-	    int randomNum = rand() % 2;
+	        int randomNum = rand() % 2;
 
-	    if(randomNum && isHealth)
-	    {
+	        if(randomNum && isHealth)
+	        {
                 player.minusHealth(-1);
-	    }
+	        }
 
             player.newTexture("images/PlayerHappy.png");
         }
@@ -1180,38 +1092,15 @@ bulletClass& bulletClass::logic(const user& player)
 * bulletClass::logic move bulletClass based on player direction and set health to zero if off screen 
 */
     if(player.getDirection() == 1)
-    {
         y -= speed;
-    }
     else if(player.getDirection() == 2)
-    {
         y += speed;
-    }
     else if(player.getDirection() == 3)
-    {
         x -= speed;
-    }
     else if(player.getDirection() == 4)
-    {
         x += speed;
-    }
 
-    if (x > appPointer->SCREEN_WIDTH)
-    {
-        health = 0;
-    }
-    else if (x < 0)
-    {
-        health = 0;
-    }
-    else if (y > appPointer->SCREEN_HEIGHT)
-    {
-        health = 0;
-    }
-    else if (y < 0)
-    {
-        health = 0;
-    }
+    thing::logic();
 
     return *this;
 }
@@ -1249,22 +1138,12 @@ SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
 */
     switch(player.getHealth())
     {
-        case 3:
-	    return fullHealth;
-	case 2:
-	    return halfHealth;
-	case 1:
-	    return critical;
-	default:
-	    if(player.getHealth() > 2)
-	    {
-	        return fullHealth;
-	    }
-	    else if(player.getHealth() > 1)
-	    {
+	    case 2:
 	        return halfHealth;
-	    }
+	    case 1:
+	        return critical;
     }
+    
     return fullHealth;
 }
 
