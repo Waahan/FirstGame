@@ -22,13 +22,13 @@ int main(int argc, char* args[])
 
     App app(1280, 720);
 
-    user player(100, 100, 90, 90, 3, 10, app.loadImages("images/Player.png"), &app, 30, 1);
+    user player(100, 100, 90, 90, 3, 10, "images/Player.png", &app, 30, 1);
 
-    enemys enemy(2000, 2000, 90, 90, 0, 0, app.loadImages("images/enemy.png"), &app);
+    enemys enemy(2000, 2000, 90, 90, 0, 0, "images/enemy.png", &app);
 
-    points point(2000, 2000, 40, 40, 0, 0, app.loadImages("images/points.png"), &app);
+    points point(2000, 2000, 40, 40, 0, 0, "images/points.png", &app);
 
-    thing background(0, 0, app.SCREEN_WIDTH, app.SCREEN_HEIGHT, 10, 0, app.loadImages("images/Background.png"), &app);
+    thing background(0, 0, app.SCREEN_WIDTH, app.SCREEN_HEIGHT, 10, 0, "images/Background.png", &app);
 
     Messages Score("Score", 0, 0, 100, 100, &app, Messages::color::green);
     Messages Title("Sus invaders", 0, 0, 500, 500, &app);
@@ -39,66 +39,65 @@ int main(int argc, char* args[])
     {
         app.makeVisuals();
 
-	Start.drawMessage();
-	Controls.drawMessage();
-	Title.drawMessage();
+	    Start.drawMessage();
+	    Controls.drawMessage();
+	    Title.drawMessage();
 	
-	if(startTimer > 100)
-	{
-	    startTimer = 0;
+	    if(startTimer > 100)
+	    {
+	        startTimer = 0;
 
             Title.rainbowColorSwitch();
-	}
+	    }
 
-	startTimer++;
+	    startTimer++;
 
-	player.menuInput(start);
+	    player.menuInput(start);
 
-	app.showVisuals();
+	    app.showVisuals();
     }
 
     while (true)
     {
         app.makeVisuals();
 
-	background.show();
+	    background.show();
 
-	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
+	    Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
 
-	player.input();
+	    player.input();
 
-	enemy.logic();
-	player.logic(enemy, point);
+	    enemy.logic();
+	    player.logic(enemy, point);
 
-	point.initPoints();
+	    point.initPoints();
 
         enemy.spawnEnemys();
 
-	enemy.scaleDifficulty(player.playerScore);
-	Score.drawMessage();
+	    enemy.scaleDifficulty(player.playerScore);
+	    Score.drawMessage();
 
-	enemy.didEnemyKill(player);
+	    enemy.didEnemyKill(player);
 	
         if(player.playerScore.count() > 400 && levelOne == 0)
-	{
-	    enemy.makeEnd(levelOne);
-	}
-	else if(levelOne == 1)
-	{ 
-	    enemy.newTexture("images/enemy.png");
-	    levelOne += 1;
-	}
+	    {
+	        enemy.makeEnd(levelOne);
+	    }
+	    else if(levelOne == 1)
+	    {   
+	        levelOne += 1;
+	    }
 
-	enemy.show();
+	    enemy.show();
 
         point.show();
 	
-	player.show();
+	    player.show();
 
-	app.showVisuals();
+	    app.showVisuals();
 
         //Delay is in milliseconds so its .10 of a second 
-	SDL_Delay(10);
+	    SDL_Delay(10);
     }
 
     return 0;

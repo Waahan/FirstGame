@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <climits>
 #include <future>
@@ -26,20 +27,15 @@ class healthDisplay;
 class thing
 {
     public:
-    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-    constexpr thing() : x(0), y(0), w(0), h(0), health(0), speed(0), texture(nullptr), appPointer(NULL) {}
+    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
 
-    thing(const thing& copyFromThing);
-    thing& operator=(const thing& copyFromThing);
+    thing(const thing& copyFromThing) = delete;
+    thing& operator=(const thing& copyFromThing) = delete;
 
     thing(thing&& moveFromThing);
     thing& operator=(thing&& moveFromThing);
 
-    virtual ~thing(){ SDL_DestroyTexture(texture); }
-
     virtual thing& logic();
-    virtual thing& newTexture(SDL_Texture* newTexture);
-    virtual thing& newTexture(const char* newTexturePath);
     virtual int show();
 
     inline int getX() const;
@@ -48,7 +44,6 @@ class thing
     inline int getH() const;
     inline int getHealth() const;
     inline int getSpeed() const;
-    inline SDL_Texture* getTexture() const;
 
     inline thing& setX(int setX);
     inline thing& setY(int setY);
@@ -68,8 +63,8 @@ class thing
     int health;
     int speed;
     
-    //Use std::unordered_map of Image
-    SDL_Texture* texture = NULL;
+    std::string currentImage = "default";
+    std::unordered_map<std::string, Image> Images;
 
     //Mabe make this static
     App* appPointer = NULL;
@@ -104,7 +99,7 @@ class counter
 class user : public thing
 {
     public:
-    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection);
+    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer, int iback, int idirection);
 
     user(const user& copyFromUser) = delete;
     user& operator=(const user& copyFromUser) = delete;
@@ -151,7 +146,6 @@ class user : public thing
     SDL_Pointer<SDL_GameController, SDL_GameControllerClose> gameController;
     directions joystickDirection;
 
-    SDL_Texture* healthDisplayCurrent;
     std::unique_ptr<healthDisplay> playerHealth;
 
     std::vector<bulletClass*> bullets;
@@ -160,15 +154,13 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
 
     enemys(const enemys& copyFromEnemy) = delete;
     enemys& operator=(const enemys& copyFromEnemy) = delete;
 
     enemys(enemys&& moveFromEnemy) = delete;
     enemys& operator=(enemys&& moveFromEnemy) = delete;
-
-    ~enemys(){ SDL_DestroyTexture(texture); }
 
     enemys& spawnEnemys();
     enemys& didEnemyKill(user& player);
@@ -184,15 +176,13 @@ class enemys : public thing
 class points : public thing
 {
     public:
-    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
+    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
     
     points(const points& copyFromPoint) = delete;
     points& operator=(const points& copyFromPoint) = delete;
     
     points(points&& moveFromPoint) = delete;
     points& operator=(points&& moveFromPoint) = delete;
-
-    ~points(){ SDL_DestroyTexture(texture); }
 
     points& initPoints();
     points& didYouGetPoints(user& player, thing& bullet, counter& playerScore);
@@ -207,17 +197,13 @@ class bulletClass : public thing
     friend user;
 
     public:
-    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer);
-
-    constexpr bulletClass() : thing() {};
+    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
 
     bulletClass(const bulletClass& copyFromBullet) = delete;   
     bulletClass& operator=(const bulletClass& copyFromBullet) = delete;
 
     bulletClass(bulletClass&& moveFromBullet) = delete;
     bulletClass& operator=(bulletClass&& moveFromBullet) = delete;
-
-    ~bulletClass(){ SDL_DestroyTexture(texture); }
 
     bulletClass& logic(const user& player);
     inline bulletClass& didBulletHit(thing& enemy, counter& playerScore);
@@ -226,7 +212,7 @@ class bulletClass : public thing
 class healthDisplay
 {
     public:     
-    explicit healthDisplay(SDL_Texture* ifullHealth = nullptr, SDL_Texture* ihalfHealth = nullptr, SDL_Texture* icritical = nullptr);
+    explicit healthDisplay(std::string full, std::string health, std::string critical, App& app);
 
     healthDisplay(const healthDisplay& copyFromHealthDisplay) = delete;
     healthDisplay& operator=(const healthDisplay& copyFromHealthDisplay) = delete;
@@ -234,13 +220,10 @@ class healthDisplay
     healthDisplay(healthDisplay&& moveFromHealthDisplay) = delete;
     healthDisplay& operator=(healthDisplay&& moveFromHealthDisplay) = delete;
 
-    ~healthDisplay(){ SDL_DestroyTexture(fullHealth); SDL_DestroyTexture(halfHealth); SDL_DestroyTexture(critical); }
-     
-    SDL_Texture* healthDisplayUpdate(const user& player);
-     
-    SDL_Texture* fullHealth;
-    SDL_Texture* halfHealth;
-    SDL_Texture* critical;
+    void healthDisplayShow(const user& player, App& app);
+    
+    std::string currentHealth;
+    std::unordered_map<std::string, Image> healthImages; 
 };
 
 inline int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);

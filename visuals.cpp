@@ -181,7 +181,7 @@ App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
     {
-        //remove this after fixing std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
     }
 
     return *this;
@@ -210,26 +210,26 @@ App& App::imagePos(SDL_Texture* image, int x, int y)
     //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
     if(SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h) < 0)
     {
-        //remove this after fixing std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
+        std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
     }
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
     {
-        //remove this after fixing std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
     }
 
     return *this;
 }
 
-App& App::imagePos(const Image& image, int x, int y, int w, int h)
+App& App::imagePos(Image& image, int x, int y, int w, int h)
 {
     SDL_Rect dest;
     dest.x = x;
     dest.y = y;
     dest.w = w;
     dest.h = h;
-
+    
     if(h == 0 || w == 0)
     {
         dest.w = image.getCurrentImageSrc().w;
@@ -276,13 +276,12 @@ Image::Image(std::string path, App& app, int x, int y, int w, int h)
     temp.w = w;
     temp.h = h;
 
-    images.push_back(temp);
+    images.push_back(temp);    
 }
 
 Image::Image(Image&& moveFromImage)
- : imageTexture{moveFromImage.imageTexture}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
+ : imageTexture{std::move(moveFromImage.imageTexture)}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
 {
-    moveFromImage.imageTexture = nullptr;
     moveFromImage.currentImageNum = 0;
 }
 
@@ -290,20 +289,27 @@ Image& Image::operator=(Image&& moveFromImage)
 {
     if(this != &moveFromImage)
     {
-        SDL_DestroyTexture(imageTexture);
-
-        imageTexture = moveFromImage.imageTexture;
+        imageTexture = std::move(moveFromImage.imageTexture);
         images = std::move(moveFromImage.images);
         currentImageNum = moveFromImage.currentImageNum;
 
-        moveFromImage.imageTexture = nullptr;
         moveFromImage.currentImageNum = 0;
     }
 
     return *this;
 }
 
-inline Image& Image::operator++(int)
+SDL_Texture* Image::getImageTexture() const
+{
+    if(imageTexture)
+        return imageTexture.get();
+
+    std::cerr << "Image texture not found" << std::endl;
+    
+    return NULL;
+}
+
+Image& Image::operator++(int)
 {
     currentImageNum < images.size()-1 ? currentImageNum++ : currentImageNum = 0;
 
@@ -621,19 +627,15 @@ audio::audio(std::string path)
 }
 
 audio::audio(audio&& moveFromAudio)
- : currentMusic{moveFromAudio.currentMusic}
+ : currentMusic{std::move(moveFromAudio.currentMusic)}
 {
-    moveFromAudio.currentMusic = NULL;
 }
 
 audio& audio::operator=(audio&& moveFromAudio)
 {
     if(this != &moveFromAudio)
     {
-        Mix_FreeMusic(currentMusic);
-
-        currentMusic = moveFromAudio.currentMusic;
-        moveFromAudio.currentMusic = NULL;
+        currentMusic = std::move(moveFromAudio.currentMusic);
     }
 
     return *this;
@@ -641,7 +643,7 @@ audio& audio::operator=(audio&& moveFromAudio)
 
 inline audio& audio::play(int loops)
 {
-    if(Mix_PlayMusic(currentMusic, loops) < 0)
+    if(Mix_PlayMusic(currentMusic.get(), loops) < 0)
     {
         std::cerr << "Mix_PlayMusic failed: " << Mix_GetError() << std::endl;
     }

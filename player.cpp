@@ -12,8 +12,8 @@
 #include "headerPlayer.h"
 #include "headerVisuals.h"
 
-thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
- : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}, texture{itexture}, appPointer{iappPointer}
+thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
+ : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}, appPointer{iappPointer}
 {
 /*
 * thing::thing create a thing with the x y w h texture and app pointer 
@@ -28,10 +28,6 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
     {
         std::cerr << "iappPointer can not be NULL" << std::endl;
     }
-    else if(itexture == NULL || itexture == nullptr)
-    {
-        std::cerr << "itexture can not be NULL" << std::endl;
-    }
     else if(iw <= 0 || ih <= 0)
     {
         std::cerr << "thing w or height can not be less than or equal to zero" << std::endl;
@@ -40,47 +36,12 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Textur
     {
         std::cerr << "health can not be less than zero" << std::endl;
     }
-}
-
-thing::thing(const thing& copyFromThing)
-: x{copyFromThing.x}, y{copyFromThing.y}, w{copyFromThing.w}, h{copyFromThing.h}, health{copyFromThing.health}, speed{copyFromThing.speed}, texture{copyFromThing.appPointer->loadImages("images/defaultThing.png")}, appPointer{copyFromThing.appPointer}
-{
-/*
-* thing::thing copy constructor make a copy of thing as best as I can 
-*
-* Postcondition warn about copying thing
-*/
-    std::cerr << "It is better to move a thing then copy";
-}
-
-thing& thing::operator=(const thing& copyFromThing)
-{
-/*
-* thing::operator= copy copy thing 
-*
-* Postcondition warn about copying thing
-*/
-    if(this != &copyFromThing)
-    {
-        SDL_DestroyTexture(texture);
-
-        x = copyFromThing.x;
-        y = copyFromThing.y;
-        w = copyFromThing.w;
-        h = copyFromThing.h;
-        health = copyFromThing.health;
-        speed = copyFromThing.speed;
-        texture = copyFromThing.appPointer->loadImages("images/defaultThing.png");
-        appPointer = copyFromThing.appPointer;
-    }
-
-    std::cerr << "It is best to move thing not copy it";
-
-    return *this;
+    
+    Images["default"] = Image(path, *appPointer, 0, 0, iw, ih);
 }
 
 thing::thing(thing&& moveFromThing)
- : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, health{moveFromThing.health}, speed(moveFromThing.speed), texture{moveFromThing.texture}, appPointer{moveFromThing.appPointer}
+ : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, health{moveFromThing.health}, speed(moveFromThing.speed), Images{std::move(moveFromThing.Images)}, appPointer{moveFromThing.appPointer}
 {
 /*
 * thing::thing move constructor move thing
@@ -93,7 +54,6 @@ thing::thing(thing&& moveFromThing)
     moveFromThing.h = 0;
     moveFromThing.health = 0;
     moveFromThing.speed = 0;
-    moveFromThing.texture = nullptr;
     moveFromThing.appPointer = nullptr;
 }
 
@@ -104,15 +64,13 @@ thing& thing::operator=(thing&& moveFromThing)
 */
     if(this != &moveFromThing)
     {
-        SDL_DestroyTexture(texture);
-
         x = moveFromThing.x;
         y = moveFromThing.y;
         w = moveFromThing.w;
         h = moveFromThing.h;
         health = moveFromThing.health;
         speed = moveFromThing.speed;
-        texture = moveFromThing.texture;
+        Images = std::move(moveFromThing.Images);
         appPointer = moveFromThing.appPointer;
 
         moveFromThing.x = 0;
@@ -121,7 +79,6 @@ thing& thing::operator=(thing&& moveFromThing)
         moveFromThing.h = 0;
         moveFromThing.health = 0;
         moveFromThing.speed = 0;
-        moveFromThing.texture = nullptr;
         moveFromThing.appPointer = nullptr;
     }
 
@@ -139,49 +96,17 @@ thing& thing::logic()
     return *this;
 }
 
-thing& thing::newTexture(SDL_Texture* newTexture)
-{
-/*
-* thing::newTexture set newTexture to texture 
-*
-* pre and postconditions:
-* 
-* Precondition newTexture is not NULL
-*/
-    if(!newTexture)
-	    std::cerr << "newTexture can not be nullptr or 0 or NULL" << std::endl;
-
-    SDL_DestroyTexture(texture);
-    texture = newTexture;
-
-    return *this;
-}
-
-thing& thing::newTexture(const char* newTexturePath)
-{
-/*
-* thing::newTexture load newTexture from the file path 
-*
-* pre and postconditions
-*
-* Precondition newTexturePath is not NULL 
-*/
-    if(!newTexturePath)
-        std::cerr << "newTexturePath can not be NULL" << std::endl;
-
-    SDL_DestroyTexture(texture);
-    texture = appPointer->loadImages(newTexturePath);
-
-    return *this;
-}
-
 int thing::show()
 {
 /*
 * thing::show use imagePos to display thing on screen
 */
     if(health > 0)
-        appPointer->imagePos(texture, x, y, w, h);
+        appPointer->imagePos(Images[currentImage], x, y, w, h);
+        Images[currentImage]++;
+
+    if(currentImage != "default" && Images[currentImage].done())
+        currentImage = "default";
     
     return health > 0;
 }
@@ -217,11 +142,6 @@ inline int thing::getHealth() const
 inline int thing::getSpeed() const
 {
     return speed;
-}
-
-inline SDL_Texture* thing::getTexture() const
-{
-    return texture;
 }
 
 inline thing& thing::setX(int setX)
@@ -391,8 +311,8 @@ void counter::updateStringCount()
 
 
 
-user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer, int iback, int idirection) 
- : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer), back(iback), direction(idirection), joystickOne(nullptr), gameController(nullptr)
+user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer, int iback, int idirection) 
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer), back(iback), direction(idirection), joystickOne(nullptr), gameController(nullptr)
 {
 /*
 * user::user construct a valid user 
@@ -406,7 +326,7 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture*
         std::cerr << "idirection can not be anything other than 1 2 3 or 4" << std::endl;
     }
 
-    playerHealth.reset(new healthDisplay{appPointer->loadImages("images/Health1.jpg"), appPointer->loadImages("images/Health2.jpg"), appPointer->loadImages("images/Health3.jpg") });
+    playerHealth.reset(new healthDisplay{"images/Health1.jpg", "images/Health2.jpg", "images/Health3.jpg", *appPointer});
 
     if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
     {
@@ -442,8 +362,6 @@ user::~user()
 /*
 * user::~user delete texture healthDisplayCurrent playerHealth a bullets 
 */
-    SDL_DestroyTexture(texture);
-
     for(auto& currentBullet : bullets)
     {
         delete currentBullet;
@@ -724,36 +642,30 @@ user& user::input()
     {
         y -= speed;
         direction = 1;
-	    newTexture("images/PlayerUp.png");
     }
     if (playerDown)
     {
         y += speed;
         direction = 2;
-	    newTexture("images/PlayerDown.png");
     }
     if (playerLeft)
     {
         x -= speed;
         direction = 3;
-	    newTexture("images/PlayerLeft.png");
     }
     if (playerRight)
     {
         x += speed;
         direction = 4;
-	    newTexture("images/PlayerRight.png");
     }
     if (playerFired)
     {
         for(auto& currentBullet : bullets)
             currentBullet->speed += 2;
             
-        bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, appPointer->loadImages("images/bullet.png"), appPointer}; 
+        bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, "images/bullet.png", appPointer}; 
 
         bullets.push_back(newBulletClass);
-	    
-        newTexture("images/Player.png");
     }
     
     return *this;
@@ -864,12 +776,11 @@ int user::show()
 */
     if(health > 0)
     {
-        appPointer->imagePos(texture, x, y);
+        appPointer->imagePos(Images[currentImage], x, y, w, h);
         
-        healthDisplayCurrent = playerHealth->healthDisplayUpdate(*this);
-        appPointer->imagePos(healthDisplayCurrent, 100, 0);
+        playerHealth->healthDisplayShow(*this, *appPointer);
     
-        for(auto& currentBullet : bullets)
+        for(const auto& currentBullet : bullets)
         {
             currentBullet->show();
         }
@@ -889,7 +800,7 @@ void user::playerDeath()
 */
     if(health <= 0)
     {
-        thing deathImage(0, 0, appPointer->SCREEN_WIDTH, appPointer->SCREEN_HEIGHT, 10, 0, appPointer->loadImages("images/Death.jpg"), appPointer);
+        thing deathImage(0, 0, appPointer->SCREEN_WIDTH, appPointer->SCREEN_HEIGHT, 10, 0, "images/Death.jpg", appPointer);
 
         deathImage.show();
 
@@ -908,8 +819,8 @@ inline int user::getDirection() const
 
 
 
-enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
- : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
+enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
 {
 /*
 * enemys::enemys construct enemys with thing constructor 
@@ -955,7 +866,6 @@ enemys& enemys::didEnemyKill(user& player)
         health = 0;
         removeFromScreen();
         player.minusHealth(1);
-        player.newTexture("images/PlayerSad.png");
     }
 
     return *this;
@@ -966,11 +876,11 @@ void enemys::makeEnd(int& levelOne)
 /*
 * enemys::makeEnd create the secret end with the enemy 
 */
-    newTexture("images/secretEnd.gif");
+    //Add image
     speed = 1;
     levelOne = 1;
 
-    appPointer->imagePos(texture, 100, 100, w, h);
+    appPointer->imagePos(Images[currentImage], 100, 100, w, h);
 
     appPointer->showVisuals();
 
@@ -998,8 +908,8 @@ enemys& enemys::scaleDifficulty(const counter& playerScore)
 
 
 
-points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer)
- : thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
 {
 /*
 * points::points construct a points with the thing constructor
@@ -1028,7 +938,6 @@ points& points::initPoints()
         speed = randomNum;
 
         isHealth = false;
-        newTexture("images/points.png");
     }
 
     return *this;
@@ -1053,12 +962,10 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
                 player.minusHealth(-1);
 	        }
 
-            player.newTexture("images/PlayerHappy.png");
         }
         else
         {
             playerScore++;
-            player.newTexture("images/PlayerHappy.png");
         }
 
         health = 0;
@@ -1067,7 +974,6 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
     else if(bulletPointCollision.get() && bullet.getHealth() != 0 && health != 0 && !isHealth)
     {
         bullet.minusHealth(-1);
-        newTexture("images/health.png");
         isHealth = true;
         playerScore++;
     }
@@ -1077,8 +983,8 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
 
 
 
-bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, SDL_Texture* itexture, App* iappPointer) 
-: thing(ix, iy, iw, ih, ihealth, ispeed, itexture, iappPointer)
+bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer) 
+: thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
 {
 /*
 * bulletClass::bulletClass construct a valid bulletClass
@@ -1123,28 +1029,35 @@ inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore
 
 
 
-healthDisplay::healthDisplay(SDL_Texture* ifullHealth, SDL_Texture* ihalfHealth, SDL_Texture* icritical)
-: fullHealth(ifullHealth), halfHealth(ihalfHealth), critical(icritical) 
+healthDisplay::healthDisplay(std::string full, std::string half, std::string critical, App& app)
 {
 /*
 * healthDisplay::healthDisplay construct a health display with 3 textures  
 */
+    healthImages["full"] = Image(full, app, 0, 0, 100, 100);
+    healthImages["half"] = Image(half, app, 0, 0, 100, 100);
+    healthImages["critical"] = Image(critical, app, 0, 0, 100, 100);
 }
 
-SDL_Texture* healthDisplay::healthDisplayUpdate(const user& player)
+void healthDisplay::healthDisplayShow(const user& player, App& app)
 {
 /*
 * healthDisplay::healthDisplayUpdate update healthDisplay based on player health
 */
     switch(player.getHealth())
     {
+        case 3:
+            currentHealth = "full";
+            break;
 	    case 2:
-	        return halfHealth;
+	        currentHealth = "half";
+            break;
 	    case 1:
-	        return critical;
+	        currentHealth = "critical";
+            break;
     }
     
-    return fullHealth;
+    app.imagePos(healthImages[currentHealth], 100, 0);
 }
 
 
