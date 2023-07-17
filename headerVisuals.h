@@ -47,7 +47,7 @@ class App
     
     App& imagePos(SDL_Texture* image, int x, int y, int w, int h);
     App& imagePos(SDL_Texture* image, int x, int y);
-    App& imagePos(const Image& image, int x, int y, int w = 0, int h = 0);
+    App& imagePos(Image& image, int x, int y, int w = 0, int h = 0);
 
     App& makeVisuals();
     void showVisuals() const;
@@ -65,6 +65,7 @@ class Image
 {
     public:
     explicit Image(std::string imagePath, App& app, int x, int y, int w, int h);
+    Image() : imageTexture(nullptr) {}
     
     Image(const Image& copyFromImage) = delete;
     Image& operator=(const Image& copyFromImage) = delete;
@@ -72,21 +73,19 @@ class Image
     Image(Image&& moveFromImage);
     Image& operator=(Image&& moveFromImage);
 
-    ~Image() { SDL_DestroyTexture(imageTexture); }
-
-    SDL_Texture* getImageTexture() const { return imageTexture; }
+    SDL_Texture* getImageTexture() const;
     const SDL_Rect& getCurrentImageSrc() const { return images[currentImageNum]; }
     SDL_Rect& getCurrentImageSrc() { return images[currentImageNum]; }
 
     SDL_Rect operator[](int index) const { return images[index]; }
-    inline Image& operator++(int);
+    Image& operator++(int);
     inline Image& operator+=(SDL_Rect&& addFrame);
 
     bool done() const { return images.size()-1 == currentImageNum; }
     inline Image& reset();
 
     private:
-    SDL_Texture* imageTexture = nullptr;
+    SDL_Pointer<SDL_Texture, SDL_DestroyTexture> imageTexture;
     
     std::vector<SDL_Rect> images;
     
@@ -146,11 +145,9 @@ class audio
     audio(audio&& moveFromAudio);
     audio& operator=(audio&& moveFromAudio);
 
-    ~audio(){ Mix_FreeMusic(currentMusic); }
-
     inline audio& play(int loops = 0);
     static inline void stopAllMusic() noexcept;
 
     private:
-    Mix_Music* currentMusic = nullptr;
+    SDL_Pointer<Mix_Music, Mix_FreeMusic> currentMusic;
 };
