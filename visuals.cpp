@@ -323,6 +323,25 @@ inline Image& Image::operator+=(SDL_Rect&& addFrame)
     return *this;
 }
 
+Image& Image::operator+=(std::initializer_list<int> addFrames)
+{
+    if(addFrames.size() % 4)
+    {
+        std::cerr << "addFrames must be divisable by 4" << std::endl;
+    }
+
+    int loops = int(addFrames.size()/4);
+    auto currentInt = addFrames.begin();
+
+    for(int i = 0; i < loops; i++)
+    {
+        SDL_Rect temp{*currentInt, *++currentInt, *++currentInt, *++currentInt};
+        images.push_back(temp);
+    }
+    
+    return *this;
+}
+
 inline Image& Image::reset()
 {
     currentImageNum = 0;

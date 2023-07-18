@@ -80,6 +80,7 @@ class Image
     SDL_Rect operator[](int index) const { return images[index]; }
     Image& operator++(int);
     inline Image& operator+=(SDL_Rect&& addFrame);
+    Image& operator+=(std::initializer_list<int> addFrames);
 
     bool done() const { return images.size()-1 == currentImageNum; }
     inline Image& reset();

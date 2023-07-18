@@ -1063,10 +1063,37 @@ void healthDisplay::healthDisplayShow(const user& player, App& app)
 
 
 //Takes two objects dimetions
-inline int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+inline bool collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
 /*
-* collision use the two objects x y w h to detect collision 
+* chech for any kind of collision for squares/rectangles
 */
-    return ( std::max(x1, x2) < std::min(x1 + w1, x2 + w2) ) && ( std::max(y1, y2) < std::min(y1 + h1, y2 + h2) );
+    /*
+     _____
+    |_____|
+
+    */
+    // the | and | of the rectangle
+    int leftSideOne = x1;
+    int rightSideOne = x1 + w1;
+
+    // the ___ and ___ of the rectangle
+    int topSideOne = y1;
+    int bottomSideOne = y1 + h1;
+        
+    int leftSideTwo = x2;
+    int rightSideTwo = x2 + w2;
+        
+    int topSideTwo = y2;
+    int bottomSideTwo = y2 + h2;
+             //left less, right move                            up less, down more   
+             //                 left2                   right2                       _________top2
+             //      left1       ___________________________                         |________|________top1  
+             //         ________|_____________<right1      |                         |        |        |
+             //         |       |            |             |                         |________|bottom2 |
+             //         |       |            |             |                         |                 |
+             //         |_______|____________|             |                         |_________________|bottom1 
+             //                 |__________________________|
+             //                                                                      
+    return ( (leftSideOne < rightSideTwo) && (rightSideOne > leftSideTwo) ) && ( (topSideOne < bottomSideTwo) && (bottomSideOne > topSideTwo) );
 }
