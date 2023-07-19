@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <climits>
 #include <future>
 
 #include <SDL2/SDL.h>
@@ -12,23 +11,23 @@
 #include "headerPlayer.h"
 #include "headerVisuals.h"
 
-thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
- : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}, appPointer{iappPointer}
+App* thing::appPointer;
+
+thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+ : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}
 {
 /*
 * thing::thing create a thing with the x y w h texture and app pointer 
 * 
 * pre and postconditions:
 * 
-* Precondition iappPointer and itexture can not be NULL
 * Precondition iw and ih can not be less or equal to zero 
 * Precondition ihealth can not be less than zero
+* Precondition static appPointer is defined
+* 
+* Postcondition creates a default Image from path
 */    
-    if(!iappPointer)
-    {
-        std::cerr << "iappPointer can not be NULL" << std::endl;
-    }
-    else if(iw <= 0 || ih <= 0)
+    if(iw <= 0 || ih <= 0)
     {
         std::cerr << "thing w or height can not be less than or equal to zero" << std::endl;
     }
@@ -41,12 +40,16 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::strin
 }
 
 thing::thing(thing&& moveFromThing)
- : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, health{moveFromThing.health}, speed(moveFromThing.speed), Images{std::move(moveFromThing.Images)}, appPointer{moveFromThing.appPointer}
+ : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, 
+ health{moveFromThing.health}, speed(moveFromThing.speed), currentImage{std::move(moveFromThing.currentImage)},
+ Images{std::move(moveFromThing.Images)}
 {
 /*
-* thing::thing move constructor move thing
+* thing::thing move constructor moves thing
 *
-* Postcondition thing&& can not destroy texture pointer when deconstructed
+* Postcondition all values in thing are moved from thing to new thing
+* Postcondition moveFromThing does not own anything that new thing does
+* Postcondition moveFromThing is not a copy of new thing
 */
     moveFromThing.x = 0;
     moveFromThing.y = 0;
@@ -54,13 +57,17 @@ thing::thing(thing&& moveFromThing)
     moveFromThing.h = 0;
     moveFromThing.health = 0;
     moveFromThing.speed = 0;
-    moveFromThing.appPointer = nullptr;
 }
 
 thing& thing::operator=(thing&& moveFromThing)
 {
 /*
-* thing::operator= move same thing as thing move constructor
+* thing::operator= move moveFrom thing to an already existing thing 
+* 
+* Precondition no self assigment 
+* Precondition anything this owns is destroyed before move
+*
+* Postcondition all thing::thing(thing&&) postconditions must be met
 */
     if(this != &moveFromThing)
     {
@@ -70,8 +77,8 @@ thing& thing::operator=(thing&& moveFromThing)
         h = moveFromThing.h;
         health = moveFromThing.health;
         speed = moveFromThing.speed;
+        currentImage = std::move(moveFromThing.currentImage);
         Images = std::move(moveFromThing.Images);
-        appPointer = moveFromThing.appPointer;
 
         moveFromThing.x = 0;
         moveFromThing.y = 0;
@@ -79,7 +86,6 @@ thing& thing::operator=(thing&& moveFromThing)
         moveFromThing.h = 0;
         moveFromThing.health = 0;
         moveFromThing.speed = 0;
-        moveFromThing.appPointer = nullptr;
     }
 
     return *this;
@@ -89,6 +95,8 @@ thing& thing::logic()
 {
 /*
 * thing::logic sets health equal to zero if thing is outside SCREEN_WIDTH and SCREEN_HEIGHT
+*
+* Postcondition thing has no health if outside of screen
 */
     if (x > appPointer->SCREEN_WIDTH || x < 0 || y > appPointer->SCREEN_HEIGHT || y < 0)
         health = 0;
@@ -100,6 +108,11 @@ int thing::show()
 {
 /*
 * thing::show use imagePos to display thing on screen
+*
+* Precondition only renders if thing has health
+* 
+* Postcondition increments currentImage so it can go to the next frame
+* Postcondition sets currentImage to default if animation done 
 */
     if(health > 0)
         appPointer->imagePos(Images[currentImage], x, y, w, h);
@@ -111,47 +124,12 @@ int thing::show()
     return health > 0;
 }
 
-/* 
-    Get functions return protected value
-*/
-inline int thing::getX() const
-{
-    return x;
-}
-
-inline int thing::getY() const
-{
-    return y;
-}
-
-inline int thing::getW() const
-{
-    return w;
-}
-
-inline int thing::getH() const
-{
-    return h;
-}
-
-inline int thing::getHealth() const
-{
-    return health;
-}
-
-inline int thing::getSpeed() const
-{
-    return speed;
-}
-
 inline thing& thing::setX(int setX)
 {
 /*
 * thing::setX set x equal to setX
 * 
-* Pre and postconditions:
-*
-* Precondition setX is in window x 
+* Precondition setX is in the window 
 */
     if(setX > appPointer->SCREEN_WIDTH || setX < 0)
         std::cerr << "x can not be less than screen_width or greater than zero" << std::endl;    
@@ -166,9 +144,7 @@ inline thing& thing::setY(int setY)
 /*
 * thing::setY set y equal to y
 *
-* Pre and postconditions:
-*
-* Precondition setY is in window y
+* Precondition setY is in the window 
 */
     if(setY > appPointer->SCREEN_HEIGHT || setY < 0)
         std::cerr << "y can not be less than screen_height or greater than zero" << std::endl;
@@ -182,8 +158,6 @@ inline thing& thing::setW(int setW)
 {
 /*
 * thing::setW set w equal to setW
-*
-* Pre and postconditions:
 *
 * Precondition setW is not less than or equal to zero
 */
@@ -199,8 +173,6 @@ inline thing& thing::setH(int setH)
 {
 /*
 * thing::setH set h equal to setH
-*
-* Pre and postconditions:
 *
 * Precondition setH is not less than or equal to zero
 */
@@ -227,8 +199,6 @@ inline thing& thing::setHealth(int setHealth)
 /*
 * thing::setHealth set health equal to setHealth
 *
-* Pre and postconditions:
-*
 * Precondition setHealth can not be less than zero
 */
     if(setHealth < 0)
@@ -243,6 +213,8 @@ inline thing& thing::removeFromScreen()
 {
 /*
 * thing::removeFromScreen get thing off screeen
+*
+* Postcondition y and x are not on screen
 */
     x = appPointer->SCREEN_WIDTH * 2;
     y = appPointer->SCREEN_HEIGHT * 2;
@@ -257,7 +229,7 @@ inline thing& thing::minusHealth(int subtractNum)
 *
 * Pre and postconditions:
 *
-* Precondition health can not be negative
+* Precondition health is not negative after subtraction
 */
     if(health - subtractNum < 0)
         std::cerr << "health can not be less than zero" << std::endl;
@@ -272,7 +244,7 @@ inline thing& thing::minusHealth(int subtractNum)
 counter::counter()
 {
 /*
-* counter::counter just update string count
+* counter::counter update string count
 */
     updateStringCount();
 }   
@@ -283,6 +255,9 @@ std::string counter::stringCurrentCount()
 {
 /*
 * counter::stringCurrentCount return current count as a string update if needed 
+*
+* Postcondition does not update if not needed
+* Postcondition returns a string equal to the current count
 */
     if(oldCount != currentCount)
     {
@@ -295,7 +270,7 @@ std::string counter::stringCurrentCount()
 counter& counter::operator++(int)
 {
 /*
-* counter::operator++ increase the currentCount by one
+* counter::operator++ increment currentCount
 */
     currentCount++;
 
@@ -304,6 +279,9 @@ counter& counter::operator++(int)
 
 void counter::updateStringCount()
 {
+/*
+* count::updateStringCount set string to string version of currentCount and update oldCount
+*/
     stringCount = std::to_string(currentCount);
     
     oldCount = currentCount;
@@ -311,21 +289,15 @@ void counter::updateStringCount()
 
 
 
-user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer, int iback, int idirection) 
- : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer), back(iback), direction(idirection), joystickOne(nullptr), gameController(nullptr)
+user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, int iback) 
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path), back(iback), joystickOne(nullptr), gameController(nullptr)
 {
 /*
-* user::user construct a valid user 
+* user::user constructs a valid user 
 *
-* pre and postconditions:
-*
-* Precondition idirection can not be anything other than 1 2 3 or 4 
+* Postcondition user has a health display 
+* Postcondition if there are controllers/joysticks user opens them 
 */
-    if(idirection != 1 && idirection != 2 && idirection != 3 && idirection != 4)
-    {
-        std::cerr << "idirection can not be anything other than 1 2 3 or 4" << std::endl;
-    }
-
     playerHealth.reset(new healthDisplay{"images/Health1.jpg", "images/Health2.jpg", "images/Health3.jpg", *appPointer});
 
     if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
@@ -360,230 +332,107 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string 
 user::~user()
 {
 /*
-* user::~user delete texture healthDisplayCurrent playerHealth a bullets 
+* user::~user free users resources 
+*
+* Postcondition all bullets in bullets are deleted
+* Postcondition bullets is empty
 */
     for(auto& currentBullet : bullets)
     {
         delete currentBullet;
-        currentBullet = nullptr;
-        bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
     }
+
+    bullets.clear();
 }
 
 //Scan codes at https://wiki.libsdl.org/SDL2/SDL_Scancode
-user& user::doKeyDown(SDL_KeyboardEvent *event, bool DownUp)
+user& user::doKeyDown(const SDL_KeyboardEvent& event, bool DownUp)
 {
 /*
-* user::doKeyDown handle event keys by setting playerUp playerDown playerLeft playerRight and playerFired to true or false
-* 
-* pre and postconditions:
-*
-* Precondition event can not be NULL
+* user::doKeyDown handle keyboard events
 */
-    if(!event)
+    switch(event.keysym.scancode)
     {
-        std::cerr << "Event can not be NULL" << std::endl;
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_W:
+            playerUp = DownUp;
+            break;
+        
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_S:
+            playerDown = DownUp;
+            break;
+    
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_A:
+            playerLeft = DownUp;
+            break;
+
+        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_D:
+            playerRight = DownUp;
+            break;
+        
+        case SDL_SCANCODE_SPACE:
+            playerFired = DownUp;
+            break;
     }
-
-    //Write switch statment
-
-    if(event->keysym.scancode == SDL_SCANCODE_UP || event->keysym.scancode == SDL_SCANCODE_W)
-	{
-	    playerUp = DownUp;
-	}
-
-	if(event->keysym.scancode == SDL_SCANCODE_DOWN || event->keysym.scancode == SDL_SCANCODE_S)
-	{
-	    playerDown = DownUp;
-	}
-
-	if(event->keysym.scancode == SDL_SCANCODE_LEFT || event->keysym.scancode == SDL_SCANCODE_A)
-	{
-	    playerLeft = DownUp;
-	}
-
-	if(event->keysym.scancode == SDL_SCANCODE_RIGHT || event->keysym.scancode == SDL_SCANCODE_D)
-	{
-	    playerRight = DownUp;
-	}
-
-	if(event->keysym.scancode == SDL_SCANCODE_SPACE)
-    {
-	    playerFired = DownUp;
-	}
 
     return *this;
 }
 
 user& user::doButtonDown(const SDL_Event& event, bool upOrDown)
 {
-    //Write switch statment
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
-        playerFired = upOrDown;
+/*
+* user::doButtonDown handles controller button events 
+*/
+    //Buttons at https://wiki.libsdl.org/SDL2/SDL_GameControllerButton
+    switch(event.cbutton.button)
+    {
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+            std::cout << "RIGHTSHOULDER" << std::endl;
+            break;
 
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
-        std::cout << "LEFTSHOULDER" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE1)
-        std::cout << "PADDLE1" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE2)
-        std::cout << "PADDLE2" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE3)
-        std::cout << "PADDLE3" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_PADDLE4)
-        std::cout << "PADDLE4" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_A)
-        std::cout << "BUTTONA" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B)
-        std::cout << "BUTTONB" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_X)
-        std::cout << "BUTTONX" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_Y)
-        std::cout << "BUTTONY" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
-        std::cout << "BUTTON BACK" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_GUIDE)
-        std::cout << "BUTTON GUIDE" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_START)
-        std::cout << "BUTTON START" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MISC1)
-        std::cout << "BUTTON MISC1" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_INVALID)
-        std::cout << "button invalid" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSTICK)
-        std::cout << "button left stick" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSTICK)
-        std::cout << "button right stick" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
-        std::cout << "button dpad up" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
-        std::cout << "button dpad down" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
-        std::cout << "button dpad left" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-        std::cout << "button dpad right" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_TOUCHPAD)
-        std::cout << "button touchpad" << std::endl;
-
-    if(event.cbutton.button == SDL_CONTROLLER_BUTTON_MAX)
-        std::cout << "button max" << std::endl;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+            std::cout << "LEFTSHOULDER" << std::endl;
+            break;
+    }
     
     return *this;
 }
 
 user& user::doAxisMove(const SDL_Event& event)
 {
-    //Write switch statment
-    playerUp = false;
-    playerDown = false;
-    playerLeft = false;
-    playerRight = false;
+/*
+* user::doAxisMove handle axis moves by scaling speed based on event.jaxis.value
+*
+* Postcondition scale a future varible for speed based a event.jaxis.value 
+*/
+    //https://www.libsdl.org/release/SDL-1.2.15/docs/html/guideinput.html
+    //More axis at https://wiki.libsdl.org/SDL2/SDL_GameControllerAxis
 
-    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+    switch(event.jaxis.axis)
     {
-        //left motion
-        playerLeft = true;
-        joystickDirection = directions::left;
+        case SDL_CONTROLLER_AXIS_LEFTX:
+            std::cout << "LEFTX" << std::endl;
+            break;
     }
-    else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::left)
-        playerLeft = true;
-    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-    {
-        //right motion
-        playerRight = true;
-        joystickDirection = directions::right;
-    }
-    else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX && joystickDirection == directions::right)
-        playerRight = true;
-    else if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-    {
-        //up motion
-        playerUp = true;
-        joystickDirection = directions::up;
-    }
-    else if(event.jaxis.value < -100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::up)
-        playerUp = true;
-    else if(event.jaxis.value > 8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-    {
-        //down motion
-        playerDown = true;
-        joystickDirection = directions::up;
-    }
-    else if(event.jaxis.value > 100 && event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY && joystickDirection == directions::down)
-        playerDown = true;
-    else
-        joystickDirection = directions::none;
-
-
-    if(event.jaxis.value < -8000 && event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-        playerFired = true;
-    else
-        playerFired = false;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-        std::cout << "Trigger left. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-        std::cout << "Trigger right. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_INVALID)
-        std::cout << "axis invalid. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
-        std::cout << "axis leftx. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
-        std::cout << "axis lefty. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTX)
-        std::cout << "axis rightx. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_RIGHTY)
-        std::cout << "axis righty. value: " << event.jaxis.value << std::endl;
-
-    if(event.jaxis.axis == SDL_CONTROLLER_AXIS_MAX)
-        std::cout << "Axis max. value: " << event.jaxis.value << std::endl;
     
     return *this;
 }
 
 user& user::doBallMove(const SDL_Event& event)
 {
-    playerUp = false;
-    playerDown = false;
-    playerLeft = false;
-    playerRight = false;
-
-    if(event.jhat.value == SDL_HAT_UP)
-        playerUp = true;
-
-    if(event.jhat.value == SDL_HAT_DOWN)
-        playerDown = true;
-
-    if(event.jhat.value == SDL_HAT_LEFT)
-        playerLeft = true;
-
-    if(event.jhat.value == SDL_HAT_RIGHT)
-        playerRight = true;
+/*
+* user::doBallMove handle controller ball input
+*/
+    //https://wiki.libsdl.org/SDL2/SDL_JoyHatEvent
+    switch(event.jhat.value)
+    {
+        case SDL_HAT_UP:
+            std::cout << "hat up" << std::endl;
+            break;
+    }
 
     return *this;
 }
@@ -591,8 +440,9 @@ user& user::doBallMove(const SDL_Event& event)
 user& user::input()
 {
 /*
-* user::input do actions based on event.type and doKeyDown
+* user::input handle event.type's by calling other functions then update based on the varibles 
 */
+    //event types at https://wiki.libsdl.org/SDL2/SDL_EventType
     SDL_Event event;
     
     while (SDL_PollEvent(&event))
@@ -604,11 +454,11 @@ user& user::input()
 		        break;
 
 	        case SDL_KEYDOWN:
-		        doKeyDown(&event.key, true);
+		        doKeyDown(event.key, true);
 		        break;
 
 	        case SDL_KEYUP:
-		        doKeyDown(&event.key, false);
+		        doKeyDown(event.key, false);
 		        break;
 
             case SDL_JOYAXISMOTION:
@@ -626,12 +476,6 @@ user& user::input()
             case SDL_CONTROLLERBUTTONUP:
                 doButtonDown(event, false);
                 break;
-            
-            case SDL_MOUSEBUTTONDOWN:
-                break;
-            
-            case SDL_TEXTEDITING:
-                break;
 
 	        default:
 		        break;
@@ -641,29 +485,29 @@ user& user::input()
     if (playerUp)
     {
         y -= speed;
-        direction = 1;
+        direction = directions::up;
     }
     if (playerDown)
     {
         y += speed;
-        direction = 2;
+        direction = directions::down;
     }
     if (playerLeft)
     {
         x -= speed;
-        direction = 3;
+        direction = directions::left;
     }
     if (playerRight)
     {
         x += speed;
-        direction = 4;
+        direction = directions::right;
     }
     if (playerFired)
     {
         for(auto& currentBullet : bullets)
             currentBullet->speed += 2;
             
-        bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, "images/bullet.png", appPointer}; 
+        bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, "images/bullet.png"}; 
 
         bullets.push_back(newBulletClass);
     }
@@ -671,25 +515,16 @@ user& user::input()
     return *this;
 }
 
-user& user::keyMenu(bool& start, SDL_KeyboardEvent *event)
+user& user::keyMenu(bool& start, const SDL_KeyboardEvent& event)
 {
 /*
-* user::keyMenu handle key board events on the start menu 
-*
-* pre and postconditions:
-*
-* Precondition event is not NULL
+* user::keyMenu handle keyboard events on the start menu 
 */
-    if(!event)
-        std::cerr << "event can not be NULL" << std::endl;
-
-    //Ignores keyboard repeat events
-    if(event->repeat == 0)
+    switch(event.keysym.scancode)
     {
-        if(event->keysym.scancode == SDL_SCANCODE_RETURN)
-        {
+        case SDL_SCANCODE_RETURN:
             start = true;
-        }
+            break;
     }
 
     return *this;
@@ -711,7 +546,7 @@ user& user::menuInput(bool& start)
                 break;
 
             case SDL_KEYDOWN:
-                keyMenu(start, &event.key);
+                keyMenu(start, event.key);
                 break;
 
             default:
@@ -726,6 +561,9 @@ user& user::logic(thing& enemy, points& point)
 {
 /*
 * user::logic push user when outside of SCREEN_WIDTH and SCREEN_HEIGHT and delete bullets when outside of the window
+*
+* Postcondition player's x and y are inside the screen
+* Postcondition all bullets are updated
 */
     // Remember [x, y] where y is upside down
     if (x < 0)
@@ -757,7 +595,8 @@ user& user::logic(thing& enemy, points& point)
             currentBullet = nullptr;
         }
     }
-
+    
+    //Erasing in previous for range loop did not work
     for(auto& currentBullet : bullets)
     {
         if(currentBullet == nullptr)
@@ -772,7 +611,7 @@ user& user::logic(thing& enemy, points& point)
 int user::show()
 {
 /*
-* user::show show user, healthDiplay and bullets or call playerDeath 
+* user::show show user, healthDiplay and bullets. Call playerDeath if health is less than zero
 */
     if(health > 0)
     {
@@ -790,48 +629,41 @@ int user::show()
         playerDeath();
     }
     
-    return health > 0;
+    return true;
 }
 
 void user::playerDeath()
 {
 /*
-* user::playerDeath make death screen and exit game if health is less than or equal to zero  
+* user::playerDeath make a death screen and exit  
 */
-    if(health <= 0)
-    {
-        thing deathImage(0, 0, appPointer->SCREEN_WIDTH, appPointer->SCREEN_HEIGHT, 10, 0, "images/Death.jpg", appPointer);
+    thing deathImage(0, 0, appPointer->SCREEN_WIDTH, appPointer->SCREEN_HEIGHT, 10, 0, "images/Death.jpg");
 
-        deathImage.show();
+    deathImage.show();
 
-        appPointer->showVisuals();
+    appPointer->showVisuals();
 
-        SDL_Delay(3000);
+    SDL_Delay(3000);
 
-        exit(0);
-    }
-}
-
-inline int user::getDirection() const 
-{
-    return direction;
+    exit(0);
 }
 
 
 
-enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
- : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
+enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
 * enemys::enemys construct enemys with thing constructor 
-* Pre and postconditions are taken care of by thing constructor 
 */
 }
 
 enemys& enemys::spawnEnemys()
 {
 /*
-* enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed 
+* enemys::spawnEnemys if the spawn timer is up then spawn a enemy at SCREEN_WIDTH at random SCREEN_HEIGHT y value with a random speed
+*
+* Postcondition enemy is fairly random  
 */
     if(enemySpawnTimer <= 0 && health <= 0)
     {
@@ -860,6 +692,11 @@ enemys& enemys::didEnemyKill(user& player)
 {
 /*
 * enemys::didEnemyKill take one health from player and make them use the sad texture if health is not zero and then put at a invalid x value 
+*
+* Precondition make sure health is greater than zero 
+*
+* Postcondition set health to zero and remove from screen to prevent player taking extra damage
+* Postcondition remove some health from player
 */
     if(collision(player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h) && health > 0)
     {
@@ -874,9 +711,14 @@ enemys& enemys::didEnemyKill(user& player)
 void enemys::makeEnd(int& levelOne)
 {
 /*
-* enemys::makeEnd create the secret end with the enemy 
+* enemys::makeEnd create the end of the game with secret image 
+*
+* Precondition present renderer before pausing game
+*
+* Postcondition enemy is on screen when stoping game
+* Postcondition set levelOne the one 
 */
-    //Add image
+    //Use secret image here 
     speed = 1;
     levelOne = 1;
 
@@ -884,13 +726,13 @@ void enemys::makeEnd(int& levelOne)
 
     appPointer->showVisuals();
 
-    SDL_Delay(60000);
+    SDL_Delay(3000);
 }
 
 enemys& enemys::scaleDifficulty(const counter& playerScore)
 {
 /*
-* enemys::scaleDifficulty Increase the speed range of the enemy based on the players score
+* enemys::scaleDifficulty increase enemy diffculty as playerScore get higher
 */
     if(playerScore.count() > 200)
     {
@@ -908,19 +750,20 @@ enemys& enemys::scaleDifficulty(const counter& playerScore)
 
 
 
-points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer)
- : thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+ : thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
 * points::points construct a points with the thing constructor
-* pre and postconditions are handled by thing constructor 
 */
 }
 
 points& points::initPoints()
 {
 /*
-* points::initPoints spawn point at a random point if it has no health and keep in the bounds of SCREEN_WIDTH and SCREEN_HEIGHT
+* points::initPoints randomly spawn a point somewhere on screen 
+*
+* Postcondition point position is fairly random
 */
     if (health > 0)
     {
@@ -946,32 +789,28 @@ points& points::initPoints()
 points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScore)
 {
 /*
-* points::didYouGetPoints detect collision of bullet and player and handle them 
+* points::didYouGetPoints detect collisions with point and update other objects accordingly 
+*
 */
     auto playerPointCollision = std::async(std::launch::async, collision, player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h);
     auto bulletPointCollision = std::async(std::launch::async, collision, bullet.getX(), bullet.getY(), bullet.getW(), bullet.getH(), x, y, w, h);
 
-    if(playerPointCollision.get() && health != 0)
+    if(health != 0 && playerPointCollision.get())
     {
-        if(health > player.getHealth())
+        if(health > player.getHealth() && isHealth)
         {
 	        int randomNum = rand() % 2;
 
-	        if(randomNum && isHealth)
+	        if(randomNum)
 	        {
                 player.minusHealth(-1);
 	        }
-
         }
-        else
-        {
-            playerScore++;
-        }
-
+        
         health = 0;
         playerScore++;
     }
-    else if(bulletPointCollision.get() && bullet.getHealth() != 0 && health != 0 && !isHealth)
+    else if(bulletPointCollision.get() && bullet.getHealth() > 0 && health > 0 && !isHealth)
     {
         bullet.minusHealth(-1);
         isHealth = true;
@@ -983,27 +822,26 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
 
 
 
-bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer) 
-: thing(ix, iy, iw, ih, ihealth, ispeed, path, iappPointer)
+bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path) 
+: thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
 * bulletClass::bulletClass construct a valid bulletClass
-* thing constructor handles pre and postconditions
 */
 };
 
 bulletClass& bulletClass::logic(const user& player)
 {
 /*
-* bulletClass::logic move bulletClass based on player direction and set health to zero if off screen 
+* bulletClass::logic move bulletClass based on player direction and use thing::logic 
 */
-    if(player.getDirection() == 1)
+    if(player.getDirection() == directions::up)
         y -= speed;
-    else if(player.getDirection() == 2)
+    else if(player.getDirection() == directions::down)
         y += speed;
-    else if(player.getDirection() == 3)
+    else if(player.getDirection() == directions::left)
         x -= speed;
-    else if(player.getDirection() == 4)
+    else if(player.getDirection() == directions::right)
         x += speed;
 
     thing::logic();
@@ -1014,9 +852,11 @@ bulletClass& bulletClass::logic(const user& player)
 inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore)
 {
 /*
-* bulletClass::didBulletHit check if bullet colides with enemy and set enemy health to zero if true then update counter 
+* bulletClass::didBulletHit check bullet collision with enemy and update accordingly
+*
+* Precondition enemy and bullet health are greater than zero
 */
-    if(collision(x, y, w, h, enemy.getX(), enemy.getY(), enemy.getW(), enemy.getH()) && health != 0 && enemy.getHealth() != 0)
+    if(collision(x, y, w, h, enemy.getX(), enemy.getY(), enemy.getW(), enemy.getH()) && health > 0 && enemy.getHealth() > 0)
     {
         enemy.setHealth(0);
         enemy.removeFromScreen();
@@ -1032,7 +872,7 @@ inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore
 healthDisplay::healthDisplay(std::string full, std::string half, std::string critical, App& app)
 {
 /*
-* healthDisplay::healthDisplay construct a health display with 3 textures  
+* healthDisplay::healthDisplay construct healthDisplay  
 */
     healthImages["full"] = Image(full, app, 0, 0, 100, 100);
     healthImages["half"] = Image(half, app, 0, 0, 100, 100);

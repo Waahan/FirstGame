@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <climits>
 #include <future>
 #include <ostream>
 #include <memory>
@@ -72,6 +71,8 @@ class Image
 
     Image(Image&& moveFromImage);
     Image& operator=(Image&& moveFromImage);
+    
+    ~Image() = default;
 
     SDL_Texture* getImageTexture() const;
     const SDL_Rect& getCurrentImageSrc() const { return images[currentImageNum]; }
@@ -87,18 +88,16 @@ class Image
 
     private:
     SDL_Pointer<SDL_Texture, SDL_DestroyTexture> imageTexture;
-    
-    std::vector<SDL_Rect> images;
-    
+    std::vector<SDL_Rect> images;    
     int currentImageNum = 0;
 };
+
+enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet, none};
 
 class Messages
 {
     public:
-    enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet, none};
-    
-    explicit Messages(std::string message, int x, int y, int w, int h, App* app, Messages::color newColor = Messages::color::none);
+    explicit Messages(std::string message, int x, int y, int w, int h, App* app, color newColor = color::none);
     
     Messages(const Messages& copyFromMessage) = delete;
     Messages& operator=(const Messages& copyFromMessage) = delete;
@@ -106,13 +105,16 @@ class Messages
     Messages(Messages&& moveFromMessage);
     Messages& operator=(Messages&& moveFromMessage);
 
-    Messages& newMessage(std::string message = "invalidMessage", int x = 2345, int y = 2345, int w = 0, int h = 0, Messages::color newColor = Messages::color::none);
+    ~Messages() = default;
+
+    Messages& newMessage(std::string message = "invalidMessage", int x = 2345, int y = 2345, int w = 0, int h = 0, color newColor = color::none);
     
     Messages& drawMessage();
 
-    Messages& colorToSDLColor(SDL_Color& messageColor, Messages::color newColor);
+    void colorToSDLColor(SDL_Color& messageColor, color newColor);
     Messages& rainbowColorSwitch();
 
+    //Move out of Messages soon
     const SDL_Color White = {255, 255, 255};
     const SDL_Color Red = {255, 0, 0};
     const SDL_Color Orange = {255, 165, 0};
@@ -123,6 +125,8 @@ class Messages
     const SDL_Color Violet = {238, 130, 238};
 
     private:
+    Messages& nextColor();
+
     SDL_Pointer<TTF_Font, TTF_CloseFont> font;
     SDL_Pointer<SDL_Surface, SDL_FreeSurface> surfaceMessage;
     SDL_Pointer<SDL_Texture, SDL_DestroyTexture> Message;
@@ -131,8 +135,6 @@ class Messages
     SDL_Rect Message_rect;
     color currentColor;
     App* appPointer = nullptr;
-    
-    Messages& nextColor();
 };
 
 class audio
@@ -145,9 +147,11 @@ class audio
 
     audio(audio&& moveFromAudio);
     audio& operator=(audio&& moveFromAudio);
+    
+    ~audio() = default;
 
     inline audio& play(int loops = 0);
-    static inline void stopAllMusic() noexcept;
+    static inline void stopAllMusic();
 
     private:
     SDL_Pointer<Mix_Music, Mix_FreeMusic> currentMusic;

@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <climits>
 #include <future>
 
 #include <SDL2/SDL.h>
@@ -22,9 +21,11 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
 /*
  * App::App init window, renderer and libraries 
  * 
- * pre and postconditions:
- * 
  * Precondition SCREEN_WIDTH and SCREEN_HEIGHT must be greater than zero
+ *
+ * Postcondition all SDL libraries init functions are called
+ * Postcondition renderer, window, and window icon are created
+ * Postcondition SCREEN_WIDTH and SCREEN_HEIGHT are initalized
 */
     if(SCREEN_WIDTH <= 0 || SCREEN_HEIGHT <= 0)
     {
@@ -100,7 +101,7 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
 }
 
 App::App(App&& moveFromApp)
- : SCREEN_WIDTH{std::move(moveFromApp.SCREEN_WIDTH)}, SCREEN_HEIGHT{std::move(moveFromApp.SCREEN_HEIGHT)}, 
+ : SCREEN_WIDTH{moveFromApp.SCREEN_WIDTH}, SCREEN_HEIGHT{moveFromApp.SCREEN_HEIGHT}, 
  window{std::move(moveFromApp.window)}, renderer{std::move(moveFromApp.renderer)}, windowIcon{std::move(moveFromApp.windowIcon)}
 {
 }
@@ -120,11 +121,9 @@ App& App::operator=(App&& moveFromApp)
 App::~App()
 {
 /*
- * App::~App quit libraries and destroy window and renderer
+ * App::~App quit libraries 
  * 
- * pre and postconditions:
- *
- * Postcondition renderer and window pointers should be NULL to avoid errors
+ * Postcondition all libraries close and quit functions are called
 */
     Mix_CloseAudio();    
     Mix_Quit();
@@ -138,8 +137,6 @@ SDL_Texture* App::loadImages(std::string imageFile)
 /*
  * App::loadImage return a SDL_Texture pointer
  * 
- * pre and postconditions:
- *
  * Postcondition return a valid SDL_Texture pointer
 */
     SDL_Texture* Image = Image = IMG_LoadTexture(renderer.get(), imageFile.c_str());
@@ -157,8 +154,6 @@ App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
 /*
  * App::imagePos render image onto the window
  *
- * pre and postconditions:
- *
  * Precondition image is not NULL
  * Precondition w and h must be not be less than or equal to 0
 */
@@ -171,12 +166,7 @@ App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
         std::cerr << "width and height can not be less than or equal to 0. App::imagePos" << std::endl;
     }
 
-    SDL_Rect dest;
-
-    dest.x = x;
-    dest.y = y;
-    dest.w = w;
-    dest.h = h;
+    SDL_Rect dest{x, y, w, h};
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
@@ -192,8 +182,6 @@ App& App::imagePos(SDL_Texture* image, int x, int y)
 /*
  * App::imagePos renders image to window
  *
- * pre and postconditions:
- *
  * Precondition image is not NULL
 */
     if(!image)
@@ -201,13 +189,10 @@ App& App::imagePos(SDL_Texture* image, int x, int y)
         std::cerr << "image can not be NULL" << std::endl;
     }
 
-    SDL_Rect dest;
-
-    dest.x = x;
-    dest.y = y;
+    SDL_Rect dest{x, y};
 
     //Query the attributes of a texture
-    //Takes image, Format(just set to NULL), Access(Also set to NULL), width and height
+    //Takes image, Format, Access, width and height
     if(SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h) < 0)
     {
         std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
@@ -224,11 +209,10 @@ App& App::imagePos(SDL_Texture* image, int x, int y)
 
 App& App::imagePos(Image& image, int x, int y, int w, int h)
 {
-    SDL_Rect dest;
-    dest.x = x;
-    dest.y = y;
-    dest.w = w;
-    dest.h = h;
+/*
+* App::imagePos take a Image an render it to screen 
+*/
+    SDL_Rect dest{x, y, w, h};
     
     if(h == 0 || w == 0)
     {
@@ -270,23 +254,30 @@ void App::showVisuals() const
 Image::Image(std::string path, App& app, int x, int y, int w, int h)
 : imageTexture{app.loadImages(path.c_str())}
 {
-    SDL_Rect temp;
-    temp.x = x;
-    temp.y = y;
-    temp.w = w;
-    temp.h = h;
-
+/*
+* Image::Image construct an image with one frame and a texture
+*/
+    SDL_Rect temp{x, y, w, h};
+    
     images.push_back(temp);    
 }
 
 Image::Image(Image&& moveFromImage)
  : imageTexture{std::move(moveFromImage.imageTexture)}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
 {
+/*
+* Image::Image move image
+*/
     moveFromImage.currentImageNum = 0;
 }
 
 Image& Image::operator=(Image&& moveFromImage)
 {
+/*
+* Image::operator= move image to an existing image
+*
+* Precondition no self assigment
+*/
     if(this != &moveFromImage)
     {
         imageTexture = std::move(moveFromImage.imageTexture);
@@ -301,6 +292,11 @@ Image& Image::operator=(Image&& moveFromImage)
 
 SDL_Texture* Image::getImageTexture() const
 {
+/*
+* Image::getImageTexture return Image's texture
+*
+* Postcondition does not return a invalid texture without warning
+*/
     if(imageTexture)
         return imageTexture.get();
 
@@ -311,6 +307,11 @@ SDL_Texture* Image::getImageTexture() const
 
 Image& Image::operator++(int)
 {
+/*
+* Image::operator++(int) go to next frame if there is one. If not go back to zero
+*
+* Postcondition currentImageNum does not go out of vectors range
+*/
     currentImageNum < images.size()-1 ? currentImageNum++ : currentImageNum = 0;
 
     return *this;
@@ -318,6 +319,9 @@ Image& Image::operator++(int)
 
 inline Image& Image::operator+=(SDL_Rect&& addFrame)
 {
+/*
+* Image::operator+= add SDL_Rect to Image
+*/
     images.push_back(addFrame);
     
     return *this;
@@ -325,6 +329,11 @@ inline Image& Image::operator+=(SDL_Rect&& addFrame)
 
 Image& Image::operator+=(std::initializer_list<int> addFrames)
 {
+/*
+* Image::operator+= add frames to Image form ints
+*
+* Precondition addFrames must be divisable by 4
+*/
     if(addFrames.size() % 4)
     {
         std::cerr << "addFrames must be divisable by 4" << std::endl;
@@ -344,6 +353,9 @@ Image& Image::operator+=(std::initializer_list<int> addFrames)
 
 inline Image& Image::reset()
 {
+/*
+* Image::reset set currentImageNum to zero from whatever value it was before
+*/
     currentImageNum = 0;
 
     return *this;
@@ -351,7 +363,7 @@ inline Image& Image::reset()
 
 
 
-Messages::Messages(std::string message, int x, int y, int w, int h, App* app, Messages::color newColor)
+Messages::Messages(std::string message, int x, int y, int w, int h, App* app, color newColor)
  : font(TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24)), 
  surfaceMessage(nullptr), 
  Message(nullptr)
@@ -359,10 +371,8 @@ Messages::Messages(std::string message, int x, int y, int w, int h, App* app, Me
 /*
  * Messages::Messages open a font for font pointer and make a surface and texture for renderering to the screen
  * 
- * pre and postconditions:
- *
- * w and h are not less than or equal to zero
- * app is not NULL
+ * Precondition w and h are not less than or equal to zero
+ * Precondition app is not NULL
 */
     if(!app)
     {
@@ -414,6 +424,9 @@ Messages::Messages(Messages&& moveFromMessage)
  : font{std::move(moveFromMessage.font)}, 
  surfaceMessage{std::move(moveFromMessage.surfaceMessage)}, Message{std::move(moveFromMessage.Message)}
 {
+/*
+* Messages::Messages move moveFromMessage to new message
+*/
     Message_rect.x = moveFromMessage.Message_rect.x;
     Message_rect.y = moveFromMessage.Message_rect.y;
     Message_rect.w = moveFromMessage.Message_rect.w;
@@ -427,6 +440,11 @@ Messages::Messages(Messages&& moveFromMessage)
 
 Messages& Messages::operator=(Messages&& moveFromMessage)
 {
+/*
+* Messages::operator= move a message to an existing message
+*
+* Precondition no self assigment
+*/
     if(this != &moveFromMessage)
     {
         font = std::move(moveFromMessage.font);
@@ -447,15 +465,14 @@ Messages& Messages::operator=(Messages&& moveFromMessage)
     return *this;
 }
 
-Messages& Messages::newMessage(std::string message, int x, int y, int w, int h, Messages::color newColor)
+Messages& Messages::newMessage(std::string message, int x, int y, int w, int h, color newColor)
 {
 /*
  * Messages::newMessage creates a new message from x y w h and message 
  * 
- * pre and postconditions:
- *
  * Precondition w and h can not be less than zero
  * Precondition set message to current message if it is invalidMessage
+ * Precondition set newColor to currentColor if color is color::none
 */
     if(message == "invalidMessage")
     {
@@ -529,8 +546,12 @@ Messages& Messages::drawMessage()
     return *this;
 }
 
-Messages& Messages::colorToSDLColor(SDL_Color& messageColor, Messages::color newColor)
+//Make helper function soon
+void Messages::colorToSDLColor(SDL_Color& messageColor, color newColor)
 {
+/*
+* Messages::colorToSDLColor set messageColor to newColor
+*/
     switch (newColor)
     {
         case color::red:
@@ -565,12 +586,13 @@ Messages& Messages::colorToSDLColor(SDL_Color& messageColor, Messages::color new
             messageColor = White;
             break;
     }
-    
-    return *this;
 }
 
 Messages& Messages::nextColor()
 {
+/*
+* Messages::nextColor go to next color in rainbow order
+*/
     switch(currentColor)
     {
         case color::red:
@@ -611,6 +633,9 @@ Messages& Messages::nextColor()
 
 Messages& Messages::rainbowColorSwitch()
 {
+/*
+* Messages::rainbowColorSwitch make message color the next color in the rainbow
+*/
     nextColor();
 
     SDL_Color messageColor;
@@ -639,6 +664,11 @@ Messages& Messages::rainbowColorSwitch()
 audio::audio(std::string path)
  : currentMusic{Mix_LoadMUS(path.c_str())}
 {
+/*
+* audio::audio load audio from path
+*
+* Postcondition currentMusic is vaild
+*/
     if(!currentMusic)
     {
         std::cerr << "Mix_LoadMUS failed: " << Mix_GetError() << std::endl;
@@ -648,10 +678,18 @@ audio::audio(std::string path)
 audio::audio(audio&& moveFromAudio)
  : currentMusic{std::move(moveFromAudio.currentMusic)}
 {
+/*
+* audio::audio move moveFromAudio.currentMusic to new audio
+*/
 }
 
 audio& audio::operator=(audio&& moveFromAudio)
 {
+/*
+* audio::operator= move audio to existing audio
+*
+* Precondition no self assigment
+*/
     if(this != &moveFromAudio)
     {
         currentMusic = std::move(moveFromAudio.currentMusic);
@@ -662,6 +700,9 @@ audio& audio::operator=(audio&& moveFromAudio)
 
 inline audio& audio::play(int loops)
 {
+/*
+* audio::play play music(negative to play forever)
+*/
     if(Mix_PlayMusic(currentMusic.get(), loops) < 0)
     {
         std::cerr << "Mix_PlayMusic failed: " << Mix_GetError() << std::endl;
@@ -670,7 +711,10 @@ inline audio& audio::play(int loops)
     return *this;
 }
 
-static inline void stopAllMusic() noexcept
+inline void audio::stopAllMusic()
 {
+/*
+* audio stopAllMusic stop all currently playing music
+*/
     Mix_HaltMusic();
 }

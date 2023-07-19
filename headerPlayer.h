@@ -6,7 +6,6 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
-#include <climits>
 #include <future>
 
 #include <SDL2/SDL.h>
@@ -27,7 +26,7 @@ class healthDisplay;
 class thing
 {
     public:
-    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
+    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
 
     thing(const thing& copyFromThing) = delete;
     thing& operator=(const thing& copyFromThing) = delete;
@@ -35,15 +34,17 @@ class thing
     thing(thing&& moveFromThing);
     thing& operator=(thing&& moveFromThing);
 
+    virtual ~thing() = default;
+
     virtual thing& logic();
     virtual int show();
 
-    inline int getX() const;
-    inline int getY() const;
-    inline int getW() const;
-    inline int getH() const;
-    inline int getHealth() const;
-    inline int getSpeed() const;
+    inline int getX() const{ return x; }
+    inline int getY() const{ return y; }
+    inline int getW() const{ return w; } 
+    inline int getH() const{ return h; }
+    inline int getHealth() const{ return health; }
+    inline int getSpeed() const{ return speed; }
 
     inline thing& setX(int setX);
     inline thing& setY(int setY);
@@ -51,6 +52,7 @@ class thing
     inline thing& setH(int setH);
     inline thing& setSpeed(int setSpeed) noexcept;
     inline thing& setHealth(int setHealth);
+    static void setApp(App* app){ appPointer = app; }
 
     inline thing& removeFromScreen();
     inline thing& minusHealth(int subtractNum);
@@ -65,9 +67,8 @@ class thing
     
     std::string currentImage = "default";
     std::unordered_map<std::string, Image> Images;
-
-    //Mabe make this static
-    App* appPointer = NULL;
+    
+    static App* appPointer;
 };
 
 class counter
@@ -96,10 +97,12 @@ class counter
     std::string stringCount;
 };
 
+enum class directions: unsigned char {up, down, left, right, none};
+
 class user : public thing
 {
     public:
-    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer, int iback, int idirection);
+    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, int iback);
 
     user(const user& copyFromUser) = delete;
     user& operator=(const user& copyFromUser) = delete;
@@ -109,7 +112,7 @@ class user : public thing
 
     ~user();
 
-    user& doKeyDown(SDL_KeyboardEvent *event, bool DownUp);
+    user& doKeyDown(const SDL_KeyboardEvent& event, bool DownUp);
     user& doButtonDown(const SDL_Event& event, bool DownOrUp);
 
     user& doAxisMove(const SDL_Event& event);
@@ -117,24 +120,25 @@ class user : public thing
 
     user& input();
 
-    user& keyMenu(bool& start, SDL_KeyboardEvent *event);
+    user& keyMenu(bool& start, const SDL_KeyboardEvent& event);
     user& menuInput(bool& start);
 
     user& logic(thing& enemy, points& point);
 
     int show() override;
-    void playerDeath();
 
-    inline int getDirection() const;
+    directions getDirection() const{ return direction; };
 
     counter playerScore;
 
     private:
-    enum class directions: unsigned char { up, down, left, right, none};
-
-    //Change direction to directions ^
-    char direction;
+    void playerDeath();
+    
+    directions direction;
     char back;
+
+    bool animationCanCancel = true;
+
     bool playerUp = false;
     bool playerDown = false;
     bool playerLeft = false;
@@ -154,13 +158,15 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
+    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
 
     enemys(const enemys& copyFromEnemy) = delete;
     enemys& operator=(const enemys& copyFromEnemy) = delete;
 
     enemys(enemys&& moveFromEnemy) = delete;
     enemys& operator=(enemys&& moveFromEnemy) = delete;
+    
+    ~enemys() = default;
 
     enemys& spawnEnemys();
     enemys& didEnemyKill(user& player);
@@ -176,13 +182,15 @@ class enemys : public thing
 class points : public thing
 {
     public:
-    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
+    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
     
     points(const points& copyFromPoint) = delete;
     points& operator=(const points& copyFromPoint) = delete;
     
     points(points&& moveFromPoint) = delete;
     points& operator=(points&& moveFromPoint) = delete;
+    
+    ~points() = default;
 
     points& initPoints();
     points& didYouGetPoints(user& player, thing& bullet, counter& playerScore);
@@ -197,13 +205,15 @@ class bulletClass : public thing
     friend user;
 
     public:
-    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, App* iappPointer);
+    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
 
     bulletClass(const bulletClass& copyFromBullet) = delete;   
     bulletClass& operator=(const bulletClass& copyFromBullet) = delete;
 
     bulletClass(bulletClass&& moveFromBullet) = delete;
     bulletClass& operator=(bulletClass&& moveFromBullet) = delete;
+
+    ~bulletClass() = default;
 
     bulletClass& logic(const user& player);
     inline bulletClass& didBulletHit(thing& enemy, counter& playerScore);
@@ -219,6 +229,8 @@ class healthDisplay
 
     healthDisplay(healthDisplay&& moveFromHealthDisplay) = delete;
     healthDisplay& operator=(healthDisplay&& moveFromHealthDisplay) = delete;
+
+    ~healthDisplay() = default;
 
     void healthDisplayShow(const user& player, App& app);
     
