@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <future>
 
@@ -300,32 +301,22 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string 
 */
     playerHealth.reset(new healthDisplay{"images/Health1.jpg", "images/Health2.jpg", "images/Health3.jpg", *appPointer});
 
-    if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
+    addControllerSupport();    
+ 
+    if(SDL_GetNumTouchDevices() > 0)
     {
-        useController = true;
+        useTouchScreen = true;
 
-        gameController.reset(SDL_GameControllerOpen(0));
-
-        joystickOne.reset(SDL_GameControllerGetJoystick(gameController.get()));
-
-        if(!joystickOne)
+        if(SDL_GetTouchDevice(0) == 0)
         {
-            std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
+            std::cerr << "SDL_GetTouchDevice failed: " << SDL_GetError() << std::endl;
         }
-            
-        if(!gameController)
-        {
-            std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
-        }
-    
-        std::cout << "Found game controller: " << SDL_GameControllerName(gameController.get()) << std::endl;
-        std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
-        std::cout << "joystick axes num: " << SDL_JoystickNumAxes(joystickOne.get()) << std::endl;
-        std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne.get()) << std::endl;
-        std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne.get()) << std::endl;
-        std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne.get()) << std::endl;
 
-        SDL_JoystickEventState(SDL_ENABLE);
+        touchDeviceID = SDL_GetTouchDevice(0);
+
+        std::cout << "Found touch device" << std::endl;
+        std::cout << "Touch devices: " << SDL_GetNumTouchDevices() << std::endl;
+        std::cout << "Fingers down: " << SDL_GetNumTouchFingers(touchDeviceID) << std::endl; 
     }
 }
 
@@ -354,21 +345,25 @@ user& user::doKeyDown(const SDL_KeyboardEvent& event, bool DownUp)
     switch(event.keysym.scancode)
     {
         case SDL_SCANCODE_UP:
+            [[fallthrough]];
         case SDL_SCANCODE_W:
             playerUp = DownUp;
             break;
         
         case SDL_SCANCODE_DOWN:
+            [[fallthrough]];
         case SDL_SCANCODE_S:
             playerDown = DownUp;
             break;
     
         case SDL_SCANCODE_LEFT:
+            [[fallthrough]];
         case SDL_SCANCODE_A:
             playerLeft = DownUp;
             break;
 
         case SDL_SCANCODE_RIGHT:
+            [[fallthrough]];
         case SDL_SCANCODE_D:
             playerRight = DownUp;
             break;
@@ -437,6 +432,118 @@ user& user::doBallMove(const SDL_Event& event)
     return *this;
 }
 
+user& user::addControllerSupport()
+{
+/*
+ * user::addControllerSupport opens controller and joystick and enables joystick events 
+*/
+    if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
+    {
+        useController = true;
+
+        gameController.reset(SDL_GameControllerOpen(0));
+
+        joystickOne.reset(SDL_GameControllerGetJoystick(gameController.get()));
+
+        if(!joystickOne)
+        {
+            std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
+        }
+
+        if(!gameController)
+        {
+            std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
+        }
+
+        std::cout << "Found game controller: " << SDL_GameControllerName(gameController.get()) << std::endl;
+        std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
+        std::cout << "joystick axes num: " << SDL_JoystickNumAxes(joystickOne.get()) << std::endl;
+        std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne.get()) << std::endl;
+        std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne.get()) << std::endl;
+        std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne.get()) << std::endl;
+
+        SDL_JoystickEventState(SDL_ENABLE);
+    }
+
+    return *this;
+}
+
+user& user::removeControllerSupport()
+{
+/*
+ * user::removeControllerSupport frees controller and joystick pointer and sets joystick events to ignore
+*/
+    useController = false;
+
+    gameController.reset();
+    joystickOne.reset();
+
+    SDL_JoystickEventState(SDL_IGNORE);
+    
+    return *this;
+}
+
+user& user::doFingerDown(const SDL_Event& event, bool upOrDown)
+{
+/*
+* user::doFingerDown change varibles based on touch event varibles
+*/
+    //To get the touch coordinates in screen coordinates simply multiply the touch coordinates by the screen resolution. 
+
+    SDL_TouchID currentTouchDeviceID = event.tfinger.touchId;
+    SDL_FingerID currentFingerID = event.tfinger.fingerId;
+
+    //From 0 to 1
+    float touchX = event.tfinger.x;
+    float touchY = event.tfinger.y;
+    float pressure = event.tfinger.pressure;
+    
+    return *this;
+}
+
+user& user::doFingerMove(const SDL_Event& event)
+{
+/*
+* user::doFingerMove change varibles based on finger move
+*/
+    //To get the touch coordinates in screen coordinates simply multiply the touch coordinates by the screen resolution. 
+
+    SDL_TouchID currentTouchDeviceID = event.tfinger.touchId;
+    SDL_FingerID currentFingerID = event.tfinger.fingerId;
+
+    //From 0 to 1
+    float touchX = event.tfinger.x;
+    float touchY = event.tfinger.y;
+    float pressure = event.tfinger.pressure;
+    
+    //From -1 to 1
+    float xChange = event.tfinger.dx;
+    float yChange = event.tfinger.dy;
+    
+    return *this;
+}
+
+user& user::doMultiGesture(const SDL_Event& event)
+{
+/*
+ * user::doMultiGesture handle pinch/rotate/swipe gestures
+*/
+    SDL_TouchID currentTouchDeviceID = event.mgesture.touchId;
+    
+    float gestureX = event.mgesture.x;
+    float gestureY = event.mgesture.y;
+
+    //the amount that the fingers rotated during this motion.
+    float rotationFingers = event.mgesture.dTheta;
+    
+    //the amount that the fingers pinched during this motion.
+    float pinchFingers = event.mgesture.dDist;
+
+    short fingersTotal = event.mgesture.numFingers;
+
+    return *this;
+}
+
 user& user::input()
 {
 /*
@@ -444,22 +551,22 @@ user& user::input()
 */
     //event types at https://wiki.libsdl.org/SDL2/SDL_EventType
     SDL_Event event;
-    
+
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
         {
-	        case SDL_QUIT:
+	    case SDL_QUIT:
                 exit(0);
-		        break;
+	        break;
 
-	        case SDL_KEYDOWN:
-		        doKeyDown(event.key, true);
-		        break;
+	    case SDL_KEYDOWN:
+	        doKeyDown(event.key, true);
+	        break;
 
-	        case SDL_KEYUP:
-		        doKeyDown(event.key, false);
-		        break;
+	    case SDL_KEYUP:
+    	        doKeyDown(event.key, false);
+		break;
 
             case SDL_JOYAXISMOTION:
                 doAxisMove(event);
@@ -476,9 +583,33 @@ user& user::input()
             case SDL_CONTROLLERBUTTONUP:
                 doButtonDown(event, false);
                 break;
+            
+            case SDL_JOYDEVICEADDED:
+                addControllerSupport();
+                break;
 
-	        default:
-		        break;
+            case SDL_JOYDEVICEREMOVED:
+                removeControllerSupport();
+                break;
+
+            case SDL_FINGERDOWN:
+                doFingerDown(event, true);
+                break;
+
+            case SDL_FINGERMOTION:
+                doFingerMove(event);
+                break;
+
+            case SDL_FINGERUP:
+                doFingerDown(event, false);
+                break;
+            
+            case SDL_MULTIGESTURE:
+                doMultiGesture(event);
+                break;            
+
+	    default:
+		break;
 	    }
     }
     
@@ -708,7 +839,7 @@ enemys& enemys::didEnemyKill(user& player)
     return *this;
 }
 
-void enemys::makeEnd(int& levelOne)
+void enemys::makeEnd(const user& player)
 {
 /*
 * enemys::makeEnd create the end of the game with secret image 
@@ -718,15 +849,18 @@ void enemys::makeEnd(int& levelOne)
 * Postcondition enemy is on screen when stoping game
 * Postcondition set levelOne the one 
 */
-    //Use secret image here 
-    speed = 1;
-    levelOne = 1;
+    if(level == 0 && player.playerScore.count() > 400)
+    {
+        //Use secret image here 
+        level = 1;
+        speed = 1;
 
-    appPointer->imagePos(Images[currentImage], 100, 100, w, h);
+        appPointer->imagePos(Images[currentImage], 100, 100, w, h);
 
-    appPointer->showVisuals();
+        appPointer->showVisuals();
 
-    SDL_Delay(3000);
+        SDL_Delay(3000);
+    }
 }
 
 enemys& enemys::scaleDifficulty(const counter& playerScore)
@@ -889,11 +1023,11 @@ void healthDisplay::healthDisplayShow(const user& player, App& app)
         case 3:
             currentHealth = "full";
             break;
-	    case 2:
-	        currentHealth = "half";
+        case 2:
+	    currentHealth = "half";
             break;
-	    case 1:
-	        currentHealth = "critical";
+	case 1:
+            currentHealth = "critical";
             break;
     }
     

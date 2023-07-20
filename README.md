@@ -1,7 +1,8 @@
 First Game
 ----------
 
-My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. I try to use camel case, RAII and 4 space indentation in the project as much as possible. 
+My first project in c++. based off https://www.parallelrealities.co.uk/tutorials/. I try to use camel case, RAII and 4 space indentation in the project as much as possible.
+Errors are reported using std::cerr. There are no exceptions other than the standard library ones. 
 
 To use build you should just have to download the dependencies below. And cmake will do the rest.
 
@@ -20,17 +21,17 @@ libsdl2-mixer-dev
 Installing on linux
 -------------------
 
-	git clone https://github.com/Waahan/FirstGame
-	cd FirstGame
-	mkdir build
-	cd build
-	mkdir images
-	cd images
-	cp ../../images/* .
-        cd ..
-	cmake ..
-	make
-	./main
+    git clone https://github.com/Waahan/FirstGame
+    cd FirstGame
+    mkdir build
+    cd build
+    mkdir images
+    cd images
+    cp ../../images/* .
+    cd ..
+    cmake ..
+    make
+    ./main
 
 Thank You
 ---------
