@@ -15,7 +15,7 @@
 App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
  : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT), 
  //https://wiki.libsdl.org/SDL2/SDL_CreateWindow
- window(SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0)), 
+ window(SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE)), 
  renderer(nullptr), windowIcon(SDL_LoadBMP("images/Player.bmp"))
 {
 /*
@@ -97,6 +97,11 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
     if(!renderer)
     {
         std::cerr << "Renderer failed: " << SDL_GetError() << std::endl;
+    }
+
+    if(SDL_RenderSetLogicalSize(renderer.get(), SCREEN_WIDTH, SCREEN_HEIGHT) < 0)
+    {
+        std::cerr << "SDL_RenderSetLogicalSize failed: " << SDL_GetError() << std::endl;
     }
 }
 
@@ -661,8 +666,8 @@ Messages& Messages::rainbowColorSwitch()
 
 
 
-audio::audio(std::string path)
- : currentMusic{Mix_LoadMUS(path.c_str())}
+audio::audio(std::string path, double iduration)
+ : currentMusic{Mix_LoadMUS(path.c_str())}, duration{iduration} 
 {
 /*
 * audio::audio load audio from path
@@ -707,8 +712,22 @@ inline audio& audio::play(int loops)
     {
         std::cerr << "Mix_PlayMusic failed: " << Mix_GetError() << std::endl;
     }
+
+    start = std::chrono::steady_clock::now();
     
     return *this;
+}
+
+inline bool audio::done()
+{
+/*
+* audio::done find out if music is done using chrono
+*/
+    std::chrono::time_point<std::chrono::steady_clock> currentTime = std::chrono::steady_clock::now();
+
+    std::chrono::duration<double> timeSinceStart = currentTime - start;
+
+    return (timeSinceStart.count() >= duration);
 }
 
 inline void audio::stopAllMusic()

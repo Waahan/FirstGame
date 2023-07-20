@@ -15,10 +15,6 @@
 
 int main(int argc, char* args[])
 {
-    int levelOne = 0;
-    int startTimer = 0;
-    bool start = false;
-
     App app(1280, 720);
 
     thing::setApp(&app);
@@ -35,20 +31,24 @@ int main(int argc, char* args[])
     Messages Title("Sus invaders", 0, 0, 500, 500, &app);
     Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, &app);
     Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, &app, color::red);
-
-    while(!start)
+    
     {
-        app.makeVisuals();
+        int startTimer = 0;
+        bool start = false;
+
+        while(!start)
+        {
+            app.makeVisuals();
 
 	    Start.drawMessage();
-	    Controls.drawMessage();
+            Controls.drawMessage();
 	    Title.drawMessage();
 	
 	    if(startTimer > 100)
 	    {
-	        startTimer = 0;
+                startTimer = 0;
 
-            Title.rainbowColorSwitch();
+                Title.rainbowColorSwitch();
 	    }
 
 	    startTimer++;
@@ -56,49 +56,43 @@ int main(int argc, char* args[])
 	    player.menuInput(start);
 
 	    app.showVisuals();
+        }
     }
 
     while (true)
     {
         app.makeVisuals();
 
-	    background.show();
+	background.show();
 
-	    Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
+	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
 
-	    player.input();
+	player.input();
 
-	    enemy.logic();
-	    player.logic(enemy, point);
+	enemy.logic();
+	player.logic(enemy, point);
 
-	    point.initPoints();
+	point.initPoints();
 
         enemy.spawnEnemys();
 
-	    enemy.scaleDifficulty(player.playerScore);
-	    Score.drawMessage();
+	enemy.scaleDifficulty(player.playerScore);
+	Score.drawMessage();
 
-	    enemy.didEnemyKill(player);
+	enemy.didEnemyKill(player);
 	
-        if(player.playerScore.count() > 400 && levelOne == 0)
-	    {
-	        enemy.makeEnd(levelOne);
-	    }
-	    else if(levelOne == 1)
-	    {   
-	        levelOne += 1;
-	    }
+	enemy.makeEnd(player);
 
-	    enemy.show();
+	enemy.show();
 
         point.show();
 	
-	    player.show();
+	player.show();
 
-	    app.showVisuals();
+	app.showVisuals();
 
         //Delay is in milliseconds so its .10 of a second 
-	    SDL_Delay(10);
+	SDL_Delay(10);
     }
 
     return 0;

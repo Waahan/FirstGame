@@ -2,11 +2,12 @@
 #pragma once
 
 #include <iostream>
+#include <ostream>
 #include <string>
+#include <memory>
 #include <algorithm>
 #include <future>
-#include <ostream>
-#include <memory>
+#include <chrono>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -114,7 +115,6 @@ class Messages
     void colorToSDLColor(SDL_Color& messageColor, color newColor);
     Messages& rainbowColorSwitch();
 
-    //Move out of Messages soon
     const SDL_Color White = {255, 255, 255};
     const SDL_Color Red = {255, 0, 0};
     const SDL_Color Orange = {255, 165, 0};
@@ -140,7 +140,7 @@ class Messages
 class audio
 {
     public:
-    explicit audio(std::string path);
+    explicit audio(std::string path, double iduration);
 
     audio(const audio& copyFromAudio) = delete;
     audio& operator=(const audio& copyFromAudio) = delete;
@@ -151,8 +151,12 @@ class audio
     ~audio() = default;
 
     inline audio& play(int loops = 0);
+    inline bool done();
     static inline void stopAllMusic();
 
     private:
     SDL_Pointer<Mix_Music, Mix_FreeMusic> currentMusic;
+    
+    double duration;
+    std::chrono::time_point<std::chrono::steady_clock> start;
 };

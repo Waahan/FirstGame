@@ -112,12 +112,6 @@ class user : public thing
 
     ~user();
 
-    user& doKeyDown(const SDL_KeyboardEvent& event, bool DownUp);
-    user& doButtonDown(const SDL_Event& event, bool DownOrUp);
-
-    user& doAxisMove(const SDL_Event& event);
-    user& doBallMove(const SDL_Event& event);
-
     user& input();
 
     user& keyMenu(bool& start, const SDL_KeyboardEvent& event);
@@ -144,11 +138,27 @@ class user : public thing
     bool playerLeft = false;
     bool playerRight = false;
     bool playerFired = false;
+    
+    user& doKeyDown(const SDL_KeyboardEvent& event, bool DownUp);
 
     bool useController = false;
     SDL_Pointer<SDL_Joystick, SDL_JoystickClose> joystickOne;
     SDL_Pointer<SDL_GameController, SDL_GameControllerClose> gameController;
-    directions joystickDirection;
+    
+    user& doButtonDown(const SDL_Event& event, bool DownOrUp);
+    user& doAxisMove(const SDL_Event& event);
+    user& doBallMove(const SDL_Event& event);
+    user& addControllerSupport();
+    user& removeControllerSupport();
+
+
+    bool useTouchScreen = false;
+    SDL_TouchID touchDeviceID;
+
+    user& doFingerDown(const SDL_Event& event, bool upOrDown);
+    user& doFingerMove(const SDL_Event& event);
+    user& doMultiGesture(const SDL_Event& event);
+
 
     std::unique_ptr<healthDisplay> playerHealth;
 
@@ -170,13 +180,14 @@ class enemys : public thing
 
     enemys& spawnEnemys();
     enemys& didEnemyKill(user& player);
-    void makeEnd(int& levelOne);
+    void makeEnd(const user& player);
     enemys& scaleDifficulty(const counter& playerScore);
 
     private:
     int minimum = 1;
     int maximum = 15;
     int enemySpawnTimer = 0;
+    int level = 0;
 };
 
 class points : public thing

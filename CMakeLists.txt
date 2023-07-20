@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(first)
+project(first CXX)
 
-#Debug
-#set(CMAKE_BUILD_TYPE Debug)
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+option(DEBUGGING "Compile with debug flags" OFF)
+
+if(DEBUGGING)
+    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-
 find_package(Threads REQUIRED)
 
 find_package(SDL2 REQUIRED)
@@ -51,8 +53,3 @@ find_library(
 
 add_executable(main main.cpp player.cpp visuals.cpp)
 target_link_libraries(main ${SDL2_LIBRARIES} ${SDL_IMAGE_LIB} ${SDL_TTF_LIB} ${SDL_MIX_LIB} Threads::Threads )
-
-#If you are on a different computer than the raspberry pi uncomment and add these lines and comment the target link libraries above 
-#There is also sudo apt-file list libsdl2-image-2.0-0 to get the path 
-#find_package(SDL2_image REQUIRED)
-#target_link_libraries(main ${SDL2_LIBRARIES} SDL2_image::SDL2_image)
