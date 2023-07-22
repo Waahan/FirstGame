@@ -2,8 +2,9 @@
 #pragma once
 
 #include <iostream>
-#include <ostream>
 #include <string>
+#include <string_view>
+#include <vector>
 #include <memory>
 #include <algorithm>
 #include <future>
@@ -43,7 +44,7 @@ class App
 
     ~App();
 
-    SDL_Texture *loadImages(std::string imageFile);
+    SDL_Texture *loadImages(std::string_view imageFile);
     
     App& imagePos(SDL_Texture* image, int x, int y, int w, int h);
     App& imagePos(SDL_Texture* image, int x, int y);
@@ -64,7 +65,7 @@ class App
 class Image
 {
     public:
-    explicit Image(std::string imagePath, App& app, int x, int y, int w, int h);
+    explicit Image(std::string_view imagePath, App& app, int x, int y, int w, int h);
     Image() : imageTexture(nullptr) {}
     
     Image(const Image& copyFromImage) = delete;
@@ -140,7 +141,7 @@ class Messages
 class audio
 {
     public:
-    explicit audio(std::string path, double iduration);
+    explicit audio(std::string_view path, double iduration);
 
     audio(const audio& copyFromAudio) = delete;
     audio& operator=(const audio& copyFromAudio) = delete;
