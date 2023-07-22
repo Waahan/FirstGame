@@ -1,20 +1,24 @@
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include <algorithm>
 #include <future>
+#include <execution>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "headerPlayer.h"
 #include "headerVisuals.h"
 
 App* thing::appPointer;
 
-thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path)
  : x{ix}, y{iy}, w{iw}, h{ih}, health{ihealth}, speed{ispeed}
 {
 /*
@@ -290,7 +294,7 @@ void counter::updateStringCount()
 
 
 
-user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, int iback) 
+user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path, char iback) 
  : thing(ix, iy, iw, ih, ihealth, ispeed, path), back(iback), joystickOne(nullptr), gameController(nullptr)
 {
 /*
@@ -318,6 +322,8 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string 
         std::cout << "Touch devices: " << SDL_GetNumTouchDevices() << std::endl;
         std::cout << "Fingers down: " << SDL_GetNumTouchFingers(touchDeviceID) << std::endl; 
     }
+
+    std::cout << "Tasks: " << std::thread::hardware_concurrency() << std::endl;
 }
 
 user::~user()
@@ -405,11 +411,86 @@ user& user::doAxisMove(const SDL_Event& event)
 */
     //https://www.libsdl.org/release/SDL-1.2.15/docs/html/guideinput.html
     //More axis at https://wiki.libsdl.org/SDL2/SDL_GameControllerAxis
+    //The directions "down" and "right" have positive values here.
+    
+    //-32768 to 32767
+    short value = event.jaxis.value;
 
-    switch(event.jaxis.axis)
+    char axis = event.jaxis.axis; 
+    SDL_JoystickID which = event.jaxis.which;
+    
+    const int ignoreZone = 8000;
+    const int softIgnoreZone = 0;
+
+    playerUp = false;
+    playerDown = false;
+    playerLeft = false;
+    playerRight = false;
+    playerFired = false;
+
+    switch(axis)
     {
         case SDL_CONTROLLER_AXIS_LEFTX:
-            std::cout << "LEFTX" << std::endl;
+            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::right)
+            {
+                playerRight = true;
+               joystickDirection = directions::right;
+            }
+            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::left)
+            {
+                playerLeft = true;
+               joystickDirection = directions::left;
+            }
+            break;
+        
+        case SDL_CONTROLLER_AXIS_RIGHTX:
+            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::right)
+            {
+                playerRight = true;
+               joystickDirection = directions::right;
+            }
+            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::left)
+            {
+                playerLeft = true;
+               joystickDirection = directions::left;
+            }
+            break;
+
+        case SDL_CONTROLLER_AXIS_LEFTY:
+            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::up)
+            {
+                playerDown = true;
+                joystickDirection = directions::up;
+            }
+            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::down)
+            {
+                playerUp = true;
+                joystickDirection = directions::down;
+            }
+            break;
+
+        case SDL_CONTROLLER_AXIS_RIGHTY:
+            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::up)
+            {
+                playerDown = true;
+                joystickDirection = directions::up;
+            }
+            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::down)
+            {
+                playerUp = true;
+                joystickDirection = directions::down;
+            }
+            break;
+        
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+            playerFired = true;
+            break;
+        
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+            playerFired = true;            
+            break;
+
+        default:
             break;
     }
     
@@ -421,14 +502,41 @@ user& user::doBallMove(const SDL_Event& event)
 /*
 * user::doBallMove handle controller ball input
 */
+    //event.jball
+    //https://wiki.libsdl.org/SDL2/SDL_JoyBallEvent
+    return *this;
+}
+
+user& user::doJoyHatMove(const SDL_Event& event)
+{
+/*
+ * user::doJoyHatMove handle joyhat events 
+*/
+    playerUp = false;
+    playerDown = false;
+    playerLeft = false;
+    playerRight = false;
+
     //https://wiki.libsdl.org/SDL2/SDL_JoyHatEvent
     switch(event.jhat.value)
     {
         case SDL_HAT_UP:
-            std::cout << "hat up" << std::endl;
+            playerUp = true;
+            break;
+        
+        case SDL_HAT_DOWN:
+            playerDown = true;
+            break;
+
+        case SDL_HAT_LEFT:
+            playerLeft = true;
+            break;
+            
+        case SDL_HAT_RIGHT:
+            playerRight = true;
             break;
     }
-
+    
     return *this;
 }
 
@@ -471,12 +579,9 @@ user& user::addControllerSupport()
 user& user::removeControllerSupport()
 {
 /*
- * user::removeControllerSupport frees controller and joystick pointer and sets joystick events to ignore
+ * user::removeControllerSupport sets joystick events to ignore 
 */
     useController = false;
-
-    gameController.reset();
-    joystickOne.reset();
 
     SDL_JoystickEventState(SDL_IGNORE);
     
@@ -575,6 +680,10 @@ user& user::input()
             case SDL_JOYBALLMOTION:
                 doBallMove(event);
                 break;
+            
+            case SDL_JOYHATMOTION:
+                doJoyHatMove(event);
+                break;
 
             case SDL_CONTROLLERBUTTONDOWN:
                 doButtonDown(event, true);
@@ -616,27 +725,30 @@ user& user::input()
     if (playerUp)
     {
         y -= speed;
+
         direction = directions::up;
     }
     if (playerDown)
     {
         y += speed;
+
         direction = directions::down;
     }
     if (playerLeft)
     {
         x -= speed;
+
         direction = directions::left;
     }
     if (playerRight)
     {
         x += speed;
+
         direction = directions::right;
     }
     if (playerFired)
     {
-        for(auto& currentBullet : bullets)
-            currentBullet->speed += 2;
+        std::for_each(std::execution::par, bullets.begin(), bullets.end(), [](bulletClass* currentBullet){ currentBullet->speed += 2; });
             
         bulletClass* newBulletClass = new bulletClass{x, y, 22, 22, 1, 2, "images/bullet.png"}; 
 
@@ -712,11 +824,12 @@ user& user::logic(thing& enemy, points& point)
     else if (y > appPointer->SCREEN_HEIGHT-100)
     {
         y -= back;
-    }    
+    }  
+
+    std::for_each(std::execution::par, bullets.begin(), bullets.end(), [this](bulletClass* currentBullet){ currentBullet->logic(*this);}); 
 
     for(auto& currentBullet : bullets)
     {
-        currentBullet->logic(*this);
         currentBullet->didBulletHit(enemy, playerScore);
         point.didYouGetPoints(*this, *currentBullet, playerScore);
 
@@ -781,7 +894,7 @@ void user::playerDeath()
 
 
 
-enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+enemys::enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path)
  : thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
@@ -813,7 +926,7 @@ enemys& enemys::spawnEnemys()
     {
         x -= speed;
 
-	    enemySpawnTimer--;
+	enemySpawnTimer--;
     }
 
     return *this;
@@ -871,12 +984,12 @@ enemys& enemys::scaleDifficulty(const counter& playerScore)
     if(playerScore.count() > 200)
     {
         maximum = 20;
-	    minimum = 5;
+        minimum = 5;
     }
     else if(playerScore.count() > 400)
     {
         maximum = 30;
-	    minimum = 10;
+        minimum = 10;
     }
 
     return *this;
@@ -884,7 +997,7 @@ enemys& enemys::scaleDifficulty(const counter& playerScore)
 
 
 
-points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path)
+points::points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path)
  : thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
@@ -926,10 +1039,10 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
 * points::didYouGetPoints detect collisions with point and update other objects accordingly 
 *
 */
-    auto playerPointCollision = std::async(std::launch::async, collision, player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h);
-    auto bulletPointCollision = std::async(std::launch::async, collision, bullet.getX(), bullet.getY(), bullet.getW(), bullet.getH(), x, y, w, h);
+    bool playerPointCollision = collision( player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h);
+    bool bulletPointCollision = collision( bullet.getX(), bullet.getY(), bullet.getW(), bullet.getH(), x, y, w, h);
 
-    if(health != 0 && playerPointCollision.get())
+    if(health != 0 && playerPointCollision)
     {
         if(health > player.getHealth() && isHealth)
         {
@@ -937,14 +1050,14 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
 
 	        if(randomNum)
 	        {
-                player.minusHealth(-1);
+                    player.minusHealth(-1);
 	        }
         }
         
         health = 0;
         playerScore++;
     }
-    else if(bulletPointCollision.get() && bullet.getHealth() > 0 && health > 0 && !isHealth)
+    else if(bulletPointCollision && bullet.getHealth() > 0 && health > 0 && !isHealth)
     {
         bullet.minusHealth(-1);
         isHealth = true;
@@ -956,7 +1069,7 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
 
 
 
-bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path) 
+bulletClass::bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path) 
 : thing(ix, iy, iw, ih, ihealth, ispeed, path)
 {
 /*
@@ -1003,7 +1116,7 @@ inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore
 
 
 
-healthDisplay::healthDisplay(std::string full, std::string half, std::string critical, App& app)
+healthDisplay::healthDisplay(std::string_view full, std::string_view half, std::string_view critical, App& app)
 {
 /*
 * healthDisplay::healthDisplay construct healthDisplay  

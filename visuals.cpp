@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <memory>
 #include <algorithm>
 #include <future>
+#include <chrono>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -10,7 +13,6 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "headerVisuals.h"
-#include "headerPlayer.h"
 
 App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
  : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT), 
@@ -137,14 +139,15 @@ App::~App()
     SDL_Quit();
 }
 
-SDL_Texture* App::loadImages(std::string imageFile)
+SDL_Texture* App::loadImages(std::string_view imageFile)
 {
 /*
  * App::loadImage return a SDL_Texture pointer
  * 
+ * Precondition imageFile must be NULL terminated 
  * Postcondition return a valid SDL_Texture pointer
 */
-    SDL_Texture* Image = Image = IMG_LoadTexture(renderer.get(), imageFile.c_str());
+    SDL_Texture* Image = Image = IMG_LoadTexture(renderer.get(), imageFile.data());
 
     if(Image == NULL)
     {
@@ -256,11 +259,13 @@ void App::showVisuals() const
 
 
 
-Image::Image(std::string path, App& app, int x, int y, int w, int h)
-: imageTexture{app.loadImages(path.c_str())}
+Image::Image(std::string_view path, App& app, int x, int y, int w, int h)
+: imageTexture{app.loadImages(path.data())}
 {
 /*
-* Image::Image construct an image with one frame and a texture
+ * Image::Image construct an image with one frame and a texture
+ *
+ * path must be NULL terminated
 */
     SDL_Rect temp{x, y, w, h};
     
@@ -271,7 +276,7 @@ Image::Image(Image&& moveFromImage)
  : imageTexture{std::move(moveFromImage.imageTexture)}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
 {
 /*
-* Image::Image move image
+ * Image::Image move image
 */
     moveFromImage.currentImageNum = 0;
 }
@@ -279,9 +284,9 @@ Image::Image(Image&& moveFromImage)
 Image& Image::operator=(Image&& moveFromImage)
 {
 /*
-* Image::operator= move image to an existing image
-*
-* Precondition no self assigment
+ * Image::operator= move image to an existing image
+ *
+ * Precondition no self assigment
 */
     if(this != &moveFromImage)
     {
@@ -298,9 +303,9 @@ Image& Image::operator=(Image&& moveFromImage)
 SDL_Texture* Image::getImageTexture() const
 {
 /*
-* Image::getImageTexture return Image's texture
-*
-* Postcondition does not return a invalid texture without warning
+ * Image::getImageTexture return Image's texture
+ *
+ * Postcondition does not return a invalid texture without warning
 */
     if(imageTexture)
         return imageTexture.get();
@@ -313,9 +318,9 @@ SDL_Texture* Image::getImageTexture() const
 Image& Image::operator++(int)
 {
 /*
-* Image::operator++(int) go to next frame if there is one. If not go back to zero
-*
-* Postcondition currentImageNum does not go out of vectors range
+ * Image::operator++(int) go to next frame if there is one. If not go back to zero
+ *
+ * Postcondition currentImageNum does not go out of vectors range
 */
     currentImageNum < images.size()-1 ? currentImageNum++ : currentImageNum = 0;
 
@@ -325,7 +330,7 @@ Image& Image::operator++(int)
 inline Image& Image::operator+=(SDL_Rect&& addFrame)
 {
 /*
-* Image::operator+= add SDL_Rect to Image
+ * Image::operator+= add SDL_Rect to Image
 */
     images.push_back(addFrame);
     
@@ -335,9 +340,9 @@ inline Image& Image::operator+=(SDL_Rect&& addFrame)
 Image& Image::operator+=(std::initializer_list<int> addFrames)
 {
 /*
-* Image::operator+= add frames to Image form ints
-*
-* Precondition addFrames must be divisable by 4
+ * Image::operator+= add frames to Image form ints
+ *
+ * Precondition addFrames must be divisable by 4
 */
     if(addFrames.size() % 4)
     {
@@ -359,7 +364,7 @@ Image& Image::operator+=(std::initializer_list<int> addFrames)
 inline Image& Image::reset()
 {
 /*
-* Image::reset set currentImageNum to zero from whatever value it was before
+ * Image::reset set currentImageNum to zero from whatever value it was before
 */
     currentImageNum = 0;
 
@@ -430,7 +435,7 @@ Messages::Messages(Messages&& moveFromMessage)
  surfaceMessage{std::move(moveFromMessage.surfaceMessage)}, Message{std::move(moveFromMessage.Message)}
 {
 /*
-* Messages::Messages move moveFromMessage to new message
+ * Messages::Messages move moveFromMessage to new message
 */
     Message_rect.x = moveFromMessage.Message_rect.x;
     Message_rect.y = moveFromMessage.Message_rect.y;
@@ -446,9 +451,9 @@ Messages::Messages(Messages&& moveFromMessage)
 Messages& Messages::operator=(Messages&& moveFromMessage)
 {
 /*
-* Messages::operator= move a message to an existing message
-*
-* Precondition no self assigment
+ * Messages::operator= move a message to an existing message
+ *
+ * Precondition no self assigment
 */
     if(this != &moveFromMessage)
     {
@@ -555,7 +560,7 @@ Messages& Messages::drawMessage()
 void Messages::colorToSDLColor(SDL_Color& messageColor, color newColor)
 {
 /*
-* Messages::colorToSDLColor set messageColor to newColor
+ * Messages::colorToSDLColor set messageColor to newColor
 */
     switch (newColor)
     {
@@ -596,7 +601,7 @@ void Messages::colorToSDLColor(SDL_Color& messageColor, color newColor)
 Messages& Messages::nextColor()
 {
 /*
-* Messages::nextColor go to next color in rainbow order
+ * Messages::nextColor go to next color in rainbow order
 */
     switch(currentColor)
     {
@@ -639,7 +644,7 @@ Messages& Messages::nextColor()
 Messages& Messages::rainbowColorSwitch()
 {
 /*
-* Messages::rainbowColorSwitch make message color the next color in the rainbow
+ * Messages::rainbowColorSwitch make message color the next color in the rainbow
 */
     nextColor();
 
@@ -666,13 +671,16 @@ Messages& Messages::rainbowColorSwitch()
 
 
 
-audio::audio(std::string path, double iduration)
- : currentMusic{Mix_LoadMUS(path.c_str())}, duration{iduration} 
+audio::audio(std::string_view path, double iduration)
+ : currentMusic{Mix_LoadMUS(path.data())}, duration{iduration} 
 {
 /*
-* audio::audio load audio from path
-*
-* Postcondition currentMusic is vaild
+ * audio::audio load audio from path
+ *
+ * Precondition path is NULL terminated
+ * Precondition duration is time in seconds the audio will play
+ *
+ * Postcondition currentMusic is vaild
 */
     if(!currentMusic)
     {
@@ -684,7 +692,7 @@ audio::audio(audio&& moveFromAudio)
  : currentMusic{std::move(moveFromAudio.currentMusic)}
 {
 /*
-* audio::audio move moveFromAudio.currentMusic to new audio
+ * audio::audio move moveFromAudio.currentMusic to new audio
 */
 }
 
@@ -706,7 +714,7 @@ audio& audio::operator=(audio&& moveFromAudio)
 inline audio& audio::play(int loops)
 {
 /*
-* audio::play play music(negative to play forever)
+ * audio::play play music(negative to play forever)
 */
     if(Mix_PlayMusic(currentMusic.get(), loops) < 0)
     {
@@ -721,11 +729,11 @@ inline audio& audio::play(int loops)
 inline bool audio::done()
 {
 /*
-* audio::done find out if music is done using chrono
+ * audio::done find out if music is done using chrono
 */
     std::chrono::time_point<std::chrono::steady_clock> currentTime = std::chrono::steady_clock::now();
 
-    std::chrono::duration<double> timeSinceStart = currentTime - start;
+    std::chrono::duration<double> timeSinceStart = std::chrono::duration_cast<std::chrono::seconds>(currentTime - start);
 
     return (timeSinceStart.count() >= duration);
 }
@@ -733,7 +741,7 @@ inline bool audio::done()
 inline void audio::stopAllMusic()
 {
 /*
-* audio stopAllMusic stop all currently playing music
+ * audio stopAllMusic stop all currently playing music
 */
     Mix_HaltMusic();
 }

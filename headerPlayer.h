@@ -3,10 +3,13 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include <algorithm>
 #include <future>
+#include <execution>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -26,7 +29,7 @@ class healthDisplay;
 class thing
 {
     public:
-    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
+    thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path);
 
     thing(const thing& copyFromThing) = delete;
     thing& operator=(const thing& copyFromThing) = delete;
@@ -102,7 +105,7 @@ enum class directions: unsigned char {up, down, left, right, none};
 class user : public thing
 {
     public:
-    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path, int iback);
+    explicit user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path, char iback);
 
     user(const user& copyFromUser) = delete;
     user& operator=(const user& copyFromUser) = delete;
@@ -142,15 +145,16 @@ class user : public thing
     user& doKeyDown(const SDL_KeyboardEvent& event, bool DownUp);
 
     bool useController = false;
+    directions joystickDirection = directions::none;
     SDL_Pointer<SDL_Joystick, SDL_JoystickClose> joystickOne;
     SDL_Pointer<SDL_GameController, SDL_GameControllerClose> gameController;
     
     user& doButtonDown(const SDL_Event& event, bool DownOrUp);
     user& doAxisMove(const SDL_Event& event);
     user& doBallMove(const SDL_Event& event);
+    user& doJoyHatMove(const SDL_Event& event);
     user& addControllerSupport();
     user& removeControllerSupport();
-
 
     bool useTouchScreen = false;
     SDL_TouchID touchDeviceID;
@@ -168,7 +172,7 @@ class user : public thing
 class enemys : public thing
 {
     public:
-    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
+    explicit enemys(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path);
 
     enemys(const enemys& copyFromEnemy) = delete;
     enemys& operator=(const enemys& copyFromEnemy) = delete;
@@ -193,7 +197,7 @@ class enemys : public thing
 class points : public thing
 {
     public:
-    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
+    explicit points(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path);
     
     points(const points& copyFromPoint) = delete;
     points& operator=(const points& copyFromPoint) = delete;
@@ -216,7 +220,7 @@ class bulletClass : public thing
     friend user;
 
     public:
-    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string path);
+    explicit bulletClass(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_view path);
 
     bulletClass(const bulletClass& copyFromBullet) = delete;   
     bulletClass& operator=(const bulletClass& copyFromBullet) = delete;
@@ -233,7 +237,7 @@ class bulletClass : public thing
 class healthDisplay
 {
     public:     
-    explicit healthDisplay(std::string full, std::string health, std::string critical, App& app);
+    explicit healthDisplay(std::string_view full, std::string_view health, std::string_view critical, App& app);
 
     healthDisplay(const healthDisplay& copyFromHealthDisplay) = delete;
     healthDisplay& operator=(const healthDisplay& copyFromHealthDisplay) = delete;

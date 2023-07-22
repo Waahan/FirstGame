@@ -1,9 +1,11 @@
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <memory>
 #include <algorithm>
 #include <future>
-#include <memory>
+#include <chrono>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -28,11 +30,12 @@ int main(int argc, char* args[])
     thing background(0, 0, app.SCREEN_WIDTH, app.SCREEN_HEIGHT, 10, 0, "images/Background.png");
 
     Messages Score("Score", 0, 0, 100, 100, &app, color::green);
-    Messages Title("Sus invaders", 0, 0, 500, 500, &app);
-    Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, &app);
-    Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, &app, color::red);
     
     {
+        Messages Title("Sus invaders", 0, 0, 500, 500, &app);
+        Messages Start("Enter to start", app.SCREEN_WIDTH/2, app.SCREEN_HEIGHT/2, 500, 100, &app);
+        Messages Controls("W:up A:left S:down D:right SPACE:fire", 100, 500, 1000, 100, &app, color::red);
+
         int startTimer = 0;
         bool start = false;
 
