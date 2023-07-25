@@ -8,8 +8,10 @@
 #include <unordered_map>
 #include <memory>
 #include <algorithm>
-#include <future>
-#include <execution>
+#include <random>
+#include <chrono>
+
+#include <cassert>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -40,7 +42,7 @@ class thing
     virtual ~thing() = default;
 
     virtual thing& logic();
-    virtual int show();
+    virtual bool show();
 
     inline int getX() const{ return x; }
     inline int getY() const{ return y; }
@@ -122,7 +124,7 @@ class user : public thing
 
     user& logic(thing& enemy, points& point);
 
-    int show() override;
+    bool show() override;
 
     directions getDirection() const{ return direction; };
 
@@ -131,7 +133,7 @@ class user : public thing
     private:
     void playerDeath();
     
-    directions direction;
+    directions direction = directions::right;
     char back;
 
     bool animationCanCancel = true;
@@ -162,7 +164,6 @@ class user : public thing
     user& doFingerDown(const SDL_Event& event, bool upOrDown);
     user& doFingerMove(const SDL_Event& event);
     user& doMultiGesture(const SDL_Event& event);
-
 
     std::unique_ptr<healthDisplay> playerHealth;
 

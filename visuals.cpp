@@ -4,8 +4,10 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <future>
 #include <chrono>
+#include <random>
+
+#include <cassert>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -745,3 +747,7 @@ inline void audio::stopAllMusic()
 */
     Mix_HaltMusic();
 }
+
+
+
+randomGen randomGen::randomInstance;

@@ -5,8 +5,11 @@
 #include <unordered_map>
 #include <memory>
 #include <algorithm>
-#include <future>
+#include <random>
+#include <chrono>
 #include <execution>
+
+#include <cassert>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -109,7 +112,7 @@ thing& thing::logic()
     return *this;
 }
 
-int thing::show()
+bool thing::show()
 {
 /*
 * thing::show use imagePos to display thing on screen
@@ -322,8 +325,6 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_
         std::cout << "Touch devices: " << SDL_GetNumTouchDevices() << std::endl;
         std::cout << "Fingers down: " << SDL_GetNumTouchFingers(touchDeviceID) << std::endl; 
     }
-
-    std::cout << "Tasks: " << std::thread::hardware_concurrency() << std::endl;
 }
 
 user::~user()
@@ -545,6 +546,8 @@ user& user::addControllerSupport()
 /*
  * user::addControllerSupport opens controller and joystick and enables joystick events 
 */
+    SDL_JoystickEventState(SDL_ENABLE);
+
     if(SDL_NumJoysticks() > 0 && SDL_IsGameController(0))
     {
         useController = true;
@@ -569,8 +572,6 @@ user& user::addControllerSupport()
         std::cout << "joystick num buttons: " << SDL_JoystickNumButtons(joystickOne.get()) << std::endl;
         std::cout << "joystick num balls: " << SDL_JoystickNumBalls(joystickOne.get()) << std::endl;
         std::cout << "joystick num hats: " << SDL_JoystickNumHats(joystickOne.get()) << std::endl;
-
-        SDL_JoystickEventState(SDL_ENABLE);
     }
 
     return *this;
@@ -579,11 +580,12 @@ user& user::addControllerSupport()
 user& user::removeControllerSupport()
 {
 /*
- * user::removeControllerSupport sets joystick events to ignore 
+ * user::removeControllerSupport NULL game controller and joystick
 */
     useController = false;
 
-    SDL_JoystickEventState(SDL_IGNORE);
+    gameController.reset(nullptr);
+    joystickOne.reset(nullptr);
     
     return *this;
 }
@@ -728,24 +730,28 @@ user& user::input()
 
         direction = directions::up;
     }
+
     if (playerDown)
     {
         y += speed;
 
         direction = directions::down;
     }
+
     if (playerLeft)
     {
         x -= speed;
 
         direction = directions::left;
     }
+
     if (playerRight)
     {
         x += speed;
 
         direction = directions::right;
     }
+
     if (playerFired)
     {
         std::for_each(std::execution::par, bullets.begin(), bullets.end(), [](bulletClass* currentBullet){ currentBullet->speed += 2; });
@@ -852,7 +858,7 @@ user& user::logic(thing& enemy, points& point)
     return *this;
 }
 
-int user::show()
+bool user::show()
 {
 /*
 * user::show show user, healthDiplay and bullets. Call playerDeath if health is less than zero
@@ -911,22 +917,22 @@ enemys& enemys::spawnEnemys()
 */
     if(enemySpawnTimer <= 0 && health <= 0)
     {
-       x = appPointer->SCREEN_WIDTH;
-       y = rand() % appPointer->SCREEN_HEIGHT;
+        x = appPointer->SCREEN_WIDTH;
+        y = randomGen::get()(0, appPointer->SCREEN_HEIGHT-w);
 
-       speed = minimum + (rand() % maximum);
+        speed = randomGen::get()(minimum, maximum);
 
-       health = 1;
+        health = 1;
 
-       x -= rand() % 10;
+        x -= randomGen::get()(0, 10);
 
-       enemySpawnTimer = rand() % 100;
+        enemySpawnTimer = randomGen::get()(0, 100);
     }
     else
     {
         x -= speed;
 
-	enemySpawnTimer--;
+        enemySpawnTimer--;
     }
 
     return *this;
@@ -1021,9 +1027,9 @@ points& points::initPoints()
     else
     {
         x = appPointer->SCREEN_WIDTH;
-        y = rand() % appPointer->SCREEN_HEIGHT;
+        y = randomGen::get()(0, appPointer->SCREEN_HEIGHT-w);
 
-        randomNum = 1 + (rand() % 9);
+        randomNum = randomGen::get()(1, 9);
         health = randomNum;
         speed = randomNum;
 
@@ -1046,7 +1052,7 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
     {
         if(health > player.getHealth() && isHealth)
         {
-	        int randomNum = rand() % 2;
+	        int randomNum = randomGen::get()(0, 1);
 
 	        if(randomNum)
 	        {
@@ -1082,15 +1088,25 @@ bulletClass& bulletClass::logic(const user& player)
 /*
 * bulletClass::logic move bulletClass based on player direction and use thing::logic 
 */
-    if(player.getDirection() == directions::up)
-        y -= speed;
-    else if(player.getDirection() == directions::down)
-        y += speed;
-    else if(player.getDirection() == directions::left)
-        x -= speed;
-    else if(player.getDirection() == directions::right)
-        x += speed;
+    switch(player.getDirection())
+    {
+        case directions::up:
+            y -= speed;
+            break;
 
+        case directions::down:
+            y += speed;
+            break;
+
+        case directions::left:
+            x -= speed;
+            break;
+        
+        case directions::right:
+            x += speed;
+            break;
+    }
+    
     thing::logic();
 
     return *this;
