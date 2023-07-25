@@ -7,8 +7,10 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <future>
 #include <chrono>
+#include <random>
+
+#include <cassert>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -160,4 +162,48 @@ class audio
     
     double duration;
     std::chrono::time_point<std::chrono::steady_clock> start;
+};
+
+class randomGen
+{
+    public:
+    randomGen(const randomGen& copyFrom) = delete;
+    randomGen& operator=(const randomGen& copyFrom) = delete;
+
+    randomGen(randomGen&& moveFrom) = delete;
+    randomGen& operator=(randomGen&& moveFrom) = delete;
+    
+    ~randomGen() = default;
+    
+    static randomGen& get() { return randomInstance; }
+    
+    template<typename number>
+    number operator()(number from, number to)
+    {
+    /*
+     * randomGen::operator()(int, int) generate and random number from from to to
+     *
+     * Precondition from can not be greater than to
+     *
+     * Concept number is floating or integral 
+     * Concept number has less than operator 
+    */
+        static_assert(std::is_floating_point<number>::value || std::is_integral<number>::value, "randomGen operator must have number input");
+
+        assert((from < to) && "randomGen operator() must have a vaild range");
+
+        using distribution = std::conditional<std::is_floating_point<number>::value, std::uniform_real_distribution<number>, std::uniform_int_distribution<number>>::type;
+
+        distribution range(from, to);
+
+        return range(randomGenerator);
+    }
+
+    private:
+    randomGen() : randomGenerator{randomDevice()} {}
+
+    static randomGen randomInstance;
+
+    std::random_device randomDevice;
+    std::default_random_engine randomGenerator;
 };
