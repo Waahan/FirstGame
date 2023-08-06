@@ -1,5 +1,7 @@
-/build/*
+#build
 /build
+
+#vim
 .CMakeLists.txt.swp
 .gitignore.swp
 .headerPlayer.h.swp
@@ -9,4 +11,5 @@
 .README.md.swp
 .visuals.cpp.swp
 *.swp
+
 images/puppy.jpg

@@ -21,6 +21,7 @@ class App;
 class Image;
 class Messages;
 class Audio;
+class randomGen;
 
 template<typename T, void (*destroyFunc)(T*)>
 struct SDL_Delete
@@ -33,8 +34,6 @@ using SDL_Pointer = std::unique_ptr<T, SDL_Delete<T, destroyFunc>>;
 
 class App
 {
-    friend Messages;
-
     public:
     explicit App(int SCREEN_WIDTH, int SCREEN_HEIGHT);
     
@@ -47,10 +46,11 @@ class App
     ~App();
 
     SDL_Texture *loadImages(std::string_view imageFile);
-    
-    App& imagePos(SDL_Texture* image, int x, int y, int w, int h);
-    App& imagePos(SDL_Texture* image, int x, int y);
-    App& imagePos(Image& image, int x, int y, int w = 0, int h = 0);
+    SDL_Texture* createTextureFromSurface(SDL_Surface* currentSurface);
+
+    App& imagePos(SDL_Texture* image, int x, int y, int w = 0, int h = 0);
+    App& imagePos(const Image& image, int x, int y, int w = 0, int h = 0);
+    App& imagePos(const Messages& message);
 
     App& makeVisuals();
     void showVisuals() const;
@@ -68,7 +68,7 @@ class Image
 {
     public:
     explicit Image(std::string_view imagePath, App& app, int x, int y, int w, int h);
-    Image() : imageTexture(nullptr) {}
+    Image() : imageTexture{}, images{} {}
     
     Image(const Image& copyFromImage) = delete;
     Image& operator=(const Image& copyFromImage) = delete;
@@ -87,7 +87,7 @@ class Image
     inline Image& operator+=(SDL_Rect&& addFrame);
     Image& operator+=(std::initializer_list<int> addFrames);
 
-    bool done() const { return images.size()-1 == currentImageNum; }
+    bool done() const { return int(images.size()-1) == currentImageNum; }
     inline Image& reset();
 
     private:
@@ -96,7 +96,7 @@ class Image
     int currentImageNum = 0;
 };
 
-enum class color: unsigned char { red, orange, yellow, green, blue, indigo, violet, none};
+enum class color { red, orange, yellow, green, blue, indigo, violet, none};
 
 class Messages
 {
@@ -111,24 +111,27 @@ class Messages
 
     ~Messages() = default;
 
-    Messages& newMessage(std::string message = "invalidMessage", int x = 2345, int y = 2345, int w = 0, int h = 0, color newColor = color::none);
+    Messages& newMessage(std::string message, int x, int y, int, int, color newColor);
     
-    Messages& drawMessage();
+    SDL_Texture* getTexture() const{ return Message.get(); }
+    const SDL_Rect& getDestination() const{ return Message_rect; } 
 
-    void colorToSDLColor(SDL_Color& messageColor, color newColor);
-    Messages& rainbowColorSwitch();
+    Messages& setColor(color newColor){ setCurrentColor(newColor); updateMessage(); return *this; }
+    Messages& setMessage(std::string newMessage){ setCurrentMessage(newMessage); updateMessage(); return *this; }
+    Messages& setCoodinates(int x, int y, int w = 0, int h = 0);
 
-    const SDL_Color White = {255, 255, 255};
-    const SDL_Color Red = {255, 0, 0};
-    const SDL_Color Orange = {255, 165, 0};
-    const SDL_Color Yellow = {255, 255, 0};
-    const SDL_Color Green = {0, 128, 0};
-    const SDL_Color Blue = {0, 0, 255};
-    const SDL_Color Indigo = {75, 0, 130};
-    const SDL_Color Violet = {238, 130, 238};
+    Messages& setNewFont(std::string_view fontPath, int size = 24);
+    Messages& setFontStyle(int style = 0){ TTF_SetFontStyle(font.get(), style); return *this; }
+
+    Messages& nextRainbowColor();
+    
+    Messages& show();
 
     private:
-    Messages& nextColor();
+    void updateMessage();
+    void setCurrentMessage(std::string newMessage){ currentMessage = std::move(newMessage); }
+    void setCurrentColor(color newColor);
+    void setCurrentCoodinates(int x, int y, int w, int h);
 
     SDL_Pointer<TTF_Font, TTF_CloseFont> font;
     SDL_Pointer<SDL_Surface, SDL_FreeSurface> surfaceMessage;
@@ -139,6 +142,9 @@ class Messages
     color currentColor;
     App* appPointer = nullptr;
 };
+
+SDL_Color colorToSDLColor(color currentColor);
+void nextInTheRainbow(color& currentColor);
 
 class audio
 {

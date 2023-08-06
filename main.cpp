@@ -15,7 +15,7 @@
 #include "headerVisuals.h"
 #include "headerPlayer.h"
 
-int main(int argc, char* args[])
+int main()
 {
     App app(1280, 720);
 
@@ -43,15 +43,15 @@ int main(int argc, char* args[])
         {
             app.makeVisuals();
 
-	    Start.drawMessage();
-            Controls.drawMessage();
-	    Title.drawMessage();
+	    Start.show();
+            Controls.show();
+	    Title.show();
 	
 	    if(startTimer > 100)
 	    {
                 startTimer = 0;
 
-                Title.rainbowColorSwitch();
+                Title.nextRainbowColor();
 	    }
 
 	    startTimer++;
@@ -68,7 +68,7 @@ int main(int argc, char* args[])
 
 	background.show();
 
-	Score.newMessage(player.playerScore.stringCurrentCount().c_str(), 2345, 2345, 0, 0);
+	Score.setMessage(player.playerScore.stringCurrentCount());
 
 	player.input();
 
@@ -80,7 +80,8 @@ int main(int argc, char* args[])
         enemy.spawnEnemys();
 
 	enemy.scaleDifficulty(player.playerScore);
-	Score.drawMessage();
+	
+        Score.show();
 
 	enemy.didEnemyKill(player);
 	

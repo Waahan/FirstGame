@@ -10,6 +10,7 @@
 #include <execution>
 
 #include <cassert>
+#include <cmath>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -49,8 +50,8 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::strin
 
 thing::thing(thing&& moveFromThing)
  : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, 
- health{moveFromThing.health}, speed(moveFromThing.speed), currentImage{std::move(moveFromThing.currentImage)},
- Images{std::move(moveFromThing.Images)}
+ health{moveFromThing.health}, speed(moveFromThing.speed), 
+ currentImage{std::move(moveFromThing.currentImage)}, Images{std::move(moveFromThing.Images)}
 {
 /*
 * thing::thing move constructor moves thing
@@ -123,8 +124,10 @@ bool thing::show()
 * Postcondition sets currentImage to default if animation done 
 */
     if(health > 0)
+    {
         appPointer->imagePos(Images[currentImage], x, y, w, h);
         Images[currentImage]++;
+    }
 
     if(currentImage != "default" && Images[currentImage].done())
         currentImage = "default";
@@ -313,15 +316,15 @@ user::user(int ix, int iy, int iw, int ih, int ihealth, int ispeed, std::string_
     if(SDL_GetNumTouchDevices() > 0)
     {
         useTouchScreen = true;
+        
+        touchDeviceID = SDL_GetTouchDevice(0);
 
-        if(SDL_GetTouchDevice(0) == 0)
+        if(touchDeviceID == 0)
         {
             std::cerr << "SDL_GetTouchDevice failed: " << SDL_GetError() << std::endl;
         }
 
-        touchDeviceID = SDL_GetTouchDevice(0);
-
-        std::cout << "Found touch device" << std::endl;
+        std::cout << "Found touch device!" << std::endl;
         std::cout << "Touch devices: " << SDL_GetNumTouchDevices() << std::endl;
         std::cout << "Fingers down: " << SDL_GetNumTouchFingers(touchDeviceID) << std::endl; 
     }
@@ -336,9 +339,7 @@ user::~user()
 * Postcondition bullets is empty
 */
     for(auto& currentBullet : bullets)
-    {
         delete currentBullet;
-    }
 
     bullets.clear();
 }
@@ -378,6 +379,9 @@ user& user::doKeyDown(const SDL_KeyboardEvent& event, bool DownUp)
         case SDL_SCANCODE_SPACE:
             playerFired = DownUp;
             break;
+
+        default:
+            break;
     }
 
     return *this;
@@ -393,6 +397,7 @@ user& user::doButtonDown(const SDL_Event& event, bool upOrDown)
     {
         case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
             std::cout << "RIGHTSHOULDER" << std::endl;
+            playerFired = upOrDown;
             break;
 
         case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
@@ -418,7 +423,7 @@ user& user::doAxisMove(const SDL_Event& event)
     short value = event.jaxis.value;
 
     char axis = event.jaxis.axis; 
-    SDL_JoystickID which = event.jaxis.which;
+    //SDL_JoystickID which = event.jaxis.which;
     
     const int ignoreZone = 8000;
     const int softIgnoreZone = 0;
@@ -432,12 +437,12 @@ user& user::doAxisMove(const SDL_Event& event)
     switch(axis)
     {
         case SDL_CONTROLLER_AXIS_LEFTX:
-            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::right)
+            if(value > ignoreZone || (value > softIgnoreZone && joystickDirection == directions::right))
             {
                 playerRight = true;
                joystickDirection = directions::right;
             }
-            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::left)
+            else if(value < -ignoreZone || (value < -softIgnoreZone && joystickDirection == directions::left))
             {
                 playerLeft = true;
                joystickDirection = directions::left;
@@ -445,12 +450,12 @@ user& user::doAxisMove(const SDL_Event& event)
             break;
         
         case SDL_CONTROLLER_AXIS_RIGHTX:
-            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::right)
+            if(value > ignoreZone || (value > softIgnoreZone && joystickDirection == directions::right))
             {
                 playerRight = true;
                joystickDirection = directions::right;
             }
-            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::left)
+            else if(value < -ignoreZone || (value < -softIgnoreZone && joystickDirection == directions::left))
             {
                 playerLeft = true;
                joystickDirection = directions::left;
@@ -458,12 +463,12 @@ user& user::doAxisMove(const SDL_Event& event)
             break;
 
         case SDL_CONTROLLER_AXIS_LEFTY:
-            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::up)
+            if(value > ignoreZone || (value > softIgnoreZone && joystickDirection == directions::up))
             {
                 playerDown = true;
                 joystickDirection = directions::up;
             }
-            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::down)
+            else if(value < -ignoreZone || (value < -softIgnoreZone && joystickDirection == directions::down))
             {
                 playerUp = true;
                 joystickDirection = directions::down;
@@ -471,12 +476,12 @@ user& user::doAxisMove(const SDL_Event& event)
             break;
 
         case SDL_CONTROLLER_AXIS_RIGHTY:
-            if(value > ignoreZone || value > softIgnoreZone && joystickDirection == directions::up)
+            if(value > ignoreZone || (value > softIgnoreZone && joystickDirection == directions::up))
             {
                 playerDown = true;
                 joystickDirection = directions::up;
             }
-            else if(value < -ignoreZone || value < -softIgnoreZone && joystickDirection == directions::down)
+            else if(value < -ignoreZone || (value < -softIgnoreZone && joystickDirection == directions::down))
             {
                 playerUp = true;
                 joystickDirection = directions::down;
@@ -495,16 +500,6 @@ user& user::doAxisMove(const SDL_Event& event)
             break;
     }
     
-    return *this;
-}
-
-user& user::doBallMove(const SDL_Event& event)
-{
-/*
-* user::doBallMove handle controller ball input
-*/
-    //event.jball
-    //https://wiki.libsdl.org/SDL2/SDL_JoyBallEvent
     return *this;
 }
 
@@ -557,14 +552,10 @@ user& user::addControllerSupport()
         joystickOne.reset(SDL_GameControllerGetJoystick(gameController.get()));
 
         if(!joystickOne)
-        {
             std::cerr << "SDL_GameControllerGetJoystick failed: " << SDL_GetError() << std::endl;
-        }
 
         if(!gameController)
-        {
             std::cerr << "SDL_GameControllerOpen failed: " << SDL_GetError() << std::endl;
-        }
 
         std::cout << "Found game controller: " << SDL_GameControllerName(gameController.get()) << std::endl;
         std::cout << "NumJoysticks: " << SDL_NumJoysticks() << std::endl;
@@ -596,14 +587,12 @@ user& user::doFingerDown(const SDL_Event& event, bool upOrDown)
 * user::doFingerDown change varibles based on touch event varibles
 */
     //To get the touch coordinates in screen coordinates simply multiply the touch coordinates by the screen resolution. 
-
-    SDL_TouchID currentTouchDeviceID = event.tfinger.touchId;
-    SDL_FingerID currentFingerID = event.tfinger.fingerId;
-
     //From 0 to 1
     float touchX = event.tfinger.x;
     float touchY = event.tfinger.y;
     float pressure = event.tfinger.pressure;
+    
+    std::cout << "finger down: " << "x: " << touchX << "y: " << touchY << "pressure: " << pressure << "up or down: " << upOrDown << std::endl;
     
     return *this;
 }
@@ -615,9 +604,6 @@ user& user::doFingerMove(const SDL_Event& event)
 */
     //To get the touch coordinates in screen coordinates simply multiply the touch coordinates by the screen resolution. 
 
-    SDL_TouchID currentTouchDeviceID = event.tfinger.touchId;
-    SDL_FingerID currentFingerID = event.tfinger.fingerId;
-
     //From 0 to 1
     float touchX = event.tfinger.x;
     float touchY = event.tfinger.y;
@@ -626,6 +612,9 @@ user& user::doFingerMove(const SDL_Event& event)
     //From -1 to 1
     float xChange = event.tfinger.dx;
     float yChange = event.tfinger.dy;
+
+    std::cout << "Finger moved: " << "x: " << touchX << "y: " << touchY << "pressure: " << pressure << std::endl;
+    std::cout << "Change in x and y: " << "x: " << xChange << "y: " << yChange << std::endl;
     
     return *this;
 }
@@ -635,18 +624,20 @@ user& user::doMultiGesture(const SDL_Event& event)
 /*
  * user::doMultiGesture handle pinch/rotate/swipe gestures
 */
-    SDL_TouchID currentTouchDeviceID = event.mgesture.touchId;
-    
     float gestureX = event.mgesture.x;
     float gestureY = event.mgesture.y;
 
     //the amount that the fingers rotated during this motion.
-    float rotationFingers = event.mgesture.dTheta;
+    float rotation = event.mgesture.dTheta;
     
     //the amount that the fingers pinched during this motion.
-    float pinchFingers = event.mgesture.dDist;
+    float pinch = event.mgesture.dDist;
 
     short fingersTotal = event.mgesture.numFingers;
+
+    std::cout << "Multi gesture: " << "x: " << gestureX << "y: " << gestureY << std::endl;
+    std::cout << "Multi gesture: " << "rotation: " << rotation << "pinch: " << pinch << std::endl;
+    std::cout << "Multi gesture fingers: " << fingersTotal << std::endl;
 
     return *this;
 }
@@ -679,10 +670,6 @@ user& user::input()
                 doAxisMove(event);
                 break;
 
-            case SDL_JOYBALLMOTION:
-                doBallMove(event);
-                break;
-            
             case SDL_JOYHATMOTION:
                 doJoyHatMove(event);
                 break;
@@ -774,6 +761,9 @@ user& user::keyMenu(bool& start, const SDL_KeyboardEvent& event)
         case SDL_SCANCODE_RETURN:
             start = true;
             break;
+
+        default:
+            break;
     }
 
     return *this;
@@ -850,9 +840,7 @@ user& user::logic(thing& enemy, points& point)
     for(auto& currentBullet : bullets)
     {
         if(currentBullet == nullptr)
-        {
             bullets.erase(std::remove(bullets.begin(), bullets.end(), currentBullet), bullets.end());
-        }
     }
 
     return *this;
@@ -870,14 +858,10 @@ bool user::show()
         playerHealth->healthDisplayShow(*this, *appPointer);
     
         for(const auto& currentBullet : bullets)
-        {
             currentBullet->show();
-        }
     }
     else
-    {
         playerDeath();
-    }
     
     return true;
 }
@@ -922,9 +906,7 @@ enemys& enemys::spawnEnemys()
 
         speed = randomGen::get()(minimum, maximum);
 
-        health = 1;
-
-        x -= randomGen::get()(0, 10);
+        health = randomGen::get()(minimum, maximum);
 
         enemySpawnTimer = randomGen::get()(0, 100);
     }
@@ -951,7 +933,6 @@ enemys& enemys::didEnemyKill(user& player)
     if(collision(player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h) && health > 0)
     {
         health = 0;
-        removeFromScreen();
         player.minusHealth(1);
     }
 
@@ -1030,10 +1011,8 @@ points& points::initPoints()
         y = randomGen::get()(0, appPointer->SCREEN_HEIGHT-w);
 
         randomNum = randomGen::get()(1, 9);
-        health = randomNum;
-        speed = randomNum;
-
-        isHealth = false;
+        health = randomGen::get()(randomNum, 10);
+        speed = randomGen::get()(randomNum, 10);
     }
 
     return *this;
@@ -1048,25 +1027,15 @@ points& points::didYouGetPoints(user& player, thing& bullet, counter& playerScor
     bool playerPointCollision = collision( player.getX(), player.getY(), player.getW(), player.getH(), x, y, w, h);
     bool bulletPointCollision = collision( bullet.getX(), bullet.getY(), bullet.getW(), bullet.getH(), x, y, w, h);
 
-    if(health != 0 && playerPointCollision)
+    if(health > 0 && playerPointCollision)
     {
-        if(health > player.getHealth() && isHealth)
-        {
-	        int randomNum = randomGen::get()(0, 1);
-
-	        if(randomNum)
-	        {
-                    player.minusHealth(-1);
-	        }
-        }
-        
         health = 0;
         playerScore++;
     }
-    else if(bulletPointCollision && bullet.getHealth() > 0 && health > 0 && !isHealth)
+    else if(bulletPointCollision && bullet.getHealth() > 0 && health > 0)
     {
         bullet.minusHealth(-1);
-        isHealth = true;
+        health = 0;
         playerScore++;
     }
     
@@ -1105,6 +1074,9 @@ bulletClass& bulletClass::logic(const user& player)
         case directions::right:
             x += speed;
             break;
+
+        default:
+            break;
     }
     
     thing::logic();
@@ -1121,10 +1093,13 @@ inline bulletClass& bulletClass::didBulletHit(thing& enemy, counter& playerScore
 */
     if(collision(x, y, w, h, enemy.getX(), enemy.getY(), enemy.getW(), enemy.getH()) && health > 0 && enemy.getHealth() > 0)
     {
-        enemy.setHealth(0);
-        enemy.removeFromScreen();
+        enemy.minusHealth(1);
+        enemy.addToX( randomGen::get()(-1, int(enemy.getSpeed()/2) ) );
+        
         health -= 1;
-        playerScore++;
+        
+        if(!enemy.getHealth())
+            playerScore++;
     }
 
     return *this;
@@ -1169,7 +1144,7 @@ void healthDisplay::healthDisplayShow(const user& player, App& app)
 inline bool collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 {
 /*
-* chech for any kind of collision for squares/rectangles
+* collision check for any kind of collision for squares/rectangles
 */
     /*
      _____
@@ -1199,4 +1174,49 @@ inline bool collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, in
              //                 |__________________________|
              //                                                                      
     return ( (leftSideOne < rightSideTwo) && (rightSideOne > leftSideTwo) ) && ( (topSideOne < bottomSideTwo) && (bottomSideOne > topSideTwo) );
+}
+
+inline bool circleCollision(int center1X, int center1Y, double radius1, int center2X, int center2Y, double radius2)
+{
+/*
+ * circleCollision Check if the distance between the two centers is less than the sum of the radiuses
+*/
+    //Get the minimum distance be touching
+    double radiusSum = radius1+radius2;
+
+    //Calculate the line between the circles
+    double distanceBetween = std::sqrt( std::pow( (center2X - center1X), 2) + std::pow( (center2Y - center1Y), 2) );
+
+    return (distanceBetween <= radiusSum);
+}
+
+inline bool rectangleCircleCollision(int centerX, int centerY, double radius, int rectX, int rectY, int width, int height)
+{
+/*
+ * rectangleCircleCollision calclate collision with center coodinates and width, height and radius 
+*/
+    int distanceX = std::abs(centerX - rectX);
+    int distanceY = std::abs(centerY - rectY);
+
+    int halfWidth = width/2;
+    int halfHeight = height/2;
+
+    //Calculate if they are to far away from each other
+    if ( ( distanceX > (halfWidth + radius) ) || ( distanceY > (halfHeight + radius) ) ) 
+    { 
+        return false; 
+    }
+    //Handle cases where it is close and easy to detect collision
+    else if ( (distanceX <= halfWidth) || (distanceY <= halfHeight) ) 
+    { 
+        return true; 
+    }
+
+    //Handles courner collision 
+
+    // finds the distance from the center of the circle and the corner
+    int cornerDistance = (std::pow( (distanceX - halfWidth), 2) + std::pow( (distanceY - halfHeight), 2));
+
+    //Check if the distances is no more than the radius
+    return ( cornerDistance <= std::pow(radius, 2) );
 }

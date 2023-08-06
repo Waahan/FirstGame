@@ -61,6 +61,7 @@ class thing
 
     inline thing& removeFromScreen();
     inline thing& minusHealth(int subtractNum);
+    inline thing& addToX(int addNum){ x += addNum; return *this; };
 
     protected:    
     int x;
@@ -102,7 +103,7 @@ class counter
     std::string stringCount;
 };
 
-enum class directions: unsigned char {up, down, left, right, none};
+enum class directions {up, down, left, right, none};
 
 class user : public thing
 {
@@ -153,7 +154,6 @@ class user : public thing
     
     user& doButtonDown(const SDL_Event& event, bool DownOrUp);
     user& doAxisMove(const SDL_Event& event);
-    user& doBallMove(const SDL_Event& event);
     user& doJoyHatMove(const SDL_Event& event);
     user& addControllerSupport();
     user& removeControllerSupport();
@@ -213,7 +213,6 @@ class points : public thing
 
     private:
     int randomNum;
-    bool isHealth = false;
 };
 
 class bulletClass : public thing
@@ -255,3 +254,7 @@ class healthDisplay
 };
 
 inline bool collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2);
+
+inline bool circleCollision(int center1X, int center1Y, double radius1, int center2X, int center2Y, double radius2);
+
+inline bool rectangeCircleCollision(int centerX, int centerY, double radius, int rectX, int rectY, int width, int height);

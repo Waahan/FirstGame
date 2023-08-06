@@ -17,10 +17,11 @@
 #include "headerVisuals.h"
 
 App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
- : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT), 
+ : SCREEN_WIDTH(iSCREEN_WIDTH), SCREEN_HEIGHT(iSCREEN_HEIGHT),
+ renderer(nullptr), 
  //https://wiki.libsdl.org/SDL2/SDL_CreateWindow
  window(SDL_CreateWindow("Amongus 2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE)), 
- renderer(nullptr), windowIcon(SDL_LoadBMP("images/Player.bmp"))
+ windowIcon(SDL_LoadBMP("images/Player.bmp"))
 {
 /*
  * App::App init window, renderer and libraries 
@@ -32,15 +33,11 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
  * Postcondition SCREEN_WIDTH and SCREEN_HEIGHT are initalized
 */
     if(SCREEN_WIDTH <= 0 || SCREEN_HEIGHT <= 0)
-    {
         std::cerr << "SCREEN_WIDTH and SCREEN_HEIGHT can not be less than or equal to zero" << std::endl;
-    }
         
     //https://wiki.libsdl.org/SDL2/SDL_Init
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
-    {
         std::cerr << "Could not start SDL:" << SDL_GetError() << std::endl;
-    }
 
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;
     int initted = IMG_Init(flags);
@@ -54,37 +51,25 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
     
     //https://wiki.libsdl.org/SDL2_ttf/TTF_Init
     if(TTF_Init() < 0)
-    {
         std::cerr << "Could not start SDL ttf:" << TTF_GetError() << std::endl;
-    }
         
     //https://wiki.libsdl.org/SDL2_mixer/Mix_Init
     if(Mix_Init(MIX_INIT_MP3) < 0)
-    {
         std::cerr << "Could not init SDL mixer: " << Mix_GetError() << std::endl;
-    }
 
     if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0)
-    {
         std::cerr << "Mix_OpenAudio failed: " << Mix_GetError() << std::endl;
-    }
     
     if(!windowIcon)
-    {
         std::cerr << "SDL_LoadBMP failed: " << SDL_GetError() << std::endl;
-    } 
         
     if(!window)
-    {
         std::cerr << "Failed to open window: " << SDL_GetError() << std::endl;
-    }
 
     windowIcon.reset(SDL_ConvertSurfaceFormat(windowIcon.get(), SDL_PIXELFORMAT_ARGB8888, 0));
         
     if(!windowIcon)
-    {
         std::cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << std::endl;
-    }
 
     //https://wiki.libsdl.org/SDL2/SDL_SetWindowIcon
     SDL_SetWindowIcon(window.get(), windowIcon.get());   
@@ -99,19 +84,61 @@ App::App(int iSCREEN_WIDTH, int iSCREEN_HEIGHT)
     renderer.reset(SDL_CreateRenderer(window.get(), -1, rendererFlags));
 
     if(!renderer)
-    {
         std::cerr << "Renderer failed: " << SDL_GetError() << std::endl;
-    }
 
     if(SDL_RenderSetLogicalSize(renderer.get(), SCREEN_WIDTH, SCREEN_HEIGHT) < 0)
-    {
         std::cerr << "SDL_RenderSetLogicalSize failed: " << SDL_GetError() << std::endl;
-    }
+    
+    // Sus invaders
+
+/*
+ ______
+|_    _|
+  |  |
+  |  |
+ _|  |_
+|______|
+
+ ______
+| _____|
+| |____
+|_____ |
+ ____| |
+|______|
+
+ _   _
+| | | |
+| |_| |
+|_____|
+ 
+ ______
+|  __  |
+|  | | |
+|__| |_|
+
+|\    /|
+ \\  //
+  \\//
+   \/
+
+    /\
+   /  \
+  /  ^ \
+ /  __  \
+/__|  |__\
+
+ ______
+|
+|
+|
+|
+*/
 }
 
 App::App(App&& moveFromApp)
  : SCREEN_WIDTH{moveFromApp.SCREEN_WIDTH}, SCREEN_HEIGHT{moveFromApp.SCREEN_HEIGHT}, 
- window{std::move(moveFromApp.window)}, renderer{std::move(moveFromApp.renderer)}, windowIcon{std::move(moveFromApp.windowIcon)}
+ renderer(std::move(moveFromApp.renderer)), window{std::move(moveFromApp.window)}, 
+ windowIcon{std::move(moveFromApp.windowIcon)}
 {
 }
 
@@ -149,82 +176,65 @@ SDL_Texture* App::loadImages(std::string_view imageFile)
  * Precondition imageFile must be NULL terminated 
  * Postcondition return a valid SDL_Texture pointer
 */
-    SDL_Texture* Image = Image = IMG_LoadTexture(renderer.get(), imageFile.data());
+    SDL_Texture* Image = IMG_LoadTexture(renderer.get(), imageFile.data());
 
-    if(Image == NULL)
-    {
+    if(!Image)
         std::cerr << "IMG_LoadTexture failed: " << IMG_GetError() << std::endl; 
-    }
 
     return Image;
+}
+
+SDL_Texture* App::createTextureFromSurface(SDL_Surface* convertSurface)
+{
+/*
+ * App::createTextureFromSurface return a texture of convertSurface 
+*/
+    SDL_Texture* surfaceTexture = SDL_CreateTextureFromSurface(renderer.get(), convertSurface);
+
+    if(!surfaceTexture)
+        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
+
+    return surfaceTexture;
 }
 
 App& App::imagePos(SDL_Texture* image, int x, int y, int w, int h)
 {
 /*
- * App::imagePos render image onto the window
- *
- * Precondition image is not NULL
- * Precondition w and h must be not be less than or equal to 0
-*/
-    if(!image)
-    {
-        std::cerr << "image pointer can not be NULL" << std::endl;
-    }
-    else if(w <= 0 || h <= 0)
-    {
-        std::cerr << "width and height can not be less than or equal to 0. App::imagePos" << std::endl;
-    }
-
-    SDL_Rect dest{x, y, w, h};
-
-    //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
-    if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
-    {
-        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
-    }
-
-    return *this;
-}
-
-App& App::imagePos(SDL_Texture* image, int x, int y)
-{
-/*
  * App::imagePos renders image to window
  *
  * Precondition image is not NULL
+ * Postcondition w and h are not less than or equal to zero 
 */
     if(!image)
-    {
         std::cerr << "image can not be NULL" << std::endl;
-    }
 
-    SDL_Rect dest{x, y};
-
-    //Query the attributes of a texture
-    //Takes image, Format, Access, width and height
-    if(SDL_QueryTexture(image, NULL, NULL, &dest.w, &dest.h) < 0)
+    if(w <= 0 || h <= 0)
     {
-        std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
+        //Query the attributes of a texture
+        //Takes image, Format, Access, width and height
+        if(SDL_QueryTexture(image, NULL, NULL, &w, &h) < 0)
+            std::cerr << "SDL_QueryTexture failed: " << SDL_GetError() << std::endl;
     }
+
+    SDL_Rect dest{x, y, w, h};
 
     //Takes renderer, texture, NULL to copy whole image, &dest to know where to draw the image
     if(SDL_RenderCopy(renderer.get(), image, NULL, &dest) < 0)
-    {
         std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
-    }
 
     return *this;
 }
 
-App& App::imagePos(Image& image, int x, int y, int w, int h)
+App& App::imagePos(const Image& image, int x, int y, int w, int h)
 {
 /*
-* App::imagePos take a Image an render it to screen 
+ * App::imagePos take a Image an render it to screen 
+ *
+ * Postcondition w and h are not less than or equal to zero
 */
     SDL_Rect dest{x, y, w, h};
     
-    if(h == 0 || w == 0)
+    if(h <= 0 || w <= 0)
     {
         dest.w = image.getCurrentImageSrc().w;
         dest.h = image.getCurrentImageSrc().h;
@@ -233,6 +243,17 @@ App& App::imagePos(Image& image, int x, int y, int w, int h)
     if(SDL_RenderCopy(renderer.get(), image.getImageTexture(), &image.getCurrentImageSrc(), &dest) < 0)
         std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
     
+    return *this;
+}
+
+App& App::imagePos(const Messages& message)
+{
+/*
+ * App::imagePos take a message and render it to the screen
+*/
+    if(SDL_RenderCopy(renderer.get(), message.getTexture(), NULL, &message.getDestination()) < 0)
+        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+
     return *this;
 }
 
@@ -275,7 +296,9 @@ Image::Image(std::string_view path, App& app, int x, int y, int w, int h)
 }
 
 Image::Image(Image&& moveFromImage)
- : imageTexture{std::move(moveFromImage.imageTexture)}, images{std::move(moveFromImage.images)}, currentImageNum{moveFromImage.currentImageNum}
+ : imageTexture{std::move(moveFromImage.imageTexture)}, 
+ images{std::move(moveFromImage.images)}, 
+ currentImageNum{moveFromImage.currentImageNum}
 {
 /*
  * Image::Image move image
@@ -324,7 +347,7 @@ Image& Image::operator++(int)
  *
  * Postcondition currentImageNum does not go out of vectors range
 */
-    currentImageNum < images.size()-1 ? currentImageNum++ : currentImageNum = 0;
+    currentImageNum < int(images.size()-1) ? currentImageNum++ : currentImageNum = 0;
 
     return *this;
 }
@@ -347,9 +370,7 @@ Image& Image::operator+=(std::initializer_list<int> addFrames)
  * Precondition addFrames must be divisable by 4
 */
     if(addFrames.size() % 4)
-    {
         std::cerr << "addFrames must be divisable by 4" << std::endl;
-    }
 
     int loops = int(addFrames.size()/4);
     auto currentInt = addFrames.begin();
@@ -377,8 +398,8 @@ inline Image& Image::reset()
 
 Messages::Messages(std::string message, int x, int y, int w, int h, App* app, color newColor)
  : font(TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24)), 
- surfaceMessage(nullptr), 
- Message(nullptr)
+ surfaceMessage(nullptr), Message(nullptr), currentMessage{std::move(message)},
+ Message_rect{x, y, w, h}
 {
 /*
  * Messages::Messages open a font for font pointer and make a surface and texture for renderering to the screen
@@ -387,63 +408,28 @@ Messages::Messages(std::string message, int x, int y, int w, int h, App* app, co
  * Precondition app is not NULL
 */
     if(!app)
-    {
         std::cerr << "app can not be NULL" << std::endl;
-    }
-    else if(w <= 0 || h <= 0)
-    {
+
+    if(w <= 0 || h <= 0)
         std::cerr << "h and w can not be less than or equal to zero" << std::endl;
-    }
     
-    //this opens a font style and sets a size
-    font.reset(TTF_OpenFont("images/GoogleSans-Bold-v3.003.ttf", 24));
-
     if(!font)
-    {
         std::cerr << "TTF_OpenFont failed: " << TTF_GetError() << std::endl;
-    }
     
-    SDL_Color messageColor;
-
-    colorToSDLColor(messageColor, newColor);
-        
-    // You have to create the surface first
-    surfaceMessage.reset(TTF_RenderText_Solid(font.get(), message.c_str(), messageColor));
-
-    if(!surfaceMessage)
-    {
-        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
-    }
-    
-    // now you can convert it into a texture
-    Message.reset(SDL_CreateTextureFromSurface(app->renderer.get(), surfaceMessage.get()));
-
-    if(!Message)
-    {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-    }
-
-    currentMessage = std::move(message);
     currentColor = newColor;
     appPointer = app;      
-    Message_rect.x = x;  //controls the rect's x coordinate
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = w; // controls the width of the rect
-    Message_rect.h = h; // controls the height of the rect
+    
+    updateMessage();
 }
 
 Messages::Messages(Messages&& moveFromMessage)
  : font{std::move(moveFromMessage.font)}, 
- surfaceMessage{std::move(moveFromMessage.surfaceMessage)}, Message{std::move(moveFromMessage.Message)}
+ surfaceMessage{std::move(moveFromMessage.surfaceMessage)}, Message{std::move(moveFromMessage.Message)},
+ Message_rect{moveFromMessage.Message_rect.x, moveFromMessage.Message_rect.y, moveFromMessage.Message_rect.w, moveFromMessage.Message_rect.h}
 {
 /*
  * Messages::Messages move moveFromMessage to new message
 */
-    Message_rect.x = moveFromMessage.Message_rect.x;
-    Message_rect.y = moveFromMessage.Message_rect.y;
-    Message_rect.w = moveFromMessage.Message_rect.w;
-    Message_rect.h = moveFromMessage.Message_rect.h;
-    
     moveFromMessage.Message_rect.x = 0;
     moveFromMessage.Message_rect.y = 0;
     moveFromMessage.Message_rect.w = 0;
@@ -481,90 +467,137 @@ Messages& Messages::newMessage(std::string message, int x, int y, int w, int h, 
 {
 /*
  * Messages::newMessage creates a new message from x y w h and message 
- * 
- * Precondition w and h can not be less than zero
- * Precondition set message to current message if it is invalidMessage
- * Precondition set newColor to currentColor if color is color::none
 */
-    if(message == "invalidMessage")
-    {
-        message = currentMessage;
-    }
+    setCurrentMessage(message);
+    setCurrentCoodinates(x, y, w, h);
+    setCurrentColor(newColor);
     
-    if(newColor == color::none)
-    {
-        newColor = currentColor;
-    }
-
-    if(w < 0 || h < 0)
-    {
-        std::cerr << "new message h and w can not be less than zero" << std::endl;
-    }
-
-    SDL_Color messageColor;
-
-    colorToSDLColor(messageColor, newColor);
-
-    surfaceMessage.reset(TTF_RenderText_Solid(font.get(), message.c_str(), messageColor));
-
-    if(!surfaceMessage)
-    {
-        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
-    }
-    
-    Message.reset(SDL_CreateTextureFromSurface(appPointer->renderer.get(), surfaceMessage.get()));
-
-    if(!Message)
-    {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-    }
-
-    if(currentMessage != message)
-    {
-        currentMessage = std::move(message);
-    }
-
-    if(x != 2345)
-    {
-        Message_rect.x = x;
-    }
-    
-    if(y != 2345)
-    {
-        Message_rect.y = y;
-    }
-    
-    if(w != 0)
-    {
-        Message_rect.w = w;
-    }
-    
-    if(h != 0)
-    {
-        Message_rect.h = h;
-    }
+    updateMessage();
 
     return *this;
 }
 
-Messages& Messages::drawMessage()
+Messages& Messages::setCoodinates(int x, int y, int w, int h)
+{
+/*
+ * Messages::setCoodinates change the x y w and h of message
+ *
+ * Precondition w and h are not less than or equal to zero
+*/
+    if(w <= 0)
+        w = Message_rect.w;
+
+    if(h <= 0)
+        h = Message_rect.h;
+
+    setCurrentCoodinates(x, y, w, h);
+
+    return *this;
+}
+
+Messages& Messages::setNewFont(std::string_view fontPath, int size)
+{
+/*
+ * Messages::setNewFont set font to a new font
+ *
+ * Postcondition font is checked
+*/
+    font.reset(TTF_OpenFont(fontPath.data(), size));
+    
+    if(!font)
+        std::cerr << "TTF_OpenFont failed: " << TTF_GetError() << std::endl;
+
+    return *this;
+}
+
+Messages& Messages::nextRainbowColor()
+{
+/*
+ * Messages::nextRainbowColor change the color to the next color in the rainbow
+*/
+
+    nextInTheRainbow(currentColor);
+    
+    updateMessage();
+        
+    return *this;
+}
+
+Messages& Messages::show()
 {
 /*
  * Message::drawMessage draws message to screen
 */
-    if(SDL_RenderCopy(appPointer->renderer.get(), Message.get(), NULL, &Message_rect) < 0)
-        std::cerr << "SDL_RenderCopy failed: " << SDL_GetError() << std::endl;
+    appPointer->imagePos(*this);
 
     return *this;
 }
 
-//Make helper function soon
-void Messages::colorToSDLColor(SDL_Color& messageColor, color newColor)
+void Messages::updateMessage()
 {
 /*
- * Messages::colorToSDLColor set messageColor to newColor
+ * Messages::updateMessage take the current message and update the texture
 */
-    switch (newColor)
+    SDL_Color messageColor = colorToSDLColor(currentColor);
+    
+    surfaceMessage.reset(TTF_RenderText_Solid(font.get(), currentMessage.c_str(), messageColor));
+    
+    if(!surfaceMessage)
+        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
+
+    Message.reset(appPointer->createTextureFromSurface(surfaceMessage.get()));
+    
+    if(!Message)
+        std::cerr << "App::createTextureFromSurface failed" << std::endl;
+}
+
+void Messages::setCurrentColor(color newColor)
+{
+/*
+ * setCurrentColor change the current color
+ * 
+ * Precondition newColor is not none
+*/
+    if(newColor == color::none)
+        std::cerr << "newColor cannot be color::none" << std::endl;
+    
+    currentColor = newColor;
+}
+
+void Messages::setCurrentCoodinates(int x, int y, int w, int h)
+{
+/*
+ * Messages::setCurrentCoodinates update Message_rect
+*/
+    if(w <= 0)
+        std::cerr << "Message width cannot be less than or equal to zero" << std::endl;
+    
+    if(h <= 0)
+        std::cerr << "Message height cannot be less than or equal to zero" << std::endl;
+
+    Message_rect.x = x;
+    Message_rect.y = y;
+    Message_rect.w = w;
+    Message_rect.h = h;
+}
+
+SDL_Color colorToSDLColor(color currentColor)
+{
+/*
+ * colorToSDLColor return the color of currentColor as a SDL_Color
+*/
+    const SDL_Color White = {255, 255, 255, 225};
+    const SDL_Color Red = {255, 0, 0, 255};
+    const SDL_Color Orange = {255, 165, 0, 255};
+    const SDL_Color Yellow = {255, 255, 0, 255};
+    const SDL_Color Green = {0, 128, 0, 255};
+    const SDL_Color Blue = {0, 0, 255, 255};
+    const SDL_Color Indigo = {75, 0, 130, 255};
+    const SDL_Color Violet = {238, 130, 238, 255};
+
+    SDL_Color messageColor; 
+
+    switch (currentColor)
     {
         case color::red:
             messageColor = Red;
@@ -598,12 +631,14 @@ void Messages::colorToSDLColor(SDL_Color& messageColor, color newColor)
             messageColor = White;
             break;
     }
+
+    return messageColor;
 }
 
-Messages& Messages::nextColor()
+void nextInTheRainbow(color& currentColor)
 {
 /*
- * Messages::nextColor go to next color in rainbow order
+ * nextInTheRainbow loop over the colors in rainbow order
 */
     switch(currentColor)
     {
@@ -639,36 +674,6 @@ Messages& Messages::nextColor()
             currentColor = color::red;
             break;
     }
-
-    return *this;
-}
-
-Messages& Messages::rainbowColorSwitch()
-{
-/*
- * Messages::rainbowColorSwitch make message color the next color in the rainbow
-*/
-    nextColor();
-
-    SDL_Color messageColor;
-
-    colorToSDLColor(messageColor, currentColor);
-
-    surfaceMessage.reset(TTF_RenderText_Solid(font.get(), currentMessage.c_str(), messageColor));
-
-    if(!surfaceMessage)
-    {
-        std::cerr << "TTF_RenderText_Solid failed: " << TTF_GetError() << std::endl;
-    }
-
-    Message.reset(SDL_CreateTextureFromSurface(appPointer->renderer.get(), surfaceMessage.get()));
-
-    if(!Message)
-    {
-        std::cerr << "SDL_CreateTextureFromSurface failed: " << SDL_GetError() << std::endl;
-    }
-
-    return *this;
 }
 
 
@@ -685,9 +690,7 @@ audio::audio(std::string_view path, double iduration)
  * Postcondition currentMusic is vaild
 */
     if(!currentMusic)
-    {
         std::cerr << "Mix_LoadMUS failed: " << Mix_GetError() << std::endl;
-    }
 }
 
 audio::audio(audio&& moveFromAudio)
@@ -706,9 +709,7 @@ audio& audio::operator=(audio&& moveFromAudio)
 * Precondition no self assigment
 */
     if(this != &moveFromAudio)
-    {
         currentMusic = std::move(moveFromAudio.currentMusic);
-    }
 
     return *this;
 }
@@ -719,9 +720,7 @@ inline audio& audio::play(int loops)
  * audio::play play music(negative to play forever)
 */
     if(Mix_PlayMusic(currentMusic.get(), loops) < 0)
-    {
         std::cerr << "Mix_PlayMusic failed: " << Mix_GetError() << std::endl;
-    }
 
     start = std::chrono::steady_clock::now();
     
