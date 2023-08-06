@@ -8,7 +8,7 @@ option(DEBUGGING "Compile with debug flags" OFF)
 
 if(DEBUGGING)
     set(CMAKE_BUILD_TYPE Debug)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall -Wextra")
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
