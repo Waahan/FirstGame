@@ -4,7 +4,7 @@ project(first CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-option(DEBUGGING "Compile with debug flags" OFF)
+option(DEBUGGING "Compile with debug flags" ON)
 
 if(DEBUGGING)
     set(CMAKE_BUILD_TYPE Debug)
@@ -12,6 +12,8 @@ if(DEBUGGING)
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
+
+include_directories(include) 
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -55,5 +57,5 @@ find_library(
     /usr/local/lib64
 )
 
-add_executable(main main.cpp player.cpp visuals.cpp)
+add_executable(main src/main.cpp src/player.cpp src/visuals.cpp src/appleTree.cpp )
 target_link_libraries(main ${SDL2_LIBRARIES} ${SDL_IMAGE_LIB} ${SDL_TTF_LIB} ${SDL_MIX_LIB} Threads::Threads )

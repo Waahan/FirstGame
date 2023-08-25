@@ -116,7 +116,7 @@ App::~App()
     SDL_Quit();
 }
 
-SDL_Texture* App::loadImages(std::string_view imageFile)
+SDL_Texture* App::loadImages(const std::string& imageFile)
 {
 /*
  * App::loadImage return a SDL_Texture pointer

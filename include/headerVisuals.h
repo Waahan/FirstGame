@@ -46,7 +46,7 @@ class App
 
     ~App();
 
-    SDL_Texture *loadImages(std::string_view imageFile);
+    SDL_Texture *loadImages(const std::string& imageFile);
     SDL_Texture* createTextureFromSurface(SDL_Surface* currentSurface);
 
     App& imagePos(SDL_Texture* image, int x, int y, int w = 0, int h = 0);
@@ -258,6 +258,7 @@ class randomGen
     static randomGen& get() { return randomInstance; }
     
     template<typename number>
+    requires std::is_arithmetic_v<number>
     number operator()(number from, number to)
     {
     /*
@@ -268,8 +269,6 @@ class randomGen
      * Concept number is floating or integral 
      * Concept number has less than operator 
     */
-        static_assert(std::is_arithmetic_v<number>, "randomGen operator() must have number input");
-
         assert((from < to) && "randomGen operator() must have a vaild range");
 
         using distribution = std::conditional_t<std::is_floating_point_v<number>, std::uniform_real_distribution<number>, std::uniform_int_distribution<number>>;

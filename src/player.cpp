@@ -32,65 +32,11 @@ thing::thing(int ix, int iy, int iw, int ih, int ihealth, int ispeed, const std:
 * 
 * Postcondition creates a default Image from path
 */    
-    if(iw <= 0 || ih <= 0)
-        std::cerr << "thing w or height can not be less than or equal to zero" << std::endl;
+    assert(!(iw <= 0 || ih <= 0) && "Invalid thing w or h");
         
-    if(ihealth < 0)
-        std::cerr << "health can not be less than zero" << std::endl;
+    assert(!(ihealth < 0) && "Invalid health must be greater than zero");
     
     Images["default"] = Image(path, 0, 0, iw, ih);
-}
-
-thing::thing(thing&& moveFromThing)
- : x{moveFromThing.x}, y{moveFromThing.y}, w{moveFromThing.w}, h{moveFromThing.h}, 
- health{moveFromThing.health}, speed(moveFromThing.speed), 
- currentImage{std::move(moveFromThing.currentImage)}, Images{std::move(moveFromThing.Images)}
-{
-/*
-* thing::thing move constructor moves thing
-*
-* Postcondition all values in thing are moved from thing to new thing
-* Postcondition moveFromThing does not own anything that new thing does
-* Postcondition moveFromThing is not a copy of new thing
-*/
-    moveFromThing.x = 0;
-    moveFromThing.y = 0;
-    moveFromThing.w = 0;
-    moveFromThing.h = 0;
-    moveFromThing.health = 0;
-    moveFromThing.speed = 0;
-}
-
-thing& thing::operator=(thing&& moveFromThing)
-{
-/*
-* thing::operator= move moveFrom thing to an already existing thing 
-* 
-* Precondition no self assigment 
-* Precondition anything this owns is destroyed before move
-*
-* Postcondition all thing::thing(thing&&) postconditions must be met
-*/
-    if(this != &moveFromThing)
-    {
-        x = moveFromThing.x;
-        y = moveFromThing.y;
-        w = moveFromThing.w;
-        h = moveFromThing.h;
-        health = moveFromThing.health;
-        speed = moveFromThing.speed;
-        currentImage = std::move(moveFromThing.currentImage);
-        Images = std::move(moveFromThing.Images);
-
-        moveFromThing.x = 0;
-        moveFromThing.y = 0;
-        moveFromThing.w = 0;
-        moveFromThing.h = 0;
-        moveFromThing.health = 0;
-        moveFromThing.speed = 0;
-    }
-
-    return *this;
 }
 
 thing& thing::logic()
@@ -122,9 +68,6 @@ bool thing::show()
         Images[currentImage]++;
     }
 
-    if(currentImage != "default" && Images[currentImage].done())
-        currentImage = "default";
-    
     return health > 0;
 }
 
@@ -135,8 +78,7 @@ inline thing& thing::setX(int setX)
 * 
 * Precondition setX is in the window 
 */
-    if(setX > App::get().SCREEN_WIDTH || setX < 0)
-        std::cerr << "x can not be less than screen_width or greater than zero" << std::endl;    
+    assert(!(setX > App::get().SCREEN_WIDTH || setX < 0) && "Invalid thing x value");
 
     x = setX;
 
@@ -150,40 +92,9 @@ inline thing& thing::setY(int setY)
 *
 * Precondition setY is in the window 
 */
-    if(setY > App::get().SCREEN_HEIGHT || setY < 0)
-        std::cerr << "y can not be less than screen_height or greater than zero" << std::endl;
+    assert(!(setY > App::get().SCREEN_HEIGHT || setY < 0) && "Invalid thing y value");
 
     y = setY;
-
-    return *this;
-}
-
-inline thing& thing::setW(int setW)
-{
-/*
-* thing::setW set w equal to setW
-*
-* Precondition setW is not less than or equal to zero
-*/
-    if(setW <= 0)
-        std::cerr << "w can not be less than or equal to zero" << std::endl;
-
-    w = setW;
-
-    return *this;
-}
-
-inline thing& thing::setH(int setH)
-{
-/*
-* thing::setH set h equal to setH
-*
-* Precondition setH is not less than or equal to zero
-*/
-    if(setH <= 0)
-        std::cerr << "h can not be less than or equal to zero" << std::endl;
-
-    h = setH;
 
     return *this;
 }

@@ -14,9 +14,36 @@
 
 #include "headerVisuals.h"
 #include "headerPlayer.h"
+#include "headerVectorMath.h"
+#include "headerAppleTree.h"
 
 int main()
 {
+    {
+        appleTree::tree world{vector2f{0.0, -9.8}};
+
+        appleTree::apple floor{vector2f{0.0, -10}, appleTree::appleType::staticApple, 100.0f};
+
+        appleTree::squareCollider floorCollider{100, 100};
+        floor.setCollider(&floorCollider);
+        world.addApple(&floor);
+
+        appleTree::apple object{vector2f{0.0, 0.0}, appleTree::appleType::dynamicApple, 10.0f};
+
+        appleTree::squareCollider objectCollider{10, 10};
+        object.setCollider(&objectCollider);
+        world.addApple(&object);
+
+        for(int i = 0; i < 100; i++)
+        {
+            world.simulate(0.1f);
+
+            std::cout << "Object pos: " << object.getPosition() << std::endl;
+            std::cout << "Floor pos: " << floor.getPosition() << std::endl;
+            std::cin.get();
+        }
+    }
+
     user player(100, 100, 90, 90, 3, 10, "images/Player.png", 30);
 
     enemys enemy(2000, 2000, 90, 90, 0, 0, "images/enemy.png");

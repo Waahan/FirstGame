@@ -26,9 +26,7 @@ Installing on linux
     mkdir build
     cd build
     mkdir images
-    cd images
-    cp ../../images/* .
-    cd ..
+    cp ../images/* images
     cmake ..
     make
     ./main

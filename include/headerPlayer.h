@@ -35,8 +35,8 @@ class thing
     thing(const thing& copyFromThing) = delete;
     thing& operator=(const thing& copyFromThing) = delete;
 
-    thing(thing&& moveFromThing);
-    thing& operator=(thing&& moveFromThing);
+    thing(thing&& moveFromThing) = delete;
+    thing& operator=(thing&& moveFromThing) = delete;
 
     virtual ~thing() = default;
 
@@ -52,8 +52,6 @@ class thing
 
     inline thing& setX(int setX);
     inline thing& setY(int setY);
-    inline thing& setW(int setW);
-    inline thing& setH(int setH);
     inline thing& setSpeed(int setSpeed) noexcept;
     inline thing& setHealth(int setHealth);
 
